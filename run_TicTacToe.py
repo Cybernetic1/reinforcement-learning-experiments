@@ -73,12 +73,12 @@ for i_episode in range(30000):
 			if 'running_reward' not in globals():
 				running_reward = ep_rs_sum
 			else:
-				running_reward = running_reward * 0.99 + ep_rs_sum * 0.01
+				running_reward = running_reward * 0.95 + ep_rs_sum * 0.05
 			if running_reward > DISPLAY_REWARD_THRESHOLD:
 				RENDER = True     # rendering
 
 			if i_episode % 100 == 0:
-				print("episode:", i_episode, "  reward:", int(running_reward))
+				print("episode:", i_episode, " running reward:", int(running_reward))
 
 			vt = RL.learn()
 
