@@ -16,7 +16,7 @@ DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is
 RENDER = False  # rendering wastes time
 
 import gym_tictactoe
-env = gym.make('TicTacToe-v1', symbols=[-1, 1], board_size=3, win_size=3)
+env = gym.make('TicTacToe-v2', symbols=[-1, 1], board_size=3, win_size=3)
 
 user = 0
 done = False
@@ -29,11 +29,13 @@ env.seed(1)     # reproducible, general Policy gradient has high variance
 
 print(env.action_space)
 print(env.state_space)
+print(env.state_space.high)
+print(env.state_space.low)
 
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	learning_rate=0.003,
+	learning_rate=0.002,
 	reward_decay=0.98,
 	# output_graph=True,
 )
@@ -52,13 +54,15 @@ for i_episode in range(30000):
 		elif user == 1:
 			while True:
 				random_act = env.action_space.sample()
-				if state[random_act] == 0:
-					break
+				if (random_act + 1) in state or -(random_act + 1) in state:
+					continue
+				break
 			state_, reward, done, infos = env.step(random_act, 1)
 
 		RL.store_transition(state, action, reward)
 
 		# env.render(mode=None)
+		# print("state vec =", state_)
 
 		# If the game isn't over, change the current player
 		if not done:

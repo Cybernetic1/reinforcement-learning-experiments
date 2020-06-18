@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
 
-import gym_tictactoe
+import tic_tac_toe2
 env = gym.make('TicTacToe-v1', symbols=[-1, 1], board_size=3, win_size=3)
 
 user = 0
@@ -33,7 +33,7 @@ print(env.state_space)
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	learning_rate=0.003,
+	learning_rate=0.002,
 	reward_decay=0.98,
 	# output_graph=True,
 )

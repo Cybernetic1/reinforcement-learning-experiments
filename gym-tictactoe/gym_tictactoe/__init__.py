@@ -8,3 +8,9 @@ register(
     entry_point='gym_tictactoe.tic_tac_toe:TicTacToeEnv',
     reward_threshold=1000
 )
+
+register(
+    id='TicTacToe-v2',
+    entry_point='gym_tictactoe.tic_tac_toe2:TicTacToeEnv',
+    reward_threshold=1000
+)
