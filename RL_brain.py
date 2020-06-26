@@ -13,8 +13,12 @@ gym: 0.8.0
 
 import numpy as np
 import tensorflow.compat.v1 as tf
-
 tf.disable_eager_execution()
+
+import keras.backend as K
+from keras.layers import Dense, Embedding, Lambda, Reshape, Input
+from keras.models import Model, load_model
+from keras.optimizers import Adam
 
 # reproducible
 np.random.seed(1)
@@ -49,10 +53,27 @@ class PolicyGradient:
 		self.sess.run(tf.global_variables_initializer())
 
 	def _build_net(self):
-		with tf.name_scope('inputs'):
-			self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
-			self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
-			self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
+		# with tf.name_scope('inputs'):
+		self.tf_obs = tf.placeholder(tf.int32, [None, self.n_features], name="observations")
+		self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
+		self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
+
+		input_txt=Input(tensor=self.tf_obs)
+		print("input_txt shape=", input_txt.shape)
+		print("datatype=", input_txt.dtype)
+		# Embedding(input dim, output dim, ...)
+		x = Embedding(self.n_features, self.n_features * 2, mask_zero=False)(input_txt)
+		x2 = Reshape((self.n_features, 3, 3))(x)
+		x = Dense(self.n_features, activation='tanh')(x2)
+		Adder = Lambda(lambda x: K.sum(x, axis=1))
+		x = Adder(x)
+		print("x shape=", x.shape)
+		encoded = Dense(self.n_actions)(x)
+		# summer = Model(input_txt, self.encoded)
+		# adam = Adam(lr=1e-4, epsilon=1e-3)
+		# summer.compile(optimizer=adam, loss='mae')
+
+		"""
 		# fc1
 		layer1 = tf.layers.dense(
 			inputs=self.tf_obs,
@@ -89,12 +110,13 @@ class PolicyGradient:
 			bias_initializer=tf.constant_initializer(0.1),
 			name='fc4'
 		)
+		"""
 
-		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
+		self.all_act_prob = tf.nn.softmax(encoded, name='act_prob')  # use softmax to convert to probability
 
 		with tf.name_scope('loss'):
 			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
-			neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
+			neg_log_prob = tf.nn.softmax_cross_entropy_with_logits(logits=encoded, labels=self.tf_acts)   # this is negative log of chosen action
 			# or in this way:
 			# neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
 			loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
@@ -115,6 +137,10 @@ class PolicyGradient:
 	def learn(self):
 		# discount and normalize episode reward
 		discounted_ep_rs_norm = self._discount_and_norm_rewards()
+
+		input_txt = np.vstack(self.ep_obs)
+		print("*shape input_txt=", input_txt.shape)
+		print("*dtype input_txt=", input_txt.dtype)
 
 		# train on episode
 		self.sess.run(self.train_op, feed_dict={

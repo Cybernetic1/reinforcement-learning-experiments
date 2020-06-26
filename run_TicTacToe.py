@@ -40,7 +40,7 @@ RL = PolicyGradient(
 	# output_graph=True,
 )
 
-# print(RL.n_features)
+print("n_features=", RL.n_features)
 
 for i_episode in range(30000):
 	state = env.reset()
