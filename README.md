@@ -58,3 +58,28 @@ Each **proposition** = (x, y, p) is a vector of dimension 3, where (x, y) is the
 This results in the symmetric NN looking like this:
 
 <img src="g-and-h-networks.png" width="300"/>
+
+## To run
+
+Requires
+
+     TensorFlow 2.0
+     Python 3.6
+
+Run this to install Gym TicTacToe:
+
+     cd gym-tictactoe
+     python setup.py install
+
+The first demo is "plain" policy gradient:
+
+    python run_TicTacToe1.py
+
+Second demo is policy gradient + symmetric NN:
+
+    python run_TicTacToe.py
+
+The other python programs are broken because I've modified RL_brain.py:
+
+    run_CartPole.py
+    run_MountainCar.py
