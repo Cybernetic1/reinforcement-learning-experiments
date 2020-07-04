@@ -71,14 +71,14 @@ class PolicyGradient:
 		print("y0 shape=", ys[0].shape)
 		zs = []
 		for i in range(9):
-			zs.append( Dense(1, input_shape=(None, 3), activation='tanh')(xs[i]) )
+			zs.append( Dense(3, input_shape=(None, 3), activation='tanh')(xs[i]) )
 		print("z0 shape=", zs[0].shape)
-		z = Concatenate(axis=1)(zs)
-		print("z shape after concat=", z.shape)
+		z = K.stack(zs, axis=1)
+		print("z shape after stack=", z.shape)
 		Adder = Lambda(lambda x: K.sum(x, axis=1))
 		z = Adder(z)
 		print("z shape after Adder=", z.shape)
-		encoded = Dense(1)(z)
+		all_act = Dense(self.n_actions)(z)
 		# summer = Model(input_txt, self.encoded)
 		# adam = Adam(lr=1e-4, epsilon=1e-3)
 		# summer.compile(optimizer=adam, loss='mae')
@@ -122,11 +122,11 @@ class PolicyGradient:
 		)
 		"""
 
-		self.all_act_prob = tf.nn.softmax(encoded, name='act_prob')  # use softmax to convert to probability
+		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
 		with tf.name_scope('loss'):
 			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
-			neg_log_prob = tf.nn.softmax_cross_entropy_with_logits(logits=encoded, labels=self.tf_acts)   # this is negative log of chosen action
+			neg_log_prob = tf.nn.softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
 			# or in this way:
 			# neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
 			loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss

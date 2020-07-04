@@ -140,7 +140,7 @@ class TicTacToeEnv(gym.Env):
 				reward_type = 'still_in_game'
 				done = False
 
-		self.index += 1
+		self.index += 3
 
 		return numpy.array(self.state_vector), self.rewards[reward_type], done, {'already_used_position': is_position_already_used}
 

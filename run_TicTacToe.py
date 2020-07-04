@@ -46,8 +46,8 @@ for i_episode in range(30000):
 	state = env.reset()
 
 	done = False
-	while not done:
-		action = RL.choose_action(state)
+	while not done:			# loop per game
+		action = RL.choose_action(state)			# this is an int ∈ {0,...,8}
 
 		if user == 0:
 			state_, reward, done, infos = env.step(action, -1)
