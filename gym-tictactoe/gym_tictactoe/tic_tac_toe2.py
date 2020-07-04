@@ -17,8 +17,10 @@ class TicTacToeEnv(gym.Env):
 		}
 		self.action_space = spaces.Discrete(self.board_size * self.board_size)
 
-		self.state_space = spaces.Box( numpy.array([-9,-9,-9, -9,-9,-9, -9,-9,-9]), \
-									   numpy.array([  9,9,9,    9,9,9,    9,9,9 ]) )
+		# State space has 9 elements, each element is a vector of dim 3
+		self.state_space = spaces.Box(
+		numpy.array([0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1]), \
+		numpy.array([3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1]) )
 
 		self.rewards = {
 			'still_in_game': 0.0,
@@ -28,7 +30,7 @@ class TicTacToeEnv(gym.Env):
 			}
 
 	def reset(self):
-		self.state_vector = (self.board_size * self.board_size) * [0]
+		self.state_vector = (3 * self.board_size * self.board_size) * [0]
 		self.index = 0			# current state_vector position to write into
 		self.board = (self.board_size * self.board_size) * [0]
 		return numpy.array(self.state_vector)
@@ -117,12 +119,16 @@ class TicTacToeEnv(gym.Env):
 
 		if is_position_already_used:
 			self.board[action] = "Bad"
-			self.state_vector[self.index] = "Bad"
+			self.state_vector[self.index] = 0
+			self.state_vector[self.index + 1] = 0
+			self.state_vector[self.index + 2] = "Bad"
 			reward_type = 'bad_position'
 			done = True
 		else:
 			self.board[action] = symbol
-			self.state_vector[self.index] = symbol * (action + 1)
+			self.state_vector[self.index] = action % 3
+			self.state_vector[self.index + 1] = action // 3
+			self.state_vector[self.index + 2] = symbol
 
 			if self.is_win():
 				reward_type = 'win'
