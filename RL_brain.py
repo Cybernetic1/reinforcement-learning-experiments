@@ -16,7 +16,7 @@ import tensorflow.compat.v1 as tf
 tf.disable_eager_execution()
 
 import keras.backend as K
-from keras.layers import Dense, Embedding, Lambda, Reshape, Input, concatenate
+from keras.layers import Dense, Embedding, Lambda, Reshape, Input, Concatenate
 from keras.models import Model, load_model
 from keras.optimizers import Adam
 
@@ -64,19 +64,21 @@ class PolicyGradient:
 		# Embedding(input dim, output dim, ...)
 		# x = Embedding(self.n_features, self.n_features * 2, mask_zero=False)(input_txt)
 		# x2 = Reshape((3, 9))(x)
-		xs = tf.split(input_txt, 9, axis=0)
+		xs = tf.split(input_txt, 9, axis=1)
 		ys = []
 		for i in range(9):
-			ys.append( Dense(3, input_shape=(3, ), activation='tanh')(xs[i]) )
+			ys.append( Dense(3, input_shape=(None, 3), activation='tanh')(xs[i]) )
+		print("y0 shape=", ys[0].shape)
 		zs = []
 		for i in range(9):
-			zs.append( Dense(1, input_shape=(3, ), activation='tanh')(xs[i]) )
-		z = concatenate(zs)
+			zs.append( Dense(1, input_shape=(None, 3), activation='tanh')(xs[i]) )
+		print("z0 shape=", zs[0].shape)
+		z = Concatenate(axis=1)(zs)
 		print("z shape after concat=", z.shape)
 		Adder = Lambda(lambda x: K.sum(x, axis=1))
 		z = Adder(z)
 		print("z shape after Adder=", z.shape)
-		encoded = Dense(1)(x)
+		encoded = Dense(1)(z)
 		# summer = Model(input_txt, self.encoded)
 		# adam = Adam(lr=1e-4, epsilon=1e-3)
 		# summer.compile(optimizer=adam, loss='mae')

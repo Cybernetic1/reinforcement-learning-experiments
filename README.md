@@ -54,3 +54,7 @@ The "old" state vector is just a simple array of size 3 &times; 3 = 9, with each
 The new state vector uses a **sequence** of moves to represent the state.  This is because I want the new state to be a **set** of propositions, not just one big proposition.
 
 Each **proposition** = (x, y, p) is a vector of dimension 3, where (x, y) is the 3 &times; 3 square position and p represents player 1, -1 or empty (0).  All 3 numbers can vary continuously;  We just map some intervals to the discrete values.  This is analogous to the way we would embed "concepts" in vector space in the future.
+
+This results in the symmetric NN looking like this:
+
+<img src="g-and-h-networks.png" width="300"/>
