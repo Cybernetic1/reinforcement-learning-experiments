@@ -17,14 +17,6 @@ RENDER = False  # rendering wastes time
 
 import gym_tictactoe
 env = gym.make('TicTacToe-v2', symbols=[-1, 1], board_size=3, win_size=3)
-
-user = 0
-done = False
-reward = 0
-
-# Reset the env before playing
-state = env.reset()
-
 env.seed(1)     # reproducible, general Policy gradient has high variance
 
 print(env.action_space)
@@ -46,23 +38,41 @@ for i_episode in range(30000):
 	state = env.reset()
 
 	done = False
-	while not done:			# loop per game
-		action = RL.choose_action(state)			# this is an int ∈ {0,...,8}
+	user = 0
+	reward1 = reward2 = 0
+	while not done:
 
 		if user == 0:
-			state_, reward, done, infos = env.step(action, -1)
+			action1 = RL.choose_action(state)
+			state1, reward1, done, infos = env.step(action1, -1)
+			if done:
+				RL.store_transition(state, action1, reward1)
+				state = state1
+				reward1 = reward2 = 0
 		elif user == 1:
 			while True:
 				random_act = env.action_space.sample()
-				if (random_act + 1) in state or -(random_act + 1) in state:
-					continue
-				break
-			state_, reward, done, infos = env.step(random_act, 1)
-
-		RL.store_transition(state, action, reward)
+				x = random_act % 3
+				y = random_act // 3
+				found = False
+				for i in range(0, 27, 3):
+					chunk = state1[i : i + 3]
+					# print("chunk=",chunk)
+					if ([x,y,1] == chunk).all():
+						found = True
+						break
+					if ([x,y,-1] == chunk).all():
+						found = True
+						break
+				if not found:
+					break
+			state2, reward2, done, infos = env.step(random_act, 1)
+			RL.store_transition(state, action1, reward1 + reward2)
+			state = state2
+			reward1 = reward2 = 0
 
 		# env.render(mode=None)
-		# print("state vec =", state_)
+		# print("state vec =", state)
 
 		# If the game isn't over, change the current player
 		if not done:
@@ -101,5 +111,3 @@ for i_episode in range(30000):
 					# print("AI wins ! AI Reward : " + str(reward))
 				# elif user == 1:
 					# print("Random wins ! AI Reward : " + str(reward))
-
-		state = state_

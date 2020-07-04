@@ -5,7 +5,7 @@ from gym.envs.registration import register
 
 register(
     id='TicTacToe-v1',
-    entry_point='gym_tictactoe.tic_tac_toe:TicTacToeEnv',
+    entry_point='gym_tictactoe.tic_tac_toe1:TicTacToeEnv',
     reward_threshold=1000
 )
 

@@ -9,22 +9,14 @@ gym: 0.8.0
 """
 
 import gym
-from RL_brain import PolicyGradient
+from RL_brain1 import PolicyGradient
 import matplotlib.pyplot as plt
 
 DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
 
-import tic_tac_toe2
+import gym_tictactoe
 env = gym.make('TicTacToe-v1', symbols=[-1, 1], board_size=3, win_size=3)
-
-user = 0
-done = False
-reward = 0
-
-# Reset the env before playing
-state = env.reset()
-
 env.seed(1)     # reproducible, general Policy gradient has high variance
 
 print(env.action_space)
@@ -44,19 +36,26 @@ for i_episode in range(30000):
 	state = env.reset()
 
 	done = False
+	user = 0
+	reward1 = reward2 = 0
 	while not done:
-		action = RL.choose_action(state)
 
 		if user == 0:
-			state_, reward, done, infos = env.step(action, -1)
+			action1 = RL.choose_action(state)
+			state1, reward1, done, infos = env.step(action1, -1)
+			if done:
+				RL.store_transition(state, action1, reward1)
+				state = state1
+				reward1 = reward2 = 0
 		elif user == 1:
 			while True:
 				random_act = env.action_space.sample()
-				if state[random_act] == 0:
+				if state1[random_act] == 0:
 					break
-			state_, reward, done, infos = env.step(random_act, 1)
-
-		RL.store_transition(state, action, reward)
+			state2, reward2, done, infos = env.step(random_act, 1)
+			RL.store_transition(state, action1, reward1 + reward2)
+			state = state2
+			reward1 = reward2 = 0
 
 		# env.render(mode=None)
 
@@ -97,5 +96,3 @@ for i_episode in range(30000):
 					# print("AI wins ! AI Reward : " + str(reward))
 				# elif user == 1:
 					# print("Random wins ! AI Reward : " + str(reward))
-
-		state = state_

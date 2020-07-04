@@ -1,3 +1,4 @@
+
 """
 This part of code is the reinforcement learning brain, which is a brain of the agent.
 All decisions are made in here.
@@ -13,12 +14,8 @@ gym: 0.8.0
 
 import numpy as np
 import tensorflow.compat.v1 as tf
-tf.disable_eager_execution()
 
-import keras.backend as K
-from keras.layers import Dense, Embedding, Lambda, Reshape, Input, Concatenate
-from keras.models import Model, load_model
-from keras.optimizers import Adam
+tf.disable_eager_execution()
 
 # reproducible
 np.random.seed(1)
@@ -53,34 +50,10 @@ class PolicyGradient:
 		self.sess.run(tf.global_variables_initializer())
 
 	def _build_net(self):
-		# with tf.name_scope('inputs'):
-		self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
-		self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
-		self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
-
-		# input_txt=Input(tensor=self.tf_obs)
-		# print("input_txt shape=", input_txt.shape)
-		# print("input_txt dtype=", input_txt.dtype)
-		# Embedding(input dim, output dim, ...)
-		# x = Embedding(self.n_features, self.n_features * 2, mask_zero=False)(input_txt)
-		# x2 = Reshape((3, 9))(x)
-		xs = tf.split(self.tf_obs, 9, axis=1)
-		ys = []
-		for i in range(9):
-			ys.append( Dense(3, input_shape=(None, 3), activation='tanh')(xs[i]) )
-		# print("y0 shape=", ys[0].shape)
-		zs = []
-		for i in range(9):
-			zs.append( Dense(3, input_shape=(None, 3), activation='tanh')(xs[i]) )
-		# print("z0 shape=", zs[0].shape)
-		z = K.stack(zs, axis=1)
-		# print("z shape after stack=", z.shape)
-		Adder = Lambda(lambda x: K.sum(x, axis=1))
-		z = Adder(z)
-		# print("z shape after Adder=", z.shape)
-		all_act = Dense(self.n_actions)(z)
-
-		"""
+		with tf.name_scope('inputs'):
+			self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
+			self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
+			self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
 		# fc1
 		layer1 = tf.layers.dense(
 			inputs=self.tf_obs,
@@ -117,7 +90,6 @@ class PolicyGradient:
 			bias_initializer=tf.constant_initializer(0.1),
 			name='fc4'
 		)
-		"""
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
@@ -135,10 +107,7 @@ class PolicyGradient:
 
 	def choose_action(self, observation):
 		prob_weights = self.sess.run(self.all_act_prob, feed_dict={self.tf_obs: observation[np.newaxis, :]})
-		# print("probs=", prob_weights)
-		p = prob_weights.reshape(-1)
-		# print("p=", p)
-		action = np.random.choice(range(prob_weights.shape[1]), p=p)  # select action w.r.t the actions prob
+		action = np.random.choice(range(prob_weights.shape[1]), p=prob_weights.ravel())  # select action w.r.t the actions prob
 		return action
 
 	def store_transition(self, s, a, r):		# state, action, reward
@@ -156,8 +125,6 @@ class PolicyGradient:
 		# acts = np.array(self.ep_as)
 		# print("*shape acts=", acts.shape)
 		# print("*dtype acts=", acts.dtype)
-		# acts2 = np.vstack(self.ep_as)
-		# print("*shape acts2=", acts2.shape)
 
 		# train on episode
 		self.sess.run(self.train_op, feed_dict={
@@ -171,7 +138,6 @@ class PolicyGradient:
 
 	def _discount_and_norm_rewards(self):
 		# discount episode rewards
-		# print("ep_rs=", self.ep_rs)
 		discounted_ep_rs = np.zeros_like(self.ep_rs)
 		running_add = 0
 		for t in reversed(range(0, len(self.ep_rs))):
@@ -183,4 +149,3 @@ class PolicyGradient:
 		discounted_ep_rs -= np.mean(discounted_ep_rs)
 		discounted_ep_rs /= np.std(discounted_ep_rs)
 		return discounted_ep_rs
-
