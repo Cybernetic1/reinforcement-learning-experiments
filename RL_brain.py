@@ -67,18 +67,19 @@ class PolicyGradient:
 		xs = tf.split(self.tf_obs, 9, axis=1)
 		ys = []
 		for i in range(9):
-			ys.append( Dense(3, input_shape=(None, 3), activation='tanh')(xs[i]) )
+			ys.append( Dense(6, input_shape=(None, 3), activation='tanh')(xs[i]) )
 		# print("y0 shape=", ys[0].shape)
 		zs = []
 		for i in range(9):
-			zs.append( Dense(3, input_shape=(None, 3), activation='tanh')(xs[i]) )
+			zs.append( Dense(9, input_shape=(None, 6), activation='tanh')(xs[i]) )
 		# print("z0 shape=", zs[0].shape)
 		z = K.stack(zs, axis=1)
 		# print("z shape after stack=", z.shape)
 		Adder = Lambda(lambda x: K.sum(x, axis=1))
 		z = Adder(z)
 		# print("z shape after Adder=", z.shape)
-		all_act = Dense(self.n_actions)(z)
+		z2 = Dense(self.n_actions)(z)
+		all_act = Dense(self.n_actions)(z2)
 
 		"""
 		# fc1
