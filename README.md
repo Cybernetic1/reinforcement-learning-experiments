@@ -59,6 +59,10 @@ This results in the symmetric NN looking like this:
 
 <img src="g-and-h-networks.png" width="300"/>
 
+where the overall symmetrtic function F has the form:
+
+ F( x<sub>1</sub>, ..., x<sub>n</sub> ) = g( h(x<sub>1</sub>) + ... + h(x<sub>1</sub>) ).
+
 ## To run
 
 Requires
