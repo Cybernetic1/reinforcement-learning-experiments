@@ -87,3 +87,7 @@ The other python programs are broken because I've modified RL_brain.py:
 
     run_CartPole.py
     run_MountainCar.py
+
+This is the first run and I believe it shows convergence:
+
+<img src="TTT2-test2-convergence.png" width="400"/>
