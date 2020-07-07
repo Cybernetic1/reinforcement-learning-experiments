@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-f = open("TTT2-test2-results.txt", 'r')
+f = open("TTT2-test3-results.txt", 'r')
 
 data = []
 for line in f:

@@ -90,4 +90,4 @@ The other python programs are broken because I've modified RL_brain.py:
 
 This is the first run and I believe it shows convergence:
 
-<img src="TTT2-test2-convergence.png" width="400"/>
+<img src="TTT2-test3-convergence.png" width="400"/>
