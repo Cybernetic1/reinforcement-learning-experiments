@@ -95,6 +95,8 @@ class PolicyGradient:
 			name='fc4'
 		)
 
+		# total number of weights = 9 * 9 + 9 * 7 + 7 * 5 + 5 * 9 = 81 + 63 + 35 + 45 = 224
+
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
 		with tf.name_scope('loss'):

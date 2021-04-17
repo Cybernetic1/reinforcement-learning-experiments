@@ -87,6 +87,8 @@ class PolicyGradient:
 		z2 = Dense(self.n_actions)(z)				# input shape = [None, 9]
 		all_act = Dense(self.n_actions)(z2)			# [None, 9] again
 
+		# Total number of weights = 3 * 6 + 6 * 9 + 9 * 9 + 9 * 9 = 18 + 54 + 81 + 81 = 234
+
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
 		with tf.name_scope('loss'):
