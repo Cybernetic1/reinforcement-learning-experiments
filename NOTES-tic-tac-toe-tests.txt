@@ -1,0 +1,37 @@
+Fully-connected RL, Tic Tac Toe
+===============================
+
+Defined in gym-tictactoe/gym_tictactoe/tic_tac_toe1.py:
+
+* action space = 3 x 3 = 9-dim vector
+
+* state space = 3 x 3 = 9-dim vector with values from [-1,1], 0 = empty square
+* n_features = 9
+
+This is the "free" version, where the state vector is a 3 x 3 = 9-vector
+
+Network topology = 9-inputs -9-7-5- 9-outputs
+
+Total number of independent weights:
+
+
+Symmetric NN + RL, Tic Tac Toe
+==============================
+
+Defined in gym-tictactoe/gym_tictactoe/tic_tac_toe2.py:
+
+* action space = 3 x 3 = 9-dim vector
+
+* state space = 3 x 3 = 9 propositions,
+	each proposition = 3-dim vector (thus totally 27-dim vector)
+	where each proposition = (player, row, column) taking values from [-1,1], [0,3], [0,3] respectively
+* n_features = 27
+
+Network topology:
+
+* h-network:  3-inputs, -6-9- , 9-outputs
+(each h-network is repeated 9 times)
+
+* g-network:  9-inputs, -9-9- , 9-outputs
+
+Total number of independent weights: 

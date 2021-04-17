@@ -1,4 +1,8 @@
 """
+Symmetric NN version.
+
+Network topology: 9-inputs, h = -6-9-, g = -9-9- 
+=====================================================================================
 This part of code is the reinforcement learning brain, which is a brain of the agent.
 All decisions are made in here.
 
@@ -64,63 +68,24 @@ class PolicyGradient:
 		# Embedding(input dim, output dim, ...)
 		# x = Embedding(self.n_features, self.n_features * 2, mask_zero=False)(input_txt)
 		# x2 = Reshape((3, 9))(x)
-		xs = tf.split(self.tf_obs, 9, axis=1)
-		shared_layer1 = Dense(6, input_shape=(None, 3), activation='tanh')
+		xs = tf.split(self.tf_obs, 9, axis=1)		# split tensor into 9 parts, each part is 3-dims wide. ie, shape = [None, 3]
+		shared_layer1 = Dense(6, input_shape=(None, 3), activation='tanh')		# output shape = [None, 6]
 		ys = []
-		for i in range(9):
+		for i in range(9):							# repeat the 1st layer 9 times
 			ys.append( shared_layer1(xs[i]) )
 		# print("y0 shape=", ys[0].shape)
-		shared_layer2 = Dense(9, input_shape=(None, 3), activation='tanh')
+		shared_layer2 = Dense(9, input_shape=(None, 3), activation='tanh')		# output shape = [None, 9]
 		zs = []
-		for i in range(9):
+		for i in range(9):							# repeat the 2nd layer 9 times
 			zs.append( shared_layer2(ys[i]) )
 		# print("z0 shape=", zs[0].shape)
-		z = K.stack(zs, axis=1)
+		z = K.stack(zs, axis=1)						# output zs = 9 * [None, 9].
 		# print("z shape after stack=", z.shape)
-		Adder = Lambda(lambda x: K.sum(x, axis=1))
+		Adder = Lambda(lambda x: K.sum(x, axis=1))	# whatever this is, it means summing over the 9 dimensions
 		z = Adder(z)
 		# print("z shape after Adder=", z.shape)
-		z2 = Dense(self.n_actions)(z)
-		all_act = Dense(self.n_actions)(z2)
-
-		"""
-		# fc1
-		layer1 = tf.layers.dense(
-			inputs=self.tf_obs,
-			units=9,
-			activation=tf.nn.tanh,  # tanh activation
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc1'
-		)
-		# fc2
-		layer2 = tf.layers.dense(
-			inputs=layer1,
-			units=7,
-			activation=tf.nn.tanh,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc2'
-		)
-		# fc3
-		layer3 = tf.layers.dense(
-			inputs=layer2,
-			units=5,
-			activation=tf.nn.tanh,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc3'
-		)
-		# fc4
-		all_act = tf.layers.dense(
-			inputs=layer3,
-			units=self.n_actions,
-			activation=None,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc4'
-		)
-		"""
+		z2 = Dense(self.n_actions)(z)				# input shape = [None, 9]
+		all_act = Dense(self.n_actions)(z2)			# [None, 9] again
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 

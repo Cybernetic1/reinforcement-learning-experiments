@@ -1,5 +1,9 @@
-
 """
+This is the original version, where the state vector is a 3 x 3 = 9-vector
+
+Network topology = 9-inputs -9-7-5- 9-outputs
+
+=====================================================================================
 This part of code is the reinforcement learning brain, which is a brain of the agent.
 All decisions are made in here.
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<EnvSettings>
+    <Rewards>
+        <Reward description="still_in_game" reward="0" />
+        <Reward description="draw" reward="10" />
+        <Reward description="win" reward="20" />
+        <Reward description="bad_position" reward="-20" />       
+    </Rewards>
+</EnvSettings>
