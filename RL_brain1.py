@@ -1,5 +1,9 @@
-
 """
+This is the original version, where the state vector is a 3 x 3 = 9-vector
+
+Network topology = 9-inputs -9-7-5- 9-outputs
+
+=====================================================================================
 This part of code is the reinforcement learning brain, which is a brain of the agent.
 All decisions are made in here.
 
@@ -90,6 +94,8 @@ class PolicyGradient:
 			bias_initializer=tf.constant_initializer(0.1),
 			name='fc4'
 		)
+
+		# total number of weights = 9 * 9 + 9 * 7 + 7 * 5 + 5 * 9 = 81 + 63 + 35 + 45 = 224
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 

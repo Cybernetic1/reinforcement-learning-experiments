@@ -1,4 +1,8 @@
 """
+Symmetric NN version.
+
+Network topology: 9-inputs, h = -6-9-, g = -9-9- 
+=====================================================================================
 This part of code is the reinforcement learning brain, which is a brain of the agent.
 All decisions are made in here.
 
@@ -79,22 +83,26 @@ class PolicyGradient:
 		"""
 
 		shared_layer1 = Dense(6, input_shape=(None, 3), activation='tanh')
+		xs = tf.split(self.tf_obs, 9, axis=1)		# split tensor into 9 parts, each part is 3-dims wide. ie, shape = [None, 3]
+		# output shape = [None, 6]
 		ys = []
-		for i in range(9):
+		for i in range(9):							# repeat the 1st layer 9 times
 			ys.append( shared_layer1(xs[i]) )
 		# print("y0 shape=", ys[0].shape)
-		shared_layer2 = Dense(9, input_shape=(None, 3), activation='tanh')
+		shared_layer2 = Dense(9, input_shape=(None, 3), activation='tanh')		# output shape = [None, 9]
 		zs = []
-		for i in range(9):
+		for i in range(9):							# repeat the 2nd layer 9 times
 			zs.append( shared_layer2(ys[i]) )
 		# print("z0 shape=", zs[0].shape)
-		z = K.stack(zs, axis=1)
+		z = K.stack(zs, axis=1)						# output zs = 9 * [None, 9].
 		# print("z shape after stack=", z.shape)
-		Adder = Lambda(lambda x: K.sum(x, axis=1))
+		Adder = Lambda(lambda x: K.sum(x, axis=1))	# whatever this is, it means summing over the 9 dimensions
 		z = Adder(z)
 		# print("z shape after Adder=", z.shape)
-		z2 = Dense(self.n_actions)(z)
-		all_act = Dense(self.n_actions)(z2)
+		z2 = Dense(self.n_actions)(z)				# input shape = [None, 9]
+		all_act = Dense(self.n_actions)(z2)			# [None, 9] again
+
+		# Total number of weights = 3 * 6 + 6 * 9 + 9 * 9 + 9 * 9 = 18 + 54 + 81 + 81 = 234
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
