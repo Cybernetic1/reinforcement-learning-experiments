@@ -65,6 +65,19 @@ class PolicyGradient:
 		# x = Embedding(self.n_features, self.n_features * 2, mask_zero=False)(input_txt)
 		# x2 = Reshape((3, 9))(x)
 		xs = tf.split(self.tf_obs, 9, axis=1)
+
+		"""  *** DEMO CODE ***
+		h = Dense(3, activation='tanh')
+		ys = []
+		for i in range(9):
+			ys.append( h(xs[i]) )
+		y = Keras.stack(ys, axis=1)
+		Adder = Lambda(lambda x: Keras.sum(x, axis=1))
+		y = Adder(y)
+		g = Dense(3)
+		output = g(y)
+		"""
+
 		shared_layer1 = Dense(6, input_shape=(None, 3), activation='tanh')
 		ys = []
 		for i in range(9):
@@ -82,45 +95,6 @@ class PolicyGradient:
 		# print("z shape after Adder=", z.shape)
 		z2 = Dense(self.n_actions)(z)
 		all_act = Dense(self.n_actions)(z2)
-
-		"""
-		# fc1
-		layer1 = tf.layers.dense(
-			inputs=self.tf_obs,
-			units=9,
-			activation=tf.nn.tanh,  # tanh activation
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc1'
-		)
-		# fc2
-		layer2 = tf.layers.dense(
-			inputs=layer1,
-			units=7,
-			activation=tf.nn.tanh,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc2'
-		)
-		# fc3
-		layer3 = tf.layers.dense(
-			inputs=layer2,
-			units=5,
-			activation=tf.nn.tanh,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc3'
-		)
-		# fc4
-		all_act = tf.layers.dense(
-			inputs=layer3,
-			units=self.n_actions,
-			activation=None,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc4'
-		)
-		"""
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
