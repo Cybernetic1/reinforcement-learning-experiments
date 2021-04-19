@@ -2,8 +2,9 @@
 Symmetric NN version.
 
 Network topology: 9-inputs, h = -6-9-, g = -9-9- 
-=====================================================================================
-This part of code is the reinforcement learning brain, which is a brain of the agent.
+======================================================
+This part of code is the reinforcement learning brain,
+which is a brain of the agent.
 All decisions are made in here.
 
 Policy Gradient, Reinforcement Learning.
@@ -89,7 +90,7 @@ class PolicyGradient:
 		for i in range(9):							# repeat the 1st layer 9 times
 			ys.append( shared_layer1(xs[i]) )
 		# print("y0 shape=", ys[0].shape)
-		shared_layer2 = Dense(9, input_shape=(None, 3), activation='tanh')		# output shape = [None, 9]
+		shared_layer2 = Dense(9, input_shape=(None, 6), activation='tanh')		# output shape = [None, 9]
 		zs = []
 		for i in range(9):							# repeat the 2nd layer 9 times
 			zs.append( shared_layer2(ys[i]) )
@@ -102,7 +103,9 @@ class PolicyGradient:
 		z2 = Dense(self.n_actions)(z)				# input shape = [None, 9]
 		all_act = Dense(self.n_actions)(z2)			# [None, 9] again
 
-		# Total number of weights = 3 * 6 + 6 * 9 + 9 * 9 + 9 * 9 = 18 + 54 + 81 + 81 = 234
+		# Total number of (independent) weights = 3 * 6 + 6 * 9 + 9 * 9 + 9 * 9 = 18 + 54 + 81 + 81 = 234.
+		# Alternatively if: 3 * 6 + 6 * 8 + 8 * 9 + 9 * 9 = 18 + 48 + 72 + 81 = 90 + 40 + 89 = 130 + 89 = 219.
+		# Total number of weights (including repeated ones) = 3*6*9 + 6*9*9 + 9*9 + 9*9 = 162 + 486 + 81 + 81 = 810.
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 

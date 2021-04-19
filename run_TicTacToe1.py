@@ -32,7 +32,9 @@ RL = PolicyGradient(
 
 # print(RL.n_features)
 
-for i_episode in range(30000):
+# for i_episode in range(30000):
+i_episode = 0
+while True:
 	state = env.reset()
 
 	done = False
