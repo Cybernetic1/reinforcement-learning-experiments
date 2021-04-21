@@ -35,3 +35,8 @@ Network topology:
 * g-network:  9-inputs, -9-9- , 9-outputs
 
 Total number of independent weights: 
+
+To-Do:
+======
+
+* display win, draw, lose, stall

@@ -70,7 +70,7 @@ while True:
 				if not found:
 					break
 			state2, reward2, done, infos = env.step(random_act, 1)
-			RL.store_transition(state, action1, reward1 + reward2)
+			RL.store_transition(state, action1, reward1 - reward2)
 			state = state2
 			reward1 = reward2 = 0
 

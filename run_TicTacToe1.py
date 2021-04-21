@@ -55,7 +55,7 @@ while True:
 				if state1[random_act] == 0:
 					break
 			state2, reward2, done, infos = env.step(random_act, 1)
-			RL.store_transition(state, action1, reward1 + reward2)
+			RL.store_transition(state, action1, reward1 - reward2)		# why is it r1 + r2? wouldn't the rewards cancel out each other? 
 			state = state2
 			reward1 = reward2 = 0
 

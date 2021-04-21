@@ -42,7 +42,7 @@ class TicTacToeEnv(gym.Env):
 
 		return self.check_diagonal()
 
-	def check_horizontal(self):
+	def check_horizontal(self):				# returns True if EITHER player has a full row
 		grid = self.state_vector
 		cnt = 0
 		for i in range(0, self.board_size * self.board_size, self.board_size):
