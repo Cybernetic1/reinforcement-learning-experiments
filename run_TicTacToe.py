@@ -12,7 +12,7 @@ import gym
 from RL_brain import PolicyGradient
 import matplotlib.pyplot as plt
 
-DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is greater then this threshold
+DISPLAY_REWARD_THRESHOLD = 20  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
 
 import gym_tictactoe
@@ -27,8 +27,8 @@ print(env.state_space.low)
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	learning_rate=0.002,
-	reward_decay=0.98,
+	# learning_rate=0.002,
+	reward_decay=0.9,
 	# output_graph=True,
 )
 
@@ -86,12 +86,14 @@ while True:
 			if 'running_reward' not in globals():
 				running_reward = ep_rs_sum
 			else:
-				running_reward = running_reward * 0.95 + ep_rs_sum * 0.05
-			if running_reward > DISPLAY_REWARD_THRESHOLD:
+				running_reward = running_reward * 0.8 + ep_rs_sum * 0.2
+			if running_reward >= DISPLAY_REWARD_THRESHOLD:
 				RENDER = True     # rendering
 
 			if i_episode % 100 == 0:
-				print("episode:", i_episode, " running reward:", int(running_reward))
+				rr = int(running_reward)
+				print(i_episode, "running reward:", "\x1b[32m" if rr >= 0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
+				# RL.set_learning_rate(i_episode)
 
 			vt = RL.learn()
 

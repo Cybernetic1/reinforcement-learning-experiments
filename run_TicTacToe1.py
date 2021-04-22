@@ -25,7 +25,7 @@ print(env.state_space)
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	learning_rate=0.002,
+	# learning_rate=0.002,
 	reward_decay=0.98,
 	# output_graph=True,
 )
@@ -35,6 +35,7 @@ RL = PolicyGradient(
 # for i_episode in range(30000):
 i_episode = 0
 while True:
+	i_episode += 1
 	state = env.reset()
 
 	done = False
@@ -76,6 +77,7 @@ while True:
 
 			if i_episode % 100 == 0:
 				print("episode:", i_episode, "  reward:", int(running_reward))
+				RL.set_learning_rate(i_episode)
 
 			vt = RL.learn()
 

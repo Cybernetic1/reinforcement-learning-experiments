@@ -34,14 +34,20 @@ class PolicyGradient:
 			self,
 			n_actions,
 			n_features,
-			learning_rate=0.01,
+			# learning_rate=0.01,
 			reward_decay=0.95,
 			output_graph=True,
 	):
 		self.n_actions = n_actions
 		self.n_features = n_features
-		self.lr = learning_rate
 		self.gamma = reward_decay
+
+		# learning rate = A exp(-k i)
+		# when i = 1, rate = 0.01
+		# when i = 100000, rate = 0.001
+		# self.A = 0.003
+		# self.k = 1.00000
+		self.lr = 0.003
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
 
@@ -100,8 +106,8 @@ class PolicyGradient:
 		Adder = Lambda(lambda x: K.sum(x, axis=1))	# whatever this is, it means summing over the 9 dimensions
 		z = Adder(z)
 		# print("z shape after Adder=", z.shape)
-		z2 = Dense(self.n_actions)(z)				# input shape = [None, 9]
-		all_act = Dense(self.n_actions)(z2)			# [None, 9] again
+		z2 = Dense(self.n_actions, activation='tanh')(z)				# input shape = [None, 9]
+		all_act = Dense(self.n_actions, activation='tanh')(z2)			# [None, 9] again
 
 		# Total number of (independent) weights = 3 * 6 + 6 * 9 + 9 * 9 + 9 * 9 = 18 + 54 + 81 + 81 = 234.
 		# Alternatively if: 3 * 6 + 6 * 8 + 8 * 9 + 9 * 9 = 18 + 48 + 72 + 81 = 90 + 40 + 89 = 130 + 89 = 219.
@@ -172,3 +178,5 @@ class PolicyGradient:
 		discounted_ep_rs /= np.std(discounted_ep_rs)
 		return discounted_ep_rs
 
+	def set_learning_rate(self, i):
+		self.lr = self.A * np.exp(- self.k * i)
