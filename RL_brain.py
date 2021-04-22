@@ -35,7 +35,7 @@ class PolicyGradient:
 			n_actions,
 			n_features,
 			# learning_rate=0.01,
-			reward_decay=0.95,
+			reward_decay=0.9,
 			output_graph=True,
 	):
 		self.n_actions = n_actions
@@ -47,7 +47,7 @@ class PolicyGradient:
 		# when i = 100000, rate = 0.001
 		# self.A = 0.003
 		# self.k = 1.00000
-		self.lr = 0.003
+		self.lr = 0.001
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
 
@@ -107,7 +107,7 @@ class PolicyGradient:
 		z = Adder(z)
 		# print("z shape after Adder=", z.shape)
 		z2 = Dense(self.n_actions, activation='tanh')(z)				# input shape = [None, 9]
-		all_act = Dense(self.n_actions, activation='tanh')(z2)			# [None, 9] again
+		all_act = Dense(self.n_actions, activation=None)(z2)			# [None, 9] again
 
 		# Total number of (independent) weights = 3 * 6 + 6 * 9 + 9 * 9 + 9 * 9 = 18 + 54 + 81 + 81 = 234.
 		# Alternatively if: 3 * 6 + 6 * 8 + 8 * 9 + 9 * 9 = 18 + 48 + 72 + 81 = 90 + 40 + 89 = 130 + 89 = 219.
@@ -116,7 +116,7 @@ class PolicyGradient:
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
 		with tf.name_scope('loss'):
-			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
+			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and TF only has minimize(loss)
 			print("logits shape=", all_act.shape)
 			print("labels shape=", self.tf_acts.shape)
 			neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
