@@ -35,7 +35,7 @@ class PolicyGradient:
 			n_actions,
 			n_features,
 			# learning_rate=0.01,
-			reward_decay=0.9,
+			reward_decay=0.99,
 			output_graph=True,
 	):
 		self.n_actions = n_actions
@@ -89,14 +89,14 @@ class PolicyGradient:
 		output = g(y)
 		"""
 
-		shared_layer1 = Dense(6, input_shape=(None, 3), activation='tanh')
+		shared_layer1 = Dense(8, input_shape=(None, 3), activation='tanh')
 		xs = tf.split(self.tf_obs, 9, axis=1)		# split tensor into 9 parts, each part is 3-dims wide. ie, shape = [None, 3]
 		# output shape = [None, 6]
 		ys = []
 		for i in range(9):							# repeat the 1st layer 9 times
 			ys.append( shared_layer1(xs[i]) )
 		# print("y0 shape=", ys[0].shape)
-		shared_layer2 = Dense(9, input_shape=(None, 6), activation='tanh')		# output shape = [None, 9]
+		shared_layer2 = Dense(9, input_shape=(None, 8), activation='tanh')		# output shape = [None, 9]
 		zs = []
 		for i in range(9):							# repeat the 2nd layer 9 times
 			zs.append( shared_layer2(ys[i]) )
@@ -106,8 +106,8 @@ class PolicyGradient:
 		Adder = Lambda(lambda x: K.sum(x, axis=1))	# whatever this is, it means summing over the 9 dimensions
 		z = Adder(z)
 		# print("z shape after Adder=", z.shape)
-		z2 = Dense(self.n_actions, activation='tanh')(z)				# input shape = [None, 9]
-		all_act = Dense(self.n_actions, activation=None)(z2)			# [None, 9] again
+		z2 = Dense(self.n_actions + 3, input_shape=(None, self.n_actions), activation='tanh')(z)				# input shape = [None, 9]
+		all_act = Dense(self.n_actions, input_shape=(None, self.n_actions + 3), activation=None)(z2)			# [None, 9] again
 
 		# Total number of (independent) weights = 3 * 6 + 6 * 9 + 9 * 9 + 9 * 9 = 18 + 54 + 81 + 81 = 234.
 		# Alternatively if: 3 * 6 + 6 * 8 + 8 * 9 + 9 * 9 = 18 + 48 + 72 + 81 = 90 + 40 + 89 = 130 + 89 = 219.
@@ -117,8 +117,8 @@ class PolicyGradient:
 
 		with tf.name_scope('loss'):
 			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and TF only has minimize(loss)
-			print("logits shape=", all_act.shape)
-			print("labels shape=", self.tf_acts.shape)
+			print("logits shape=", all_act.shape)			# (None, 9)
+			print("labels shape=", self.tf_acts.shape)		# (None, )  1-hot
 			neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
 			# or in this way:
 			# neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
@@ -178,5 +178,6 @@ class PolicyGradient:
 		discounted_ep_rs /= np.std(discounted_ep_rs)
 		return discounted_ep_rs
 
+	# Not used, because Adam takes care of learning rate
 	def set_learning_rate(self, i):
 		self.lr = self.A * np.exp(- self.k * i)
