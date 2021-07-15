@@ -69,6 +69,10 @@ Requires
 
      TensorFlow 2.0
      Python 3.6
+     
+For example, on my Ubuntu computer I'd activate the virtual environment:
+
+	source ~/venv/bin/activate
 
 Run this to install Gym TicTacToe:
 
@@ -77,11 +81,11 @@ Run this to install Gym TicTacToe:
 
 The first demo is "plain" policy gradient:
 
-    python run_TicTacToe1.py
+    python run_TicTacToe_plain.py
 
 Second demo is policy gradient + symmetric NN:
 
-    python run_TicTacToe.py
+    python run_TicTacToe_logic.py
 
 The other python programs are broken because I've modified RL_brain.py:
 
@@ -91,3 +95,11 @@ The other python programs are broken because I've modified RL_brain.py:
 This is the first run and I believe it shows convergence:
 
 <img src="TTT2-test3-convergence.png" width="700"/>
+
+To record results to a file:
+
+	python run_TicTacToe_logic.py | tee TTT-test-results.txt
+
+To plot graph:
+
+	python plot.py TTT-test-results.txt

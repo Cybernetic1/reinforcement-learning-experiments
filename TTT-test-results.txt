@@ -1,0 +1,213 @@
+Using TensorFlow backend.
+/home/yky/venv/lib/python3.6/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+Discrete(9)
+Box(27,)
+[3. 3. 1. 3. 3. 1. 3. 3. 1. 3. 3. 1. 3. 3. 1. 3. 3. 1. 3. 3. 1. 3. 3. 1.
+ 3. 3. 1.]
+[ 0.  0. -1.  0.  0. -1.  0.  0. -1.  0.  0. -1.  0.  0. -1.  0.  0. -1.
+  0.  0. -1.  0.  0. -1.  0.  0. -1.]
+WARNING:tensorflow:From /home/yky/venv/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+Instructions for updating:
+If using Keras pass *_constraint arguments to layers.
+logits shape= (None, 9)
+labels shape= (None,)
+2021-07-15 19:43:32.544173: W tensorflow/stream_executor/platform/default/dso_loader.cc:55] Could not load dynamic library 'libcuda.so.1'; dlerror: libcuda.so.1: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: :/usr/local/lib:/usr/local/lib/fst
+2021-07-15 19:43:32.544242: E tensorflow/stream_executor/cuda/cuda_driver.cc:313] failed call to cuInit: UNKNOWN ERROR (303)
+2021-07-15 19:43:32.544285: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:156] kernel driver does not appear to be running on this host (BlackBox): /proc/driver/nvidia/version does not exist
+2021-07-15 19:43:32.544751: I tensorflow/core/platform/cpu_feature_guard.cc:143] Your CPU supports instructions that this TensorFlow binary was not compiled to use: FMA
+2021-07-15 19:43:32.575233: I tensorflow/core/platform/profile_utils/cpu_utils.cc:102] CPU Frequency: 1996240000 Hz
+2021-07-15 19:43:32.576181: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x7ff6f4000b20 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2021-07-15 19:43:32.576284: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+n_features= 27
+100 running reward: [31m -17 [0m
+200 running reward: [31m -19 [0m
+300 running reward: [31m -17 [0m
+400 running reward: [31m -14 [0m
+500 running reward: [31m -19 [0m
+600 running reward: [31m -11 [0m
+700 running reward: [31m -16 [0m
+800 running reward: [31m -14 [0m
+900 running reward: [31m -19 [0m
+1000 running reward: [31m -19 [0m
+1100 running reward: [31m -19 [0m
+1200 running reward: [31m -19 [0m
+1300 running reward: [31m -19 [0m
+1400 running reward: [31m -19 [0m
+1500 running reward: [31m -9 [0m
+1600 running reward: [31m -18 [0m
+1700 running reward: [31m -12 [0m
+1800 running reward: [31m -18 [0m
+1900 running reward: [31m -15 [0m
+2000 running reward: [31m -13 [0m
+2100 running reward: [31m -19 [0m
+2200 running reward: [31m -9 [0m
+2300 running reward: [31m -14 [0m
+2400 running reward: [31m -19 [0m
+2500 running reward: [31m -12 [0m
+2600 running reward: [31m -19 [0m
+2700 running reward: [31m -15 [0m
+2800 running reward: [31m -19 [0m
+2900 running reward: [31m -14 [0m
+3000 running reward: [31m -18 [0m
+3100 running reward: [31m -19 [0m
+3200 running reward: [31m -9 [0m
+3300 running reward: [31m -12 [0m
+3400 running reward: [31m -16 [0m
+3500 running reward: [31m -8 [0m
+3600 running reward: [31m -19 [0m
+3700 running reward: [31m -17 [0m
+3800 running reward: [31m -8 [0m
+3900 running reward: [31m -16 [0m
+4000 running reward: [31m -9 [0m
+4100 running reward: [31m -13 [0m
+4200 running reward: [31m -11 [0m
+4300 running reward: [31m -13 [0m
+4400 running reward: [31m -10 [0m
+4500 running reward: [31m -19 [0m
+4600 running reward: [31m -17 [0m
+4700 running reward: [31m -19 [0m
+4800 running reward: [31m -18 [0m
+4900 running reward: [31m -13 [0m
+5000 running reward: [31m -12 [0m
+5100 running reward: [31m -15 [0m
+5200 running reward: [31m -13 [0m
+5300 running reward: [31m -19 [0m
+5400 running reward: [31m -17 [0m
+5500 running reward: [31m -19 [0m
+5600 running reward: [31m -19 [0m
+5700 running reward: [31m -16 [0m
+5800 running reward: [31m -19 [0m
+5900 running reward: [31m -13 [0m
+6000 running reward: [31m -19 [0m
+6100 running reward: [31m -19 [0m
+6200 running reward: [31m -16 [0m
+6300 running reward: [31m -18 [0m
+6400 running reward: [31m -11 [0m
+6500 running reward: [31m -14 [0m
+6600 running reward: [31m -9 [0m
+6700 running reward: [31m -13 [0m
+6800 running reward: [31m -17 [0m
+6900 running reward: [31m -17 [0m
+7000 running reward: [31m -19 [0m
+7100 running reward: [31m -19 [0m
+7200 running reward: [31m -17 [0m
+7300 running reward: [31m -7 [0m
+7400 running reward: [31m -12 [0m
+7500 running reward: [31m -10 [0m
+7600 running reward: [31m -12 [0m
+7700 running reward: [31m -5 [0m
+7800 running reward: [31m -18 [0m
+7900 running reward: [31m -17 [0m
+8000 running reward: [31m -15 [0m
+8100 running reward: [31m -12 [0m
+8200 running reward: [31m -19 [0m
+8300 running reward: [31m -19 [0m
+8400 running reward: [31m -13 [0m
+8500 running reward: [31m -2 [0m
+8600 running reward: [31m -12 [0m
+8700 running reward: [31m -15 [0m
+8800 running reward: [31m -14 [0m
+8900 running reward: [31m -11 [0m
+9000 running reward: [31m -11 [0m
+9100 running reward: [31m -10 [0m
+9200 running reward: [31m -12 [0m
+9300 running reward: [31m -19 [0m
+9400 running reward: [31m -8 [0m
+9500 running reward: [31m -11 [0m
+9600 running reward: [31m -11 [0m
+9700 running reward: [32m 0 [0m
+9800 running reward: [31m -17 [0m
+9900 running reward: [31m -13 [0m
+10000 running reward: [31m -12 [0m
+10100 running reward: [31m -10 [0m
+10200 running reward: [31m -12 [0m
+10300 running reward: [31m -8 [0m
+10400 running reward: [32m 3 [0m
+10500 running reward: [31m -10 [0m
+10600 running reward: [31m -12 [0m
+10700 running reward: [31m -12 [0m
+10800 running reward: [31m -11 [0m
+10900 running reward: [31m -17 [0m
+11000 running reward: [32m 0 [0m
+11100 running reward: [31m -8 [0m
+11200 running reward: [31m -11 [0m
+11300 running reward: [31m -15 [0m
+11400 running reward: [31m -6 [0m
+11500 running reward: [31m -16 [0m
+11600 running reward: [31m -16 [0m
+11700 running reward: [31m -9 [0m
+11800 running reward: [31m -1 [0m
+11900 running reward: [31m -14 [0m
+12000 running reward: [31m -16 [0m
+12100 running reward: [31m -16 [0m
+12200 running reward: [31m -11 [0m
+12300 running reward: [31m -18 [0m
+12400 running reward: [31m -9 [0m
+12500 running reward: [31m -14 [0m
+12600 running reward: [31m -6 [0m
+12700 running reward: [31m -19 [0m
+12800 running reward: [31m -15 [0m
+12900 running reward: [31m -6 [0m
+13000 running reward: [31m -18 [0m
+13100 running reward: [31m -10 [0m
+13200 running reward: [32m 6 [0m
+13300 running reward: [31m -13 [0m
+13400 running reward: [31m -14 [0m
+13500 running reward: [31m -3 [0m
+13600 running reward: [31m -19 [0m
+13700 running reward: [31m -8 [0m
+13800 running reward: [31m -14 [0m
+13900 running reward: [31m -13 [0m
+14000 running reward: [31m -7 [0m
+14100 running reward: [31m -8 [0m
+14200 running reward: [31m -19 [0m
+14300 running reward: [31m -15 [0m
+14400 running reward: [31m -17 [0m
+14500 running reward: [31m -7 [0m
+14600 running reward: [31m -12 [0m
+14700 running reward: [31m -11 [0m
+14800 running reward: [31m -9 [0m
+14900 running reward: [31m -7 [0m
+15000 running reward: [31m -5 [0m
+15100 running reward: [32m 0 [0m
+15200 running reward: [31m -13 [0m
+15300 running reward: [31m -15 [0m
+15400 running reward: [31m -8 [0m
+15500 running reward: [31m -12 [0m
+15600 running reward: [31m -19 [0m
+15700 running reward: [31m -8 [0m
+15800 running reward: [31m -13 [0m
+15900 running reward: [31m -10 [0m
+16000 running reward: [31m -5 [0m
+16100 running reward: [31m -1 [0m
+16200 running reward: [31m -18 [0m
+16300 running reward: [31m -15 [0m
+16400 running reward: [31m -9 [0m
+16500 running reward: [31m -13 [0m
+16600 running reward: [31m -6 [0m
+16700 running reward: [31m -7 [0m
+16800 running reward: [32m 0 [0m
+16900 running reward: [31m -9 [0m
+17000 running reward: [31m -10 [0m
+17100 running reward: [31m -13 [0m
+17200 running reward: [31m -14 [0m
+17300 running reward: [32m 4 [0m
+17400 running reward: [31m -6 [0m
+17500 running reward: [31m -11 [0m
+17600 running reward: [31m -11 [0m
+17700 running reward: [31m -17 [0m
+17800 running reward: [31m -11 [0m
+17900 running reward: [31m -16 [0m
+18000 running reward: [31m -7 [0m
+18100 running reward: [31m -10 [0m
+18200 running reward: [31m -5 [0m
+18300 running reward: [31m -9 [0m
+18400 running reward: [31m -17 [0m
+18500 running reward: [31m -10 [0m
+18600 running reward: [31m -9 [0m
+18700 running reward: [31m -10 [0m
+18800 running reward: [31m -12 [0m
+18900 running reward: [31m -4 [0m
+19000 running reward: [32m 0 [0m
+19100 running reward: [31m -9 [0m

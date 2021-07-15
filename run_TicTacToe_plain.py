@@ -8,6 +8,8 @@ Tensorflow: 2.0
 gym: 0.8.0
 """
 
+import datetime
+
 import gym
 from RL_brain1 import PolicyGradient
 import matplotlib.pyplot as plt
@@ -31,6 +33,9 @@ RL = PolicyGradient(
 )
 
 # print(RL.n_features)
+
+now = datetime.datetime.now()
+print ("Start Time =", now.strftime("%Y-%m-%d %H:%M:%S"))
 
 # for i_episode in range(30000):
 i_episode = 0
@@ -77,7 +82,11 @@ while True:
 
 			if i_episode % 100 == 0:
 				print("episode:", i_episode, "  reward:", int(running_reward))
-				RL.set_learning_rate(i_episode)
+				# RL.set_learning_rate(i_episode)
+
+			if i_episode % 1000 == 0:
+				now = datetime.datetime.now()
+				print (now.strftime("%Y-%m-%d %H:%M:%S"))
 
 			vt = RL.learn()
 

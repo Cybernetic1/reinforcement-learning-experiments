@@ -1,3 +1,6 @@
+Virtual environment for Tensorflow:
+    source /venv/bin/activate
+
 Fully-connected RL, Tic Tac Toe
 ===============================
 
