@@ -1,6 +1,10 @@
+import sys
 import matplotlib.pyplot as plt
 
-f = open("TTT2-test3-results.txt", 'r')
+fname = "TTT-test-results.txt"
+if len(sys.argv) == 2:
+	fname = sys.argv[1]
+f = open(fname, 'r')
 
 data = []
 for line in f:
@@ -8,8 +12,13 @@ for line in f:
 		head, tail = line.split('reward: ')
 	except:
 		continue
-	data.append(int(tail))
+	if tail[0] == '\x1b':
+		data.append(int(tail.split(' ')[1]))
+	else:
+		data.append(int(tail))
 
-plt.plot(data)
+print("size=", len(data))
+
 plt.ylabel('reward')
+plt.plot(data)
 plt.show()

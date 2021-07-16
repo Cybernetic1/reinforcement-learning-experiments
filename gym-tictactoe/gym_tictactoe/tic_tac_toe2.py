@@ -19,6 +19,7 @@ class TicTacToeEnv(gym.Env):
 
 		# State space has 9 elements, each element is a vector of dim 3
 		self.state_space = spaces.Box(
+		# The entries indicate the min and max values of the "box":
 		numpy.array([0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1]), \
 		numpy.array([3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1]) )
 

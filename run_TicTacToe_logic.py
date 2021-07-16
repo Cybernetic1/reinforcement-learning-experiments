@@ -8,9 +8,10 @@ Tensorflow: 2.0
 gym: 0.8.0
 """
 
+import datetime
+
 import gym
 from RL_brain import PolicyGradient
-import matplotlib.pyplot as plt
 
 DISPLAY_REWARD_THRESHOLD = 20  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
@@ -34,6 +35,9 @@ RL = PolicyGradient(
 
 print("n_features=", RL.n_features)
 
+now = datetime.datetime.now()
+print ("Start Time =", now.strftime("%Y-%m-%d %H:%M:%S"))
+
 i_episode = 0
 # for i_episode in range(60000):
 while True:
@@ -45,14 +49,14 @@ while True:
 	reward1 = reward2 = 0
 	while not done:
 
-		if user == 0:
+		if user == 0:		# AI player
 			action1 = RL.choose_action(state)
 			state1, reward1, done, infos = env.step(action1, -1)
 			if done:
 				RL.store_transition(state, action1, reward1)
 				state = state1
 				reward1 = reward2 = 0
-		elif user == 1:
+		elif user == 1:		# random player
 			while True:
 				random_act = env.action_space.sample()
 				x = random_act % 3
@@ -94,6 +98,10 @@ while True:
 				rr = int(running_reward)
 				print(i_episode, "running reward:", "\x1b[32m" if rr >= 0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 				# RL.set_learning_rate(i_episode)
+
+			if i_episode % 1000 == 0:
+				now = datetime.datetime.now()
+				print (now.strftime("%Y-%m-%d %H:%M:%S"))
 
 			vt = RL.learn()
 

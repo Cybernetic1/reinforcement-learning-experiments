@@ -92,9 +92,11 @@ The other python programs are broken because I've modified RL_brain.py:
     run_CartPole.py
     run_MountainCar.py
 
-This is the first run and I believe it shows convergence:
+This is a typical run of the "logic" version:
 
-<img src="TTT2-test3-convergence.png" width="700"/>
+<img src="TTT2-test4-convergence.png" width="700"/>
+
+Convergence can be observed early on (1000-2000), but afterwards performance remains unstable though above average.  This behavior is also observed in the "plain" version, indicating that it might be a problem in the policy gradient approach as applied to this game.
 
 To record results to a file:
 

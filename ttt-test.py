@@ -32,4 +32,4 @@ while not done:
 			if user == 0:
 				print("AI wins ! AI Reward : " + str(reward))
 			elif user == 1:
-				print("Random wins ! AI Reward : " + str(reward))
+				print("Random wins ! AI Reward : " + str(-reward))
