@@ -57,24 +57,24 @@ while True:
 				state = state1
 				reward1 = reward2 = 0
 		elif user == 1:		# random player
-			while True:
+			while True:		# random player will never choose occupied squares
 				random_act = env.action_space.sample()
 				x = random_act % 3
 				y = random_act // 3
-				found = False
-				for i in range(0, 27, 3):
-					chunk = state1[i : i + 3]
-					# print("chunk=",chunk)
-					if ([x,y,1] == chunk).all():
-						found = True
+				occupied = False
+				for i in range(0, 27, 3):		# scan through all 9 propositions, each proposition is a 3-vector
+					proposition = state1[i : i + 3]
+					# print("proposition=",proposition)
+					if ([x,y,1] == proposition).all():
+						occupied = True
 						break
-					if ([x,y,-1] == chunk).all():
-						found = True
+					if ([x,y,-1] == proposition).all():
+						occupied = True
 						break
-				if not found:
+				if not occupied:
 					break
 			state2, reward2, done, infos = env.step(random_act, 1)
-			RL.store_transition(state, action1, reward1 - reward2)
+			RL.store_transition(state, action1, reward1 - reward2)	# refer to ttt-test.py for sign of 'reward'
 			state = state2
 			reward1 = reward2 = 0
 
@@ -99,9 +99,9 @@ while True:
 				print(i_episode, "running reward:", "\x1b[32m" if rr >= 0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 				# RL.set_learning_rate(i_episode)
 
-			if i_episode % 1000 == 0:
-				now = datetime.datetime.now()
-				print (now.strftime("%Y-%m-%d %H:%M:%S"))
+				if i_episode % 1000 == 0:
+					now = datetime.datetime.now()
+					print (now.strftime("%Y-%m-%d %H:%M:%S"))
 
 			vt = RL.learn()
 
@@ -110,17 +110,3 @@ while True:
 				plt.xlabel('episode steps')
 				plt.ylabel('normalized state-action value')
 				plt.show()
-
-			# if reward == 10:
-				# print("Draw !")
-			# elif reward == -20:
-				# print("Infos : " + str(infos))
-				# if user == 0:
-					# print("Random wins ! AI Reward : " + str(reward))
-				# elif user == 1:
-					# print("AI wins ! AI Reward : " + str(-reward))
-			# elif reward == 20:
-				# if user == 0:
-					# print("AI wins ! AI Reward : " + str(reward))
-				# elif user == 1:
-					# print("Random wins ! AI Reward : " + str(reward))
