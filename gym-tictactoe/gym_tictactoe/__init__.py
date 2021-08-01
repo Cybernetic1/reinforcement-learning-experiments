@@ -4,13 +4,13 @@ from gym.envs.registration import register
 # ==========================
 
 register(
-    id='TicTacToe-v1',
-    entry_point='gym_tictactoe.tic_tac_toe1:TicTacToeEnv',
+    id='TicTacToe-plain',
+    entry_point='gym_tictactoe.tic_tac_toe_plain:TicTacToeEnv',
     reward_threshold=1000
 )
 
 register(
-    id='TicTacToe-v2',
-    entry_point='gym_tictactoe.tic_tac_toe2:TicTacToeEnv',
+    id='TicTacToe-logic',
+    entry_point='gym_tictactoe.tic_tac_toe_logic:TicTacToeEnv',
     reward_threshold=1000
 )
