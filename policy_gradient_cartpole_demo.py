@@ -47,11 +47,10 @@ class Policy(nn.Module):
 		return model(x)
 
 policy = Policy()
-optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
-
-policy = Policy()
-policy.load_state_dict(torch.load("cartpole-model-2.dict"))
+policy.load_state_dict(torch.load("cartpole-model-1.dict"))
 policy.eval()
+
+optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
 
 def select_action(state):
 	#Select an action (0 or 1) by running policy model and choosing based on the probabilities in state
@@ -121,7 +120,7 @@ def main(episodes):
 			print('Episode {}\tLast length: {:5d}\tAverage length: {:.2f}'.format(episode, time, running_reward))
 
 			if episode == 500:
-				torch.save(policy.state_dict(), "cartpole-model-3.dict")
+				torch.save(policy.state_dict(), "cartpole-model-2.dict")
 				print("Model saved.")
 				break
 
@@ -148,4 +147,4 @@ ax2.set_xlabel('Episode'); ax2.set_ylabel('Episode Length')
 
 fig.tight_layout(pad=2)
 plt.show()
-fig.savefig('results.png')
+fig.savefig('results-2.png')
