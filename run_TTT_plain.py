@@ -12,7 +12,10 @@ import datetime
 
 import gym
 from RL_brain_plain import PolicyGradient
+
 import matplotlib.pyplot as plt
+from tqdm import tqdm, trange
+import pandas as pd
 
 DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
@@ -27,8 +30,12 @@ print(env.state_space)
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	# learning_rate=0.002,
+	# old params:
 	reward_decay=0.98,
+
+	# New hyperparameters
+	learning_rate = 0.01
+	gamma = 0.99
 	# output_graph=True,
 )
 
@@ -90,12 +97,6 @@ while True:
 
 			vt = RL.learn()
 
-			if i_episode == -1:
-				plt.plot(vt)    # plot the episode vt
-				plt.xlabel('episode steps')
-				plt.ylabel('normalized state-action value')
-				plt.show()
-
 			# if reward == 10:
 				# print("Draw !")
 			# elif reward == -20:
@@ -109,3 +110,28 @@ while True:
 					# print("AI wins ! AI Reward : " + str(reward))
 				# elif user == 1:
 					# print("Random wins ! AI Reward : " + str(reward))
+
+# Old plot:
+plt.plot(vt)    # plot the episode vt
+plt.xlabel('episode steps')
+plt.ylabel('normalized state-action value')
+plt.show()
+
+# New plot:
+window = int(episodes/20)
+
+fig, ((ax1), (ax2)) = plt.subplots(2, 1, sharey=True, figsize=[9,9]);
+rolling_mean = pd.Series(policy.reward_history).rolling(window).mean()
+std = pd.Series(policy.reward_history).rolling(window).std()
+ax1.plot(rolling_mean)
+ax1.fill_between(range(len(policy.reward_history)),rolling_mean-std, rolling_mean+std, color='orange', alpha=0.2)
+ax1.set_title('Episode Length Moving Average ({}-episode window)'.format(window))
+ax1.set_xlabel('Episode'); ax1.set_ylabel('Episode Length')
+
+ax2.plot(policy.reward_history)
+ax2.set_title('Episode Length')
+ax2.set_xlabel('Episode'); ax2.set_ylabel('Episode Length')
+
+fig.tight_layout(pad=2)
+plt.show()
+fig.savefig('results-2.png')
