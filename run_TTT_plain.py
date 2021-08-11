@@ -11,7 +11,7 @@ gym: 0.8.0
 import datetime
 
 import gym
-from RL_brain_plain import PolicyGradient
+from RL_brain_plain_torch import PolicyGradient
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm, trange
@@ -21,7 +21,7 @@ DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is
 RENDER = False  # rendering wastes time
 
 import gym_tictactoe
-env = gym.make('TicTacToe-plain', symbols=[-1, 1], board_size=3, win_size=3)
+env = gym.make('TicTacToe-v0', symbols=[-1, 1], board_size=3, win_size=3)
 env.seed(1)     # reproducible, general Policy gradient has high variance
 
 print(env.action_space)
@@ -34,8 +34,8 @@ RL = PolicyGradient(
 	reward_decay=0.98,
 
 	# New hyperparameters
-	learning_rate = 0.01
-	gamma = 0.99
+	learning_rate = 0.01,
+	gamma = 0.99,
 	# output_graph=True,
 )
 
