@@ -28,39 +28,41 @@ from torch.distributions import Categorical
 np.random.seed(1)
 torch.manual_seed(1)
 
-class PolicyGradient:
+class PolicyGradient(nn.Module):
 	def __init__(
 			self,
 			n_actions,
 			n_features,
 			learning_rate=0.01,
-			reward_decay=0.95,
-			output_graph=True,
+			gamma=0.95,
 	):
 		self.n_actions = n_actions
 		self.n_features = n_features
+
 		self.lr = learning_rate
-		self.gamma = reward_decay
+		self.gamma = gamma
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
 
+		# Episode policy and reward history
+		self.policy_history = Variable(torch.Tensor())
+		self.reward_episode = []
+		# Overall reward and loss history
+		self.reward_history = []				# = ep_rs ?
+		self.loss_history = []
+
 		self._build_net()
 
-		self.sess = tf.Session()
-
-		if output_graph:
-			# $ tensorboard --logdir=logs
-			# http://0.0.0.0:6006/
-			# tf.train.SummaryWriter soon be deprecated, use following
-			tf.summary.FileWriter("logs/", self.sess.graph)
-
-		self.sess.run(tf.global_variables_initializer())
-
 	def _build_net(self):
-		with tf.name_scope('inputs'):
-			self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
-			self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
-			self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
+		self.l1 = nn.Linear(self.n_features, 9, bias=True)
+		self.l2 = nn.Linear(9, 7, bias=True)
+		self.l3 = nn.Linear(7, 5, bias=True)
+		self.l2 = nn.Linear(5, self.n_actions, bias=False)
+
+		# self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
+		# self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
+		# self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
+		"""
 		# fc1
 		layer1 = tf.layers.dense(
 			inputs=self.tf_obs,
@@ -97,10 +99,22 @@ class PolicyGradient:
 			bias_initializer=tf.constant_initializer(0.1),
 			name='fc4'
 		)
+		"""
 
 		# total number of weights = 9 * 9 + 9 * 7 + 7 * 5 + 5 * 9 = 81 + 63 + 35 + 45 = 224
 
-		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
+	def forward(self, x):
+		model = torch.nn.Sequential(
+			self.l1,
+			nn.Dropout(p=0.6),
+			nn.ReLU(),
+			self.l2,
+			nn.Softmax(dim=-1)
+			)
+		return model(x)
+
+		# use softmax to convert to probability:
+		# self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')
 
 		with tf.name_scope('loss'):
 			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
@@ -111,13 +125,29 @@ class PolicyGradient:
 			# neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
 			loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
 
-		with tf.name_scope('train'):
-			self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
+	optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
+	# self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
 
-	def choose_action(self, observation):
-		prob_weights = self.sess.run(self.all_act_prob, feed_dict={self.tf_obs: observation[np.newaxis, :]})
-		action = np.random.choice(range(prob_weights.shape[1]), p=prob_weights.ravel())  # select action w.r.t the actions prob
+	def choose_action(self, state):
+		#Select an action (0 or 1) by running policy model and choosing based on the probabilities in state
+		state = torch.from_numpy(state).type(torch.FloatTensor)
+		state = policy(Variable(state))
+		c = Categorical(state)
+		action = c.sample()
+
+		# Add log probability of our chosen action to our history
+		if policy.policy_history.dim() != 0:
+			log_probs = c.log_prob(action).unsqueeze(0)
+			# print("log probs:", log_probs)
+			policy.policy_history = torch.cat([policy.policy_history, log_probs])
+		else:
+			policy.policy_history = (c.log_prob(action))
 		return action
+
+	# def choose_action(self, observation):
+		# prob_weights = self.sess.run(self.all_act_prob, feed_dict={self.tf_obs: observation[np.newaxis, :]})
+		# action = np.random.choice(range(prob_weights.shape[1]), p=prob_weights.ravel())  # select action w.r.t the actions prob
+		# return action
 
 	def store_transition(self, s, a, r):		# state, action, reward
 		self.ep_obs.append(s)
@@ -125,25 +155,54 @@ class PolicyGradient:
 		self.ep_rs.append(r)
 
 	def learn(self):
-		# discount and normalize episode reward
-		discounted_ep_rs_norm = self._discount_and_norm_rewards()
+		R = 0
+		rewards = []
 
-		# obs = np.vstack(self.ep_obs)
-		# print("*shape obs=", obs.shape)
-		# print("*dtype obs=", obs.dtype)
-		# acts = np.array(self.ep_as)
-		# print("*shape acts=", acts.shape)
-		# print("*dtype acts=", acts.dtype)
+		# Discount future rewards back to the present using gamma
+		for r in policy.reward_episode[::-1]:
+			R = r + policy.gamma * R
+			rewards.insert(0,R)
 
-		# train on episode
-		self.sess.run(self.train_op, feed_dict={
-			 self.tf_obs: np.vstack(self.ep_obs),  # shape=[None, n_obs]
-			 self.tf_acts: np.array(self.ep_as),  # shape=[None, ]
-			 self.tf_vt: discounted_ep_rs_norm,  # shape=[None, ]
-		})
+		# Scale rewards
+		rewards = torch.FloatTensor(rewards)
+		rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
 
-		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
+		# Calculate loss
+		loss = (torch.sum(torch.mul(policy.policy_history, Variable(rewards)).mul(-1), -1))
+
+		# Update network weights
+		optimizer.zero_grad()
+		loss.backward()
+		optimizer.step()
+
+		#Save and intialize episode history counters
+		policy.loss_history.append(loss.item())
+		policy.reward_history.append(np.sum(policy.reward_episode))
+		policy.policy_history = Variable(torch.Tensor())
+		policy.reward_episode= []
+
 		return discounted_ep_rs_norm
+
+	# def learn(self):
+		# # discount and normalize episode reward
+		# discounted_ep_rs_norm = self._discount_and_norm_rewards()
+
+		# # obs = np.vstack(self.ep_obs)
+		# # print("*shape obs=", obs.shape)
+		# # print("*dtype obs=", obs.dtype)
+		# # acts = np.array(self.ep_as)
+		# # print("*shape acts=", acts.shape)
+		# # print("*dtype acts=", acts.dtype)
+
+		# # train on episode
+		# self.sess.run(self.train_op, feed_dict={
+			 # self.tf_obs: np.vstack(self.ep_obs),  # shape=[None, n_obs]
+			 # self.tf_acts: np.array(self.ep_as),  # shape=[None, ]
+			 # self.tf_vt: discounted_ep_rs_norm,  # shape=[None, ]
+		# })
+
+		# self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
+		# return discounted_ep_rs_norm
 
 	def _discount_and_norm_rewards(self):
 		# discount episode rewards

@@ -1,8 +1,11 @@
 class Policy(nn.Module):
 	def __init__(self):
 		super(Policy, self).__init__()
+
 		self.state_space = env.observation_space.shape[0]
+		# = n_features
 		self.action_space = env.action_space.n
+		# = n_actions
 
 		self.l1 = nn.Linear(self.state_space, 128, bias=False)
 		self.l2 = nn.Linear(128, self.action_space, bias=False)
@@ -23,7 +26,7 @@ class Policy(nn.Module):
 			nn.ReLU(),
 			self.l2,
 			nn.Softmax(dim=-1)
-		)
+			)
 		return model(x)
 
 policy = Policy()

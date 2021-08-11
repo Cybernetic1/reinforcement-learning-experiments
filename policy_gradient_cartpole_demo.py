@@ -22,7 +22,9 @@ class Policy(nn.Module):
 	def __init__(self):
 		super(Policy, self).__init__()
 		self.state_space = env.observation_space.shape[0]
+		print("state space =", self.state_space)
 		self.action_space = env.action_space.n
+		print("action space =", self.action_space)
 
 		self.l1 = nn.Linear(self.state_space, 128, bias=False)
 		self.l2 = nn.Linear(128, self.action_space, bias=False)
@@ -31,6 +33,8 @@ class Policy(nn.Module):
 
 		# Episode policy and reward history
 		self.policy_history = Variable(torch.Tensor())
+		print("policy history =", self.policy_history)
+
 		self.reward_episode = []
 		# Overall reward and loss history
 		self.reward_history = []
