@@ -21,7 +21,7 @@ DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is
 RENDER = False  # rendering wastes time
 
 import gym_tictactoe
-env = gym.make('TicTacToe-v0', symbols=[-1, 1], board_size=3, win_size=3)
+env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 env.seed(1)     # reproducible, general Policy gradient has high variance
 
 print(env.action_space)
