@@ -11,7 +11,7 @@ gym: 0.8.0
 import datetime
 
 import gym
-from RL_brain_plain_torch import PolicyGradient
+from RL_plain import PolicyGradient
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm, trange

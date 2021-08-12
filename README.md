@@ -65,6 +65,8 @@ where the overall symmetrtic function F has the form:
 
 ## To run
 
+(NOTE:  I am currently transitioning the code to pyTorch)
+
 Requires
 
      TensorFlow 2.0
@@ -81,11 +83,11 @@ Run this to install Gym TicTacToe:
 
 The first demo is "plain" policy gradient:
 
-    python run_TicTacToe_plain.py
+    python run_TTT_plain_TensorFlow.py
 
 Second demo is policy gradient + symmetric NN:
 
-    python run_TicTacToe_logic.py
+    python run_TTT_symNN_TensorFlow.py
 
 The other python programs are broken because I've modified RL_brain.py:
 
@@ -100,7 +102,7 @@ Convergence can be observed early on (1000-2000), but afterwards performance rem
 
 To record results to a file:
 
-	python run_TicTacToe_logic.py | tee TTT-test-results.txt
+	python run_TTT_TensorFlow.py | tee TTT-test-results.txt
 
 To plot graph:
 
