@@ -30,12 +30,8 @@ print(env.state_space)
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	# old params:
-	reward_decay=0.98,
-
-	# New hyperparameters
 	learning_rate = 0.01,
-	gamma = 0.99,
+	gamma = 0.98,
 	# output_graph=True,
 )
 

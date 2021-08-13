@@ -36,6 +36,7 @@ class PolicyGradient(nn.Module):
 			learning_rate=0.01,
 			gamma=0.95,
 	):
+		super(PolicyGradient, self).__init__()
 		self.n_actions = n_actions
 		self.n_features = n_features
 
@@ -53,11 +54,14 @@ class PolicyGradient(nn.Module):
 
 		self._build_net()
 
+		self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+		# self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
+
 	def _build_net(self):
 		self.l1 = nn.Linear(self.n_features, 9, bias=True)
 		self.l2 = nn.Linear(9, 7, bias=True)
 		self.l3 = nn.Linear(7, 5, bias=True)
-		self.l2 = nn.Linear(5, self.n_actions, bias=False)
+		self.l4 = nn.Linear(5, self.n_actions, bias=False)
 
 		# self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
 		# self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
@@ -109,7 +113,11 @@ class PolicyGradient(nn.Module):
 			nn.Dropout(p=0.6),
 			nn.ReLU(),
 			self.l2,
-			nn.Softmax(dim=-1)
+			nn.ReLU(),
+			self.l3,
+			nn.ReLU(),
+			self.l4,
+			nn.Softmax(dim=-1),
 			)
 		return model(x)
 
@@ -125,23 +133,20 @@ class PolicyGradient(nn.Module):
 			# neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
 			loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
 
-	optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
-	# self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
-
 	def choose_action(self, state):
 		#Select an action (0 or 1) by running policy model and choosing based on the probabilities in state
 		state = torch.from_numpy(state).type(torch.FloatTensor)
-		state = policy(Variable(state))
+		state = self(Variable(state))
 		c = Categorical(state)
 		action = c.sample()
 
 		# Add log probability of our chosen action to our history
-		if policy.policy_history.dim() != 0:
+		if self.policy_history.dim() != 0:
 			log_probs = c.log_prob(action).unsqueeze(0)
 			# print("log probs:", log_probs)
-			policy.policy_history = torch.cat([policy.policy_history, log_probs])
+			self.policy_history = torch.cat([self.policy_history, log_probs])
 		else:
-			policy.policy_history = (c.log_prob(action))
+			self.policy_history = (c.log_prob(action))
 		return action
 
 	# def choose_action(self, observation):
@@ -159,8 +164,8 @@ class PolicyGradient(nn.Module):
 		rewards = []
 
 		# Discount future rewards back to the present using gamma
-		for r in policy.reward_episode[::-1]:
-			R = r + policy.gamma * R
+		for r in self.reward_episode[::-1]:
+			R = r + self.gamma * R
 			rewards.insert(0,R)
 
 		# Scale rewards
@@ -168,7 +173,7 @@ class PolicyGradient(nn.Module):
 		rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
 
 		# Calculate loss
-		loss = (torch.sum(torch.mul(policy.policy_history, Variable(rewards)).mul(-1), -1))
+		loss = (torch.sum(torch.mul(self.policy_history, Variable(rewards)).mul(-1), -1))
 
 		# Update network weights
 		optimizer.zero_grad()
@@ -176,10 +181,10 @@ class PolicyGradient(nn.Module):
 		optimizer.step()
 
 		#Save and intialize episode history counters
-		policy.loss_history.append(loss.item())
-		policy.reward_history.append(np.sum(policy.reward_episode))
-		policy.policy_history = Variable(torch.Tensor())
-		policy.reward_episode= []
+		self.loss_history.append(loss.item())
+		self.reward_history.append(np.sum(self.reward_episode))
+		self.policy_history = Variable(torch.Tensor())
+		self.reward_episode= []
 
 		return discounted_ep_rs_norm
 
