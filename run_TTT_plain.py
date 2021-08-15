@@ -24,8 +24,8 @@ import gym_tictactoe
 env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 env.seed(1)     # reproducible, general Policy gradient has high variance
 
-print(env.action_space)
-print(env.state_space)
+print("env.action_space:", env.action_space)
+print("env.state_space:", env.state_space)
 
 RL = PolicyGradient(
 	n_actions=env.action_space.n,

@@ -107,3 +107,10 @@ To record results to a file:
 To plot graph:
 
 	python plot.py TTT-test-results.txt
+
+## Code commentary
+
+From Cartpole, pyTorch:
+
+loss = policy_history x rewards
+

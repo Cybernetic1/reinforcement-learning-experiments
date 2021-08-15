@@ -164,7 +164,8 @@ class PolicyGradient(nn.Module):
 		rewards = []
 
 		# Discount future rewards back to the present using gamma
-		for r in self.reward_episode[::-1]:
+		print("\nLength of reward episode:", len(self.ep_rs)) 
+		for r in self.ep_rs[::-1]:			# [::-1] reverses a list
 			R = r + self.gamma * R
 			rewards.insert(0,R)
 
@@ -173,20 +174,22 @@ class PolicyGradient(nn.Module):
 		rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
 
 		# Calculate loss
+		print("policy history:", self.policy_history)
+		print("rewards:", rewards)
 		loss = (torch.sum(torch.mul(self.policy_history, Variable(rewards)).mul(-1), -1))
 
 		# Update network weights
-		optimizer.zero_grad()
+		self.optimizer.zero_grad()
 		loss.backward()
-		optimizer.step()
+		self.optimizer.step()
 
 		#Save and intialize episode history counters
 		self.loss_history.append(loss.item())
-		self.reward_history.append(np.sum(self.reward_episode))
+		self.reward_history.append(np.sum(self.ep_rs))
 		self.policy_history = Variable(torch.Tensor())
 		self.reward_episode= []
 
-		return discounted_ep_rs_norm
+		return rewards		# == discounted_ep_rs_norm
 
 	# def learn(self):
 		# # discount and normalize episode reward

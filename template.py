@@ -89,7 +89,7 @@ def main(episodes):
 			# Step through environment using chosen action
 			state, reward, done, _ = env.step(action.item())
 
-			# Save reward
+			# Save reward;  reward_episode(reward) == ep_rs(r)
 			policy.reward_episode.append(reward)
 			if done:
 				break
