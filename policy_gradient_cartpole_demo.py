@@ -83,7 +83,7 @@ def update_policy():
 
 	# Scale rewards
 	rewards = torch.FloatTensor(rewards)
-	rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
+	rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)		# eps = the smallest representable number
 
 	# Calculate loss
 	loss = (torch.sum(torch.mul(policy.policy_history, Variable(rewards)).mul(-1), -1))

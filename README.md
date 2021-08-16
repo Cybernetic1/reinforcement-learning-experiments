@@ -110,7 +110,33 @@ To plot graph:
 
 ## Code commentary
 
+Current problem is:  policy_history records only own-actions, thus it has half the length of the full record (which includes the other player's actions).  This gives an error when attempting tensor multiplication of policy history x rewards.
+
+| pyTorch | TensorFlow |
+| --- | --- |
+| rewards | tf_vt, ep_rs_norm |
+| policy_history | all_act |
+
 From Cartpole, pyTorch:
 
+rewards = rewards centered at mean value / standard deviation
+
 loss = policy_history x rewards
+
+where `policy_history` is updated in `choose_action()`.
+
+From TTT Tensorflow:
+
+loss = reduce_mean( neg_log_prob * tf_vt )
+
+neg_log_prob = softmax cross-entropy of (logits = all_act = output of NN)
+
+tf_vt = discounted_ep_rs_norm
+    = "rewards" in pyTorch version
+
+Why does neg_log_prob contain both player's actions?
+
+logits = all_act = output of NN (as a batch, therefore it has the required length).
+
+
 
