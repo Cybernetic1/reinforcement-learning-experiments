@@ -60,38 +60,38 @@ class PolicyGradient:
 			self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
 		# fc1
 		layer1 = tf.layers.dense(
-			inputs=self.tf_obs,
-			units=9,
-			activation=tf.nn.tanh,  # tanh activation
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
+			inputs = self.tf_obs,
+			units = 9,
+			activation = tf.nn.tanh,  # tanh activation
+			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
+			bias_initializer = tf.constant_initializer(0.1),
 			name='fc1'
 		)
 		# fc2
 		layer2 = tf.layers.dense(
-			inputs=layer1,
-			units=7,
-			activation=tf.nn.tanh,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
+			inputs = layer1,
+			units = 7,
+			activation = tf.nn.tanh,
+			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
+			bias_initializer = tf.constant_initializer(0.1),
 			name='fc2'
 		)
 		# fc3
 		layer3 = tf.layers.dense(
-			inputs=layer2,
-			units=5,
-			activation=tf.nn.tanh,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
+			inputs = layer2,
+			units = 5,
+			activation = tf.nn.tanh,
+			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
+			bias_initializer = tf.constant_initializer(0.1),
 			name='fc3'
 		)
 		# fc4
 		all_act = tf.layers.dense(
-			inputs=layer3,
-			units=self.n_actions,
-			activation=None,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
+			inputs = layer3,
+			units = self.n_actions,
+			activation = None,
+			kernel_initializer = tf.random_normal_initializer( mean=0, stddev=0.3 ),
+			bias_initializer = tf.constant_initializer(0.1),
 			name='fc4'
 		)
 
@@ -101,18 +101,20 @@ class PolicyGradient:
 
 		with tf.name_scope('loss'):
 			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
-			print("logits shape=", all_act.shape)
+			print("logits = all_act, shape=", all_act.shape)
 			print("labels shape=", self.tf_acts.shape)
 			neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
 			# or in this way:
 			# neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
-			loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
+			loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward-guided loss
 
 		with tf.name_scope('train'):
 			self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
 
+	# **** Input is just one state
 	def choose_action(self, observation):
 		prob_weights = self.sess.run(self.all_act_prob, feed_dict={self.tf_obs: observation[np.newaxis, :]})
+
 		action = np.random.choice(range(prob_weights.shape[1]), p=prob_weights.ravel())  # select action w.r.t the actions prob
 		return action
 
@@ -121,6 +123,7 @@ class PolicyGradient:
 		self.ep_as.append(a)
 		self.ep_rs.append(r)
 
+	# **** Train on an entire episode = 1 game
 	def learn(self):
 		# discount and normalize episode reward
 		discounted_ep_rs_norm = self._discount_and_norm_rewards()
@@ -132,7 +135,7 @@ class PolicyGradient:
 		# print("*shape acts=", acts.shape)
 		# print("*dtype acts=", acts.dtype)
 
-		# train on episode
+		# train on one episode
 		self.sess.run(self.train_op, feed_dict={
 			 self.tf_obs: np.vstack(self.ep_obs),  # shape=[None, n_obs]
 			 self.tf_acts: np.array(self.ep_as),  # shape=[None, ]

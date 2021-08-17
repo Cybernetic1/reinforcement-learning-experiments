@@ -138,5 +138,3 @@ Why does neg_log_prob contain both player's actions?
 
 logits = all_act = output of NN (as a batch, therefore it has the required length).
 
-
-
