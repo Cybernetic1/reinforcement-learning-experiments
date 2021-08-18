@@ -110,7 +110,7 @@ To plot graph:
 
 ## Code commentary
 
-The following variables are roughly the same:
+The following variables are roughly equivalent:
 
 | pyTorch version | TensorFlow version |
 | --- | --- |
