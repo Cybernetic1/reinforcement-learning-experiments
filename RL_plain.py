@@ -66,44 +66,6 @@ class PolicyGradient(nn.Module):
 		# self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
 		# self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
 		# self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
-		"""
-		# fc1
-		layer1 = tf.layers.dense(
-			inputs=self.tf_obs,
-			units=9,
-			activation=tf.nn.tanh,  # tanh activation
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc1'
-		)
-		# fc2
-		layer2 = tf.layers.dense(
-			inputs=layer1,
-			units=7,
-			activation=tf.nn.tanh,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc2'
-		)
-		# fc3
-		layer3 = tf.layers.dense(
-			inputs=layer2,
-			units=5,
-			activation=tf.nn.tanh,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc3'
-		)
-		# fc4
-		all_act = tf.layers.dense(
-			inputs=layer3,
-			units=self.n_actions,
-			activation=None,
-			kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer=tf.constant_initializer(0.1),
-			name='fc4'
-		)
-		"""
 
 		# total number of weights = 9 * 9 + 9 * 7 + 7 * 5 + 5 * 9 = 81 + 63 + 35 + 45 = 224
 
@@ -124,14 +86,14 @@ class PolicyGradient(nn.Module):
 		# use softmax to convert to probability:
 		# self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')
 
-		with tf.name_scope('loss'):
-			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
-			print("logits shape=", all_act.shape)
-			print("labels shape=", self.tf_acts.shape)
-			neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
-			# or in this way:
-			# neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
-			loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
+		#with tf.name_scope('loss'):
+		# # to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
+		# print("logits shape=", all_act.shape)
+		# print("labels shape=", self.tf_acts.shape)
+		# neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
+		# # or in this way:
+		# # neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
+		# loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
 
 	def choose_action(self, state):
 		#Select an action (0 or 1) by running policy model and choosing based on the probabilities in state
@@ -141,12 +103,12 @@ class PolicyGradient(nn.Module):
 		action = c.sample()
 
 		# Add log probability of our chosen action to our history
+		log_probs = c.log_prob(action).unsqueeze(0)
 		if self.policy_history.dim() != 0:
-			log_probs = c.log_prob(action).unsqueeze(0)
 			# print("log probs:", log_probs)
 			self.policy_history = torch.cat([self.policy_history, log_probs])
 		else:
-			self.policy_history = (c.log_prob(action))
+			self.policy_history = (log_probs)
 		return action
 
 	# def choose_action(self, observation):
@@ -164,18 +126,18 @@ class PolicyGradient(nn.Module):
 		rewards = []
 
 		# Discount future rewards back to the present using gamma
-		print("\nLength of reward episode:", len(self.ep_rs)) 
+		# print("\nLength of reward episode:", len(self.ep_rs)) 
 		for r in self.ep_rs[::-1]:			# [::-1] reverses a list
 			R = r + self.gamma * R
-			rewards.insert(0,R)
+			rewards.insert(0, R)
 
 		# Scale rewards
 		rewards = torch.FloatTensor(rewards)
 		rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
 
 		# Calculate loss
-		print("policy history:", self.policy_history)
-		print("rewards:", rewards)
+		# print("policy history:", self.policy_history)
+		# print("rewards:", rewards)
 		loss = (torch.sum(torch.mul(self.policy_history, Variable(rewards)).mul(-1), -1))
 
 		# Update network weights
@@ -189,6 +151,7 @@ class PolicyGradient(nn.Module):
 		self.policy_history = Variable(torch.Tensor())
 		self.reward_episode= []
 
+		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
 		return rewards		# == discounted_ep_rs_norm
 
 	# def learn(self):
@@ -208,9 +171,6 @@ class PolicyGradient(nn.Module):
 			 # self.tf_acts: np.array(self.ep_as),  # shape=[None, ]
 			 # self.tf_vt: discounted_ep_rs_norm,  # shape=[None, ]
 		# })
-
-		# self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
-		# return discounted_ep_rs_norm
 
 	def _discount_and_norm_rewards(self):
 		# discount episode rewards

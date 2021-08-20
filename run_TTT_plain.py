@@ -73,39 +73,39 @@ while True:
 		# If the game isn't over, change the current player
 		if not done:
 			user = 0 if user == 1 else 1
-		else:
-			ep_rs_sum = sum(RL.ep_rs)
 
-			if 'running_reward' not in globals():
-				running_reward = ep_rs_sum
-			else:
-				running_reward = running_reward * 0.99 + ep_rs_sum * 0.01
-			if running_reward > DISPLAY_REWARD_THRESHOLD:
-				RENDER = True     # rendering
+	ep_rs_sum = sum(RL.ep_rs)
 
-			if i_episode % 100 == 0:
-				print("episode:", i_episode, "  reward:", int(running_reward))
-				# RL.set_learning_rate(i_episode)
+	if 'running_reward' not in globals():
+		running_reward = ep_rs_sum
+	else:
+		running_reward = running_reward * 0.99 + ep_rs_sum * 0.01
+	if running_reward > DISPLAY_REWARD_THRESHOLD:
+		RENDER = True     # rendering
 
-			if i_episode % 1000 == 0:
-				now = datetime.datetime.now()
-				print (now.strftime("%Y-%m-%d %H:%M:%S"))
+	if i_episode % 100 == 0:
+		print("episode:", i_episode, "  reward:", int(running_reward))
+		# RL.set_learning_rate(i_episode)
 
-			vt = RL.learn()
+	if i_episode % 1000 == 0:
+		now = datetime.datetime.now()
+		print (now.strftime("%Y-%m-%d %H:%M:%S"))
 
-			# if reward == 10:
-				# print("Draw !")
-			# elif reward == -20:
-				# print("Infos : " + str(infos))
-				# if user == 0:
-					# print("Random wins ! AI Reward : " + str(reward))
-				# elif user == 1:
-					# print("AI wins ! AI Reward : " + str(-reward))
-			# elif reward == 20:
-				# if user == 0:
-					# print("AI wins ! AI Reward : " + str(reward))
-				# elif user == 1:
-					# print("Random wins ! AI Reward : " + str(reward))
+	vt = RL.learn()
+
+	# if reward == 10:
+		# print("Draw !")
+	# elif reward == -20:
+		# print("Infos : " + str(infos))
+		# if user == 0:
+			# print("Random wins ! AI Reward : " + str(reward))
+		# elif user == 1:
+			# print("AI wins ! AI Reward : " + str(-reward))
+	# elif reward == 20:
+		# if user == 0:
+			# print("AI wins ! AI Reward : " + str(reward))
+		# elif user == 1:
+			# print("Random wins ! AI Reward : " + str(reward))
 
 # Old plot:
 plt.plot(vt)    # plot the episode vt
