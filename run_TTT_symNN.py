@@ -11,7 +11,7 @@ gym: 0.8.0
 import datetime
 
 import gym
-from RL_sym import PolicyGradient
+from RL_symNN import PolicyGradient
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm, trange
@@ -74,7 +74,7 @@ while True:
 		if not done:
 			user = 0 if user == 1 else 1
 
-	# **** End of game:
+	# **** Game ended:
 	ep_rs_sum = sum(RL.ep_rs)
 
 	if 'running_reward' not in globals():
@@ -94,20 +94,6 @@ while True:
 		print (now.strftime("%Y-%m-%d %H:%M:%S"))
 
 	vt = RL.learn()
-
-	# if reward == 10:
-		# print("Draw !")
-	# elif reward == -20:
-		# print("Infos : " + str(infos))
-		# if user == 0:
-			# print("Random wins ! AI Reward : " + str(reward))
-		# elif user == 1:
-			# print("AI wins ! AI Reward : " + str(-reward))
-	# elif reward == 20:
-		# if user == 0:
-			# print("AI wins ! AI Reward : " + str(reward))
-		# elif user == 1:
-			# print("Random wins ! AI Reward : " + str(reward))
 
 # Old plot:
 plt.plot(vt)    # plot the episode vt
