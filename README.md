@@ -34,16 +34,14 @@ In this demo, I try to demonstrate that symmetric NN can be applied to policy gr
 
 ## Acknowledgement
 
-[1] The DeepSets code is borrowed from the paper's original authors:
-https://github.com/manzilzaheer/DeepSets
-
-[2] The policy gradient TensorFlow version, which originally solves the **Cart Pole** problem, is borrow from Morvan Zhou (周沫凡/莫烦):
+[1] The policy gradient demo, which originally solves the **Cart Pole** problem, is borrow from Morvan Zhou (周沫凡/莫烦):
 https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow
 
-[3] The policy gradient pyTorch version (also for Cart Pole) is borrowing from Tim Sullivan's blog post:  https://tims457.medium.com/policy-gradient-reinforcement-learning-in-pytorch-df1383ea0baf
-
-[4] The Tic-Tac-Toe AI Gym code is borrowed from Clément Romac:
+[2] The Tic-Tac-Toe AI Gym code is borrowed from Clément Romac:
 https://clementromac.github.io/projects/gym-tictactoe/
+
+[3] The DeepSets code is borrowed from the paper's original authors:
+https://github.com/manzilzaheer/DeepSets
 
 ## Implementation details
 
@@ -110,7 +108,7 @@ To plot graph:
 
 	python plot.py TTT-test-results.txt
 
-## Code commentary
+## Code comments
 
 The following variables are roughly equivalent:
 
