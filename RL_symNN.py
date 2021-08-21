@@ -1,5 +1,5 @@
 """
-This is the plain version, where the state vector is a 3 x 3 = 9-vector
+This is the symNN version, where the state vector is 9 propositions = 9 x 3 = 27-vector
 
 Network topology = 9-inputs -9-7-5- 9-outputs
 

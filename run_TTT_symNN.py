@@ -8,7 +8,7 @@ PyTorch: 1.9.0+cpu
 gym: 0.8.0
 """
 
-import datetime
+from datetime import datetime
 
 import gym
 from RL_symNN import PolicyGradient
@@ -24,8 +24,10 @@ import gym_tictactoe
 env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 env.seed(1)     # reproducible, general Policy gradient has high variance
 
-print("env.action_space:", env.action_space)
-print("env.state_space:", env.state_space)
+print("action_space =", env.action_space)
+print("state_space =", env.state_space)
+print("state_space.high =", env.state_space.high)
+print("state_space.low =", env.state_space.low)
 
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
@@ -37,7 +39,7 @@ RL = PolicyGradient(
 
 # print(RL.n_features)
 
-now = datetime.datetime.now()
+now = datetime.now()
 print ("Start Time =", now.strftime("%Y-%m-%d %H:%M:%S"))
 
 # for i_episode in range(30000):
@@ -59,10 +61,23 @@ while True:
 				state = state1
 				reward1 = reward2 = 0
 		elif user == 1:
-			while True:
+			while True:		# random player will never choose occupied squares
 				random_act = env.action_space.sample()
-				if state1[random_act] == 0:
+				x = random_act % 3
+				y = random_act // 3
+				occupied = False
+				for i in range(0, 27, 3):		# scan through all 9 propositions, each proposition is a 3-vector
+					proposition = state1[i : i + 3]
+					# print("proposition=",proposition)
+					if ([x,y,1] == proposition).all():
+						occupied = True
+						break
+					if ([x,y,-1] == proposition).all():
+						occupied = True
+						break
+				if not occupied:
 					break
+
 			state2, reward2, done, infos = env.step(random_act, 1)
 			RL.store_transition(state, action1, reward1 - reward2)		# why is it r1 + r2? wouldn't the rewards cancel out each other? 
 			state = state2
@@ -90,7 +105,7 @@ while True:
 		# RL.set_learning_rate(i_episode)
 
 	if i_episode % 1000 == 0:
-		now = datetime.datetime.now()
+		now = datetime.now()
 		print (now.strftime("%Y-%m-%d %H:%M:%S"))
 
 	vt = RL.learn()

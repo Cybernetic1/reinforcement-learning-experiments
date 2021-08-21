@@ -8,7 +8,7 @@ Tensorflow: 2.0
 gym: 0.8.0
 """
 
-import datetime
+from datetime import datetime
 
 import gym
 from RL_symNN_TensorFlow import PolicyGradient
@@ -20,10 +20,10 @@ import gym_tictactoe
 env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 env.seed(1)     # reproducible, general Policy gradient has high variance
 
-print(env.action_space)
-print(env.state_space)
-print(env.state_space.high)
-print(env.state_space.low)
+print("action_space =", env.action_space)
+print("state_space =", env.state_space)
+print("state_space.high =", env.state_space.high)
+print("state_space.low =", env.state_space.low)
 
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
@@ -35,7 +35,7 @@ RL = PolicyGradient(
 
 print("n_features=", RL.n_features)
 
-now = datetime.datetime.now()
+now = datetime.now()
 print ("Start Time =", now.strftime("%Y-%m-%d %H:%M:%S"))
 
 i_episode = 0
@@ -100,7 +100,7 @@ while True:
 				# RL.set_learning_rate(i_episode)
 
 				if i_episode % 1000 == 0:
-					now = datetime.datetime.now()
+					now = datetime.now()
 					print (now.strftime("%Y-%m-%d %H:%M:%S"))
 
 			vt = RL.learn()
