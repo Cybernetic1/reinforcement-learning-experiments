@@ -1,7 +1,7 @@
 """
 This is the symNN version, where the state vector is 9 propositions = 9 x 3 = 27-vector
 
-Network topology = 9-inputs -9-7-5- 9-outputs
+Network topology = ...
 
 ============================================================
 This part of code is the reinforcement learning brain, which is a brain of the agent.
@@ -58,42 +58,29 @@ class PolicyGradient(nn.Module):
 		# self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
 
 	def _build_net(self):
-		self.l1 = nn.Linear(self.n_features, 9, bias=True)
-		self.l2 = nn.Linear(9, 7, bias=True)
-		self.l3 = nn.Linear(7, 5, bias=True)
-		self.l4 = nn.Linear(5, self.n_actions, bias=False)
+		# **** h-network, also referred to as "phi" in the literature
+		# input dim = 3 because each proposition is a 3-vector
+		self.h1 = nn.Linear(3, 8, bias=True)
+		self.h2 = nn.Linear(8, self.n_actions, bias=True)
 
-		# self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
-		# self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
-		# self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
+		# **** g-network, also referred to as "rho" in the literature
+		# input dim can be arbitrary, here chosen to be n_actions
+		self.g1 = nn.Linear(self.n_actions, self.n_actions + 3, bias=True)
+		# output dim must be n_actions
+		self.g2 = nn.Linear(self.n_actions + 3, self.n_actions, bias=True)
 
-		# total number of weights = 9 * 9 + 9 * 7 + 7 * 5 + 5 * 9 = 81 + 63 + 35 + 45 = 224
+		# total number of weights = ...?
 
 	def forward(self, x):
-		model = torch.nn.Sequential(
-			self.l1,
-			nn.Dropout(p=0.6),
-			nn.ReLU(),
-			self.l2,
-			nn.ReLU(),
-			self.l3,
-			nn.ReLU(),
-			self.l4,
-			nn.Softmax(dim=-1),
-			)
-		return model(x)
-
-		# use softmax to convert to probability:
-		# self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')
-
-		#with tf.name_scope('loss'):
-		# # to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
-		# print("logits shape=", all_act.shape)
-		# print("labels shape=", self.tf_acts.shape)
-		# neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
-		# # or in this way:
-		# # neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
-		# loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
+		x = self.h1(x)
+		x = nn.ReLU(x)
+		x = self.h2(x)
+		x = nn.ReLU(x)
+		x = self.g1(x)
+		x = nn.ReLU(x)
+		x = self.g2(x)
+		x = nn.Softmax(x, dim=-1)
+		return x
 
 	def choose_action(self, state):
 		#Select an action (0 or 1) by running policy model and choosing based on the probabilities in state
@@ -110,11 +97,6 @@ class PolicyGradient(nn.Module):
 		else:
 			self.policy_history = (log_probs)
 		return action
-
-	# def choose_action(self, observation):
-		# prob_weights = self.sess.run(self.all_act_prob, feed_dict={self.tf_obs: observation[np.newaxis, :]})
-		# action = np.random.choice(range(prob_weights.shape[1]), p=prob_weights.ravel())  # select action w.r.t the actions prob
-		# return action
 
 	def store_transition(self, s, a, r):		# state, action, reward
 		self.ep_obs.append(s)
@@ -153,24 +135,6 @@ class PolicyGradient(nn.Module):
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
 		return rewards		# == discounted_ep_rs_norm
-
-	# def learn(self):
-		# # discount and normalize episode reward
-		# discounted_ep_rs_norm = self._discount_and_norm_rewards()
-
-		# # obs = np.vstack(self.ep_obs)
-		# # print("*shape obs=", obs.shape)
-		# # print("*dtype obs=", obs.dtype)
-		# # acts = np.array(self.ep_as)
-		# # print("*shape acts=", acts.shape)
-		# # print("*dtype acts=", acts.dtype)
-
-		# # train on episode
-		# self.sess.run(self.train_op, feed_dict={
-			 # self.tf_obs: np.vstack(self.ep_obs),  # shape=[None, n_obs]
-			 # self.tf_acts: np.array(self.ep_as),  # shape=[None, ]
-			 # self.tf_vt: discounted_ep_rs_norm,  # shape=[None, ]
-		# })
 
 	def _discount_and_norm_rewards(self):
 		# discount episode rewards

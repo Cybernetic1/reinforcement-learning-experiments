@@ -67,6 +67,7 @@ while True:
 				y = random_act // 3
 				occupied = False
 				for i in range(0, 27, 3):		# scan through all 9 propositions, each proposition is a 3-vector
+					# 'proposition' is a numpy array[3]
 					proposition = state1[i : i + 3]
 					# print("proposition=",proposition)
 					if ([x,y,1] == proposition).all():
