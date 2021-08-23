@@ -75,7 +75,6 @@ class PolicyGradient:
 		# Embedding(input dim, output dim, ...)
 		# x = Embedding(self.n_features, self.n_features * 2, mask_zero=False)(input_txt)
 		# x2 = Reshape((3, 9))(x)
-		xs = tf.split(self.tf_obs, 9, axis=1)
 
 		"""  *** DEMO CODE ***
 		h = Dense(3, activation='tanh')

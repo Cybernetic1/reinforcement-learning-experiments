@@ -72,15 +72,33 @@ class PolicyGradient(nn.Module):
 		# total number of weights = ...?
 
 	def forward(self, x):
-		x = self.h1(x)
-		x = nn.ReLU(x)
-		x = self.h2(x)
-		x = nn.ReLU(x)
-		x = self.g1(x)
-		x = nn.ReLU(x)
-		x = self.g2(x)
-		x = nn.Softmax(x, dim=-1)
-		return x
+		# input dim = n_features = 9 x 3 = 27
+		# there are 9 h-networks each taking a dim-3 vector input
+		# First we need to split the input into 9 parts:
+		xs = torch.split(x, 3)
+
+		# h-network:
+		ys = []
+		relu1 = nn.ReLU()
+		for i in range(9):							# repeat h1 9 times
+			ys.append( relu1( self.h1(xs[i]) ))
+		zs = []
+		relu2 = nn.ReLU()
+		for i in range(9):							# repeat h2 9 times
+			zs.append( relu2( self.h2(ys[i]) ))
+
+		# add all the z's together:
+		z = torch.stack(zs, dim=1)
+		z = torch.sum(z, dim=1)
+
+		# g-network:
+		z1 = self.g1(z)
+		relu3 = nn.ReLU()
+		z1 = relu3(z1)
+		z2 = self.g2(z1)
+		softmax = nn.Softmax(dim=0)
+		z2 = softmax(z2)
+		return z2
 
 	def choose_action(self, state):
 		#Select an action (0 or 1) by running policy model and choosing based on the probabilities in state

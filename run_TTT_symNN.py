@@ -22,10 +22,12 @@ RENDER = False  # rendering wastes time
 
 import gym_tictactoe
 env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
-env.seed(1)     # reproducible, general Policy gradient has high variance
+env.seed(2)     # reproducible, general Policy gradient has high variance
 
 print("action_space =", env.action_space)
+print("n_actions =", env.action_space.n)
 print("state_space =", env.state_space)
+print("n_features =", env.state_space.shape[0])
 print("state_space.high =", env.state_space.high)
 print("state_space.low =", env.state_space.low)
 
@@ -101,8 +103,8 @@ while True:
 		RENDER = True     # rendering
 
 	if i_episode % 100 == 0:
-		rr = int(running_reward)
-		print(i_episode, "running reward:", "\x1b[32m" if rr >= 0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
+		rr = round(running_reward,5)
+		print(i_episode, "running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 		# RL.set_learning_rate(i_episode)
 
 	if i_episode % 1000 == 0:
