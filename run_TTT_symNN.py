@@ -17,12 +17,17 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm, trange
 import pandas as pd
 
-DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is greater then this threshold
+DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
 
 import gym_tictactoe
 env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 env.seed(2)     # reproducible, general Policy gradient has high variance
+
+def warn(*args, **kwargs):
+    pass
+import warnings
+warnings.warn = warn
 
 print("action_space =", env.action_space)
 print("n_actions =", env.action_space.n)
@@ -34,15 +39,15 @@ print("state_space.low =", env.state_space.low)
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	learning_rate = 0.01,
-	gamma = 0.98,
+	learning_rate = 0.001,
+	gamma = 0.9,
 	# output_graph=True,
 )
 
 # print(RL.n_features)
 
-now = datetime.now()
-print ("Start Time =", now.strftime("%Y-%m-%d %H:%M:%S"))
+startTime = datetime.now()
+print ("Start Time =", startTime.strftime("%Y-%m-%d %H:%M:%S"))
 
 # for i_episode in range(30000):
 i_episode = 0
@@ -93,12 +98,13 @@ while True:
 			user = 0 if user == 1 else 1
 
 	# **** Game ended:
-	ep_rs_sum = sum(RL.ep_rs)
+	# print(RL.ep_rs)
+	per_game_reward = sum(RL.ep_rs)		# actually only the last reward is non-zero, for TicTacToe
 
 	if 'running_reward' not in globals():
-		running_reward = ep_rs_sum
+		running_reward = per_game_reward
 	else:
-		running_reward = running_reward * 0.99 + ep_rs_sum * 0.01
+		running_reward = running_reward * 0.99 + per_game_reward * 0.01
 	if running_reward > DISPLAY_REWARD_THRESHOLD:
 		RENDER = True     # rendering
 
@@ -108,8 +114,9 @@ while True:
 		# RL.set_learning_rate(i_episode)
 
 	if i_episode % 1000 == 0:
-		now = datetime.now()
-		print (now.strftime("%Y-%m-%d %H:%M:%S"))
+		delta = datetime.now() - startTime
+		# print (now.strftime("%Y-%m-%d %H:%M:%S"))
+		print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))
 
 	vt = RL.learn()
 

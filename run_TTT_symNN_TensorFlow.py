@@ -13,7 +13,7 @@ from datetime import datetime
 import gym
 from RL_symNN_TensorFlow import PolicyGradient
 
-DISPLAY_REWARD_THRESHOLD = 20  # renders environment if total episode reward is greater then this threshold
+DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
 
 import gym_tictactoe
@@ -28,7 +28,7 @@ print("state_space.low =", env.state_space.low)
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	# learning_rate=0.002,
+	learning_rate=0.002,
 	reward_decay=0.9,
 	# output_graph=True,
 )

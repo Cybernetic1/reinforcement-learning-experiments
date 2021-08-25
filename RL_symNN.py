@@ -33,8 +33,8 @@ class PolicyGradient(nn.Module):
 			self,
 			n_actions,
 			n_features,
-			learning_rate=0.01,
-			gamma=0.95,
+			learning_rate=0.001,
+			gamma=0.9,		# only for discounting within a game (episode)
 	):
 		super(PolicyGradient, self).__init__()
 		self.n_actions = n_actions
@@ -103,17 +103,19 @@ class PolicyGradient(nn.Module):
 	def choose_action(self, state):
 		#Select an action (0 or 1) by running policy model and choosing based on the probabilities in state
 		state = torch.from_numpy(state).type(torch.FloatTensor)
-		state = self(Variable(state))
-		c = Categorical(state)
+		probs = self(Variable(state))
+		c = Categorical(probs)
 		action = c.sample()
 
 		# Add log probability of our chosen action to our history
-		log_probs = c.log_prob(action).unsqueeze(0)
+		# Unsqueeze(0): tensor (prob, grad_fn) ==> ([prob], grad_fn)
+		log_prob = c.log_prob(action).unsqueeze(0)
+		# print("log prob:", c.log_prob(action))
+		# print("log prob unsqueezed:", log_prob)
 		if self.policy_history.dim() != 0:
-			# print("log probs:", log_probs)
-			self.policy_history = torch.cat([self.policy_history, log_probs])
+			self.policy_history = torch.cat([self.policy_history, log_prob])
 		else:
-			self.policy_history = (log_probs)
+			self.policy_history = (log_prob)
 		return action
 
 	def store_transition(self, s, a, r):		# state, action, reward
@@ -153,17 +155,3 @@ class PolicyGradient(nn.Module):
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
 		return rewards		# == discounted_ep_rs_norm
-
-	def _discount_and_norm_rewards(self):
-		# discount episode rewards
-		discounted_ep_rs = np.zeros_like(self.ep_rs)
-		running_add = 0
-		for t in reversed(range(0, len(self.ep_rs))):
-			running_add = running_add * self.gamma + self.ep_rs[t]
-			discounted_ep_rs[t] = running_add
-
-		# normalize episode rewards
-		# print("discounted episode rewards=", discounted_ep_rs)
-		discounted_ep_rs -= np.mean(discounted_ep_rs)
-		discounted_ep_rs /= np.std(discounted_ep_rs)
-		return discounted_ep_rs
