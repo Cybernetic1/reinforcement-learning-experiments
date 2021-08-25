@@ -22,7 +22,7 @@ RENDER = False  # rendering wastes time
 
 import gym_tictactoe
 env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
-env.seed(2)     # reproducible, general Policy gradient has high variance
+env.seed(3)     # reproducible, general Policy gradient has high variance
 
 print("action_space =", env.action_space)
 print("n_actions =", env.action_space.n)
