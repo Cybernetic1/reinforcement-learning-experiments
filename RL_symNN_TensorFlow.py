@@ -34,7 +34,7 @@ class PolicyGradient:
 			self,
 			n_actions,
 			n_features,
-			# learning_rate=0.01,
+			learning_rate=0.001,
 			reward_decay=0.99,
 			output_graph=True,
 	):
@@ -47,7 +47,7 @@ class PolicyGradient:
 		# when i = 100000, rate = 0.001
 		# self.A = 0.003
 		# self.k = 1.00000
-		self.lr = 0.001
+		self.lr = learning_rate
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
 

@@ -155,3 +155,7 @@ class PolicyGradient(nn.Module):
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
 		return rewards		# == discounted_ep_rs_norm
+
+	def save_net(self, fname):
+		torch.save(self.state_dict(), fname)
+		print("Model saved.")

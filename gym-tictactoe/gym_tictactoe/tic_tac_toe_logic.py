@@ -20,8 +20,8 @@ class TicTacToeEnv(gym.Env):
 		# State space has 9 elements, each element is a vector of dim 3
 		self.state_space = spaces.Box(
 		# The entries indicate the min and max values of the "box":
-		numpy.array([0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1]), \
-		numpy.array([3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1]) )
+		numpy.array(numpy.float32( [0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1] )), \
+		numpy.array(numpy.float32( [3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1] )))
 
 		self.rewards = {
 			'still_in_game': 0.0,
@@ -128,7 +128,7 @@ class TicTacToeEnv(gym.Env):
 		else:
 			self.board[action] = symbol
 			self.state_vector[self.index] = action % 3
-			self.state_vector[self.index + 1] = action // 3
+			self.state_vector[self.index + 1] = numpy.floor_divide(action, 3)
 			self.state_vector[self.index + 2] = symbol
 
 			if self.is_win():

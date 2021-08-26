@@ -8,8 +8,6 @@ PyTorch: 1.9.0+cpu
 gym: 0.8.0
 """
 
-from datetime import datetime
-
 import gym
 from RL_symNN import PolicyGradient
 
@@ -24,10 +22,27 @@ import gym_tictactoe
 env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 env.seed(3)     # reproducible, general Policy gradient has high variance
 
-def warn(*args, **kwargs):
-    pass
-import warnings
-warnings.warn = warn
+# **** This is for catching warnings and to debug them:
+# import warnings
+# warnings.filterwarnings("error")
+
+from datetime import datetime
+import signal
+import sys
+
+def ctrl_C_handler(sig, frame):
+	print("\n **** program paused ****")
+	fname = "TTT-model.dict"
+	print("Enter filename (default: {s}) to save network to file".format(s=fname))
+	print("Enter 'x' to exit")
+	fname = input() or fname
+	if fname == "x":
+		sys.exit(0)
+	else:
+		RL.save_net(fname)
+
+signal.signal(signal.SIGINT, ctrl_C_handler)
+print("Press Ctrl-C to pause and optionally save network to file")
 
 print("action_space =", env.action_space)
 print("n_actions =", env.action_space.n)
