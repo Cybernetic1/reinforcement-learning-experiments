@@ -8,6 +8,10 @@ PyTorch: 1.9.0+cpu
 gym: 0.8.0
 """
 
+from datetime import datetime
+import signal
+import sys
+
 import gym
 from RL_symNN import PolicyGradient
 
@@ -22,13 +26,29 @@ import gym_tictactoe
 env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 env.seed(3)     # reproducible, general Policy gradient has high variance
 
+RL = PolicyGradient(
+	n_actions=env.action_space.n,
+	n_features=env.state_space.shape[0],
+	learning_rate = 0.001,
+	gamma = 0.9,
+	# output_graph=True,
+)
+
+print("\nParameters:")
+print("action_space =", env.action_space)
+print("n_actions =", env.action_space.n)
+print("state_space =", env.state_space)
+print("n_features =", env.state_space.shape[0])
+print("state_space.high =", env.state_space.high)
+print("state_space.low =", env.state_space.low)
+print("learning rate =", RL.lr)
+
+startTime = datetime.now()
+print ("\nStart Time =", startTime.strftime("%Y-%m-%d %H:%M:%S"))
+
 # **** This is for catching warnings and to debug them:
 # import warnings
 # warnings.filterwarnings("error")
-
-from datetime import datetime
-import signal
-import sys
 
 def ctrl_C_handler(sig, frame):
 	print("\n **** program paused ****")
@@ -42,29 +62,8 @@ def ctrl_C_handler(sig, frame):
 		RL.save_net(fname)
 
 signal.signal(signal.SIGINT, ctrl_C_handler)
-print("Press Ctrl-C to pause and optionally save network to file")
+print("Press Ctrl-C to pause and optionally save network to file\n")
 
-print("action_space =", env.action_space)
-print("n_actions =", env.action_space.n)
-print("state_space =", env.state_space)
-print("n_features =", env.state_space.shape[0])
-print("state_space.high =", env.state_space.high)
-print("state_space.low =", env.state_space.low)
-
-RL = PolicyGradient(
-	n_actions=env.action_space.n,
-	n_features=env.state_space.shape[0],
-	learning_rate = 0.001,
-	gamma = 0.9,
-	# output_graph=True,
-)
-
-# print(RL.n_features)
-
-startTime = datetime.now()
-print ("Start Time =", startTime.strftime("%Y-%m-%d %H:%M:%S"))
-
-# for i_episode in range(30000):
 i_episode = 0
 while True:
 	i_episode += 1
