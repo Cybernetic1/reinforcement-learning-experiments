@@ -1,7 +1,9 @@
 """
 This is the symNN version, where the state vector is 9 propositions = 9 x 3 = 27-vector
 
-Network topology = ...
+Network topology: h = (3-9-9) x 9, g = (9-12-9) x 1
+Total # weights = (3 x 8 + 8 x 9) x 9 + 9 x 12 + 12 x 9 = 1080
+	not counting duplicates = 312
 
 ============================================================
 This part of code is the reinforcement learning brain, which is a brain of the agent.
@@ -66,9 +68,9 @@ class PolicyGradient(nn.Module):
 	def _build_net(self):
 		# **** h-network, also referred to as "phi" in the literature
 		# input dim = 3 because each proposition is a 3-vector
-		self.h1 = nn.Linear(3, 8, bias=True)
+		self.h1 = nn.Linear(3, 9, bias=True)
 		self.relu1 = nn.ReLU()
-		self.h2 = nn.Linear(8, self.n_actions, bias=True)
+		self.h2 = nn.Linear(9, self.n_actions, bias=True)
 		self.relu2 = nn.ReLU()
 
 		# **** g-network, also referred to as "rho" in the literature

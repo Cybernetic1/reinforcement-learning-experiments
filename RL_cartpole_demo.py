@@ -1,7 +1,6 @@
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
-from tqdm import tqdm, trange
 import pandas as pd
 import torch
 import torch.nn as nn

@@ -18,8 +18,9 @@ class TicTacToeEnv(gym.Env):
 		}
 		self.action_space = spaces.Discrete(self.board_size * self.board_size)
 
-		self.state_space = spaces.Box( numpy.array([-1,-1,-1,-1,-1,-1,-1,-1,-1]), \
-									   numpy.array([+1,+1,+1,+1,+1,+1,+1,+1,+1]) )
+		self.state_space = spaces.Box( \
+		 numpy.float32(numpy.array([-1,-1,-1,-1,-1,-1,-1,-1,-1])), \
+		 numpy.float32(numpy.array([+1,+1,+1,+1,+1,+1,+1,+1,+1])) )
 
 		self.rewards = {
 			'still_in_game': 0.0,
@@ -166,4 +167,5 @@ class TicTacToeEnv(gym.Env):
 		return None
 
 	def seed(self, seed=None):
+		self.action_space.np_random.seed(seed)
 		return [seed]

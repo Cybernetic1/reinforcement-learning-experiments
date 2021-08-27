@@ -1,6 +1,6 @@
 import gym
 import gym_tictactoe
-env = gym.make('TicTacToe-plain', symbols=[-1, 1], board_size=3, win_size=3)
+env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
 user = 0
 done = False

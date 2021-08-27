@@ -8,24 +8,22 @@ PyTorch: 1.9.0+cpu
 gym: 0.8.0
 """
 
-import datetime
-
 import gym
 from RL_plain import PolicyGradient
 
-import matplotlib.pyplot as plt
-from tqdm import tqdm, trange
-import pandas as pd
-
-DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is greater then this threshold
+DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
 
 import gym_tictactoe
 env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
-env.seed(1)     # reproducible, general Policy gradient has high variance
+env.seed(777)     # reproducible, general Policy gradient has high variance
 
-print("env.action_space:", env.action_space)
-print("env.state_space:", env.state_space)
+print("\nParameters:")
+print("action_space =", env.action_space)
+print("n_actions =", env.action_space.n)
+print("state_space =", env.state_space)
+print("n_features =", env.state_space.shape[0])
+print("learning rate =", RL.lr)
 
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
@@ -35,8 +33,14 @@ RL = PolicyGradient(
 	# output_graph=True,
 )
 
-now = datetime.datetime.now()
-print ("Start Time =", now.strftime("%Y-%m-%d %H:%M:%S"))
+from datetime import datetime
+startTime = datetime.now()
+timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
+print ("\nStart Time =", timeStamp)
+
+fname = "TTT-results.symNN." + timeStamp + ".txt"
+log_file = open(fname, "a+")
+print("Log file opened:", fname)
 
 i_episode = 0
 while True:

@@ -1,7 +1,8 @@
 """
 This is the plain version, where the state vector is a 3 x 3 = 9-vector
 
-Network topology = 9-inputs -9-7-5- 9-outputs
+Network topology: (9 inputs) -9-7-5- (9 outputs)
+Total # weights = 9 x 9 x 7 x 5 x 9 = 25515
 
 ============================================================
 This part of code is the reinforcement learning brain, which is a brain of the agent.

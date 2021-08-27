@@ -8,16 +8,8 @@ PyTorch: 1.9.0+cpu
 gym: 0.8.0
 """
 
-from datetime import datetime
-import signal
-import sys
-
 import gym
 from RL_symNN import PolicyGradient
-
-import matplotlib.pyplot as plt
-from tqdm import tqdm, trange
-import pandas as pd
 
 DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
@@ -29,7 +21,7 @@ env.seed(777)     # reproducible, general Policy gradient has high variance
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	learning_rate = 0.001,
+	learning_rate = 0.007,
 	gamma = 0.9,
 	# output_graph=True,
 )
@@ -43,11 +35,12 @@ print("state_space.high =", env.state_space.high)
 print("state_space.low =", env.state_space.low)
 print("learning rate =", RL.lr)
 
+from datetime import datetime
 startTime = datetime.now()
 timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 print ("\nStart Time =", timeStamp)
 
-fname = "TTT-results.symNN." + timeStamp + ".txt"
+fname = "results.symNN." + timeStamp + ".txt"
 log_file = open(fname, "a+")
 print("Log file opened:", fname)
 
@@ -55,9 +48,12 @@ print("Log file opened:", fname)
 # import warnings
 # warnings.filterwarnings("error")
 
+import signal
+import sys
+
 def ctrl_C_handler(sig, frame):
 	print("\n **** program paused ****")
-	fname = "TTT-model.dict"
+	fname = "model.symNN.dict"
 	print("Enter filename (default: {s}) to save network to file".format(s=fname))
 	print("Enter 'x' to exit")
 	fname = input() or fname
@@ -135,9 +131,14 @@ while True:
 		log_file.write(str(i_episode) + ' ' + str(rr) + '\n')
 		log_file.flush()
 
-	if i_episode % 1000 == 0:
-		delta = datetime.now() - startTime
-		# print (now.strftime("%Y-%m-%d %H:%M:%S"))
-		print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))
+		if i_episode % 1000 == 0:
+			delta = datetime.now() - startTime
+			# print (now.strftime("%Y-%m-%d %H:%M:%S"))
+			print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))
+
+			if i_episode == 200000:		# approx 1 hours' run
+				log_file.close()
+				RL.save_net(fname)
+				sys.exit(0)
 
 	vt = RL.learn()
