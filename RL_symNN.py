@@ -25,8 +25,14 @@ from torch.autograd import Variable
 from torch.distributions import Categorical
 
 # reproducible
-np.random.seed(1)
-torch.manual_seed(1)
+seed=777
+np.random.seed(seed)
+torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+torch.cuda.manual_seed_all(seed) # if you are using multi-GPU.
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
+torch.use_deterministic_algorithms(True)
 
 class PolicyGradient(nn.Module):
 	def __init__(
@@ -61,13 +67,18 @@ class PolicyGradient(nn.Module):
 		# **** h-network, also referred to as "phi" in the literature
 		# input dim = 3 because each proposition is a 3-vector
 		self.h1 = nn.Linear(3, 8, bias=True)
+		self.relu1 = nn.ReLU()
 		self.h2 = nn.Linear(8, self.n_actions, bias=True)
+		self.relu2 = nn.ReLU()
 
 		# **** g-network, also referred to as "rho" in the literature
 		# input dim can be arbitrary, here chosen to be n_actions
 		self.g1 = nn.Linear(self.n_actions, self.n_actions + 3, bias=True)
+		self.relu3 = nn.ReLU()
+
 		# output dim must be n_actions
 		self.g2 = nn.Linear(self.n_actions + 3, self.n_actions, bias=True)
+		self.softmax = nn.Softmax(dim=0)
 
 		# total number of weights = ...?
 
@@ -79,13 +90,11 @@ class PolicyGradient(nn.Module):
 
 		# h-network:
 		ys = []
-		relu1 = nn.ReLU()
-		for i in range(9):							# repeat h1 9 times
-			ys.append( relu1( self.h1(xs[i]) ))
+		for i in range(9):						# repeat h1 9 times
+			ys.append( self.relu1( self.h1(xs[i]) ))
 		zs = []
-		relu2 = nn.ReLU()
-		for i in range(9):							# repeat h2 9 times
-			zs.append( relu2( self.h2(ys[i]) ))
+		for i in range(9):						# repeat h2 9 times
+			zs.append( self.relu2( self.h2(ys[i]) ))
 
 		# add all the z's together:
 		z = torch.stack(zs, dim=1)
@@ -93,11 +102,9 @@ class PolicyGradient(nn.Module):
 
 		# g-network:
 		z1 = self.g1(z)
-		relu3 = nn.ReLU()
-		z1 = relu3(z1)
+		z1 = self.relu3(z1)
 		z2 = self.g2(z1)
-		softmax = nn.Softmax(dim=0)
-		z2 = softmax(z2)
+		z2 = self.softmax(z2)
 		return z2
 
 	def choose_action(self, state):

@@ -39,7 +39,6 @@ now = datetime.now()
 print ("Start Time =", now.strftime("%Y-%m-%d %H:%M:%S"))
 
 i_episode = 0
-# for i_episode in range(60000):
 while True:
 	i_episode += 1
 	state = env.reset()
@@ -104,9 +103,3 @@ while True:
 					print (now.strftime("%Y-%m-%d %H:%M:%S"))
 
 			vt = RL.learn()
-
-			if i_episode == -1:
-				plt.plot(vt)    # plot the episode vt
-				plt.xlabel('episode steps')
-				plt.ylabel('normalized state-action value')
-				plt.show()

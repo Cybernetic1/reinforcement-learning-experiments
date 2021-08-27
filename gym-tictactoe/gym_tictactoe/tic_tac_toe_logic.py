@@ -178,4 +178,5 @@ class TicTacToeEnv(gym.Env):
 		return None
 
 	def seed(self, seed=None):
+		self.action_space.np_random.seed(seed)
 		return [seed]
