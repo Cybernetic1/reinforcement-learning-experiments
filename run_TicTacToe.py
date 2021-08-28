@@ -20,13 +20,13 @@ import gym
 
 if config == 1:
 	from RL_symNN_pyTorch import PolicyGradient
-	tag = "symNN.pyTorch."
+	tag = "symNN.pyTorch"
 elif config == 2:
 	from RL_full_pyTorch import PolicyGradient
-	tag = "full.pyTorch."
+	tag = "full.pyTorch"
 elif config == 3:
 	from RL_symNN_TensorFlow import PolicyGradient
-	tag = "symNN.TensorFlow."
+	tag = "symNN.TensorFlow"
 elif config == 4:
 	from RL_full_TensorFlow import PolicyGradient
 	tag = "full.TensorFlow"
@@ -45,7 +45,7 @@ from datetime import datetime
 startTime = datetime.now()
 timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 
-fname = "results." + tag + timeStamp + ".txt"
+fname = "results." + tag + "." + timeStamp + ".txt"
 log_file = open(fname, "a+")
 print("Log file opened:", fname)
 
@@ -67,8 +67,8 @@ RL = PolicyGradient(
 import sys
 for f in [log_file, sys.stdout]:
 	f.write("# Model = " + tag + '\n')
-	f.write("# Learning rate =" + str(RL.lr) + '\n')
-	f.write("# Start time =" + timeStamp + '\n')
+	f.write("# Learning rate = " + str(RL.lr) + '\n')
+	f.write("# Start time: " + timeStamp + '\n')
 
 # **** This is for catching warnings and to debug them:
 # import warnings
@@ -112,25 +112,9 @@ while True:
 				state = state1
 				reward1 = reward2 = 0
 		elif user == 1:
-			while True:		# random player will never choose occupied squares
-				random_act = env.action_space.sample()
-				x = random_act % 3
-				y = random_act // 3
-				occupied = False
-				for i in range(0, 27, 3):		# scan through all 9 propositions, each proposition is a 3-vector
-					# 'proposition' is a numpy array[3]
-					proposition = state1[i : i + 3]
-					# print("proposition=",proposition)
-					if ([x,y,1] == proposition).all():
-						occupied = True
-						break
-					if ([x,y,-1] == proposition).all():
-						occupied = True
-						break
-				if not occupied:
-					break
-
-			state2, reward2, done, infos = env.step(random_act, 1)
+			# NOTE: random player never chooses occupied squares
+			action2 = RL.play_random(state1, env.action_space)
+			state2, reward2, done, infos = env.step(action2, 1)
 			RL.store_transition(state, action1, reward1 - reward2)		# why is it r1 + r2? wouldn't the rewards cancel out each other? 
 			state = state2
 			reward1 = reward2 = 0

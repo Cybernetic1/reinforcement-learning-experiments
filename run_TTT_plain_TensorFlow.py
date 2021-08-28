@@ -105,17 +105,3 @@ while True:
 				sys.exit(0)
 
 	vt = RL.learn()		# Learn for 1 entire episode (= game)
-
-	# if reward == 10:
-		# print("Draw !")
-	# elif reward == -20:
-		# print("Infos : " + str(infos))
-		# if user == 0:
-			# print("Random wins ! AI Reward : " + str(reward))
-		# elif user == 1:
-			# print("AI wins ! AI Reward : " + str(-reward))
-	# elif reward == 20:
-		# if user == 0:
-			# print("AI wins ! AI Reward : " + str(reward))
-		# elif user == 1:
-			# print("Random wins ! AI Reward : " + str(reward))

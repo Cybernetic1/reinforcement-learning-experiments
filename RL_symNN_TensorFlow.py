@@ -33,12 +33,12 @@ class PolicyGradient:
 			n_actions,
 			n_features,
 			learning_rate=0.001,
-			reward_decay=0.99,
+			gamma=0.99,
 			output_graph=True,
 	):
 		self.n_actions = n_actions
 		self.n_features = n_features
-		self.gamma = reward_decay
+		self.gamma = gamma
 
 		# learning rate = A exp(-k i)
 		# when i = 1, rate = 0.01
@@ -74,7 +74,7 @@ class PolicyGradient:
 		# x = Embedding(self.n_features, self.n_features * 2, mask_zero=False)(input_txt)
 		# x2 = Reshape((3, 9))(x)
 
-		"""  *** DEMO CODE ***
+		"""  *** DEMO CODE, for slides presentation only ***
 		h = Dense(3, activation='tanh')
 		ys = []
 		for i in range(9):
@@ -106,11 +106,7 @@ class PolicyGradient:
 		z2 = Dense(self.n_actions + 3, input_shape=(None, self.n_actions), activation='tanh')(z)				# input shape = [None, 9]
 		all_act = Dense(self.n_actions, input_shape=(None, self.n_actions + 3), activation=None)(z2)			# [None, 9] again
 
-		# Total number of (independent) weights = 3 * 6 + 6 * 9 + 9 * 9 + 9 * 9 = 18 + 54 + 81 + 81 = 234.
-		# Alternatively if: 3 * 6 + 6 * 8 + 8 * 9 + 9 * 9 = 18 + 48 + 72 + 81 = 90 + 40 + 89 = 130 + 89 = 219.
-		# Total number of weights (including repeated ones) = 3*6*9 + 6*9*9 + 9*9 + 9*9 = 162 + 486 + 81 + 81 = 810.
-
-		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
+		# self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
 		with tf.name_scope('loss'):
 			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and TF only has minimize(loss)
@@ -130,6 +126,28 @@ class PolicyGradient:
 		p = prob_weights.reshape(-1)
 		# print("p=", p)
 		action = np.random.choice(range(prob_weights.shape[1]), p=p)  # select action w.r.t the actions prob
+		return action
+
+	def play_random(self, state, action_space):
+		# Select an action (0-9) randomly
+		# NOTE: random player never chooses occupied squares
+		while True:
+			action = action_space.sample()
+			x = action % 3
+			y = action // 3
+			occupied = False
+			for i in range(0, 27, 3):		# scan through all 9 propositions, each proposition is a 3-vector
+				# 'proposition' is a numpy array[3]
+				proposition = state[i : i + 3]
+				# print("proposition=",proposition)
+				if ([x,y,1] == proposition).all():
+					occupied = True
+					break
+				if ([x,y,-1] == proposition).all():
+					occupied = True
+					break
+			if not occupied:
+				break
 		return action
 
 	def store_transition(self, s, a, r):		# state, action, reward
@@ -175,6 +193,6 @@ class PolicyGradient:
 		discounted_ep_rs /= np.std(discounted_ep_rs)
 		return discounted_ep_rs
 
-	# Not used, because Adam takes care of learning rate
+	# Not used, because ADAM takes care of learning rate
 	def set_learning_rate(self, i):
 		self.lr = self.A * np.exp(- self.k * i)

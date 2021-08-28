@@ -38,7 +38,7 @@ class PolicyGradient(nn.Module):
 			n_actions,
 			n_features,
 			learning_rate=0.001,
-			gamma=0.9,		# only for discounting within a game (episode)
+			gamma=0.9,		# only for discounting within a game (episode), seems useless
 	):
 		super(PolicyGradient, self).__init__()
 		self.n_actions = n_actions
@@ -47,19 +47,13 @@ class PolicyGradient(nn.Module):
 		self.lr = learning_rate
 		self.gamma = gamma
 
-		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
-
-		# Episode policy and reward history
-		self.policy_history = Variable(torch.Tensor())
-		self.reward_episode = []
-		# Overall reward and loss history
-		self.reward_history = []				# = ep_rs ?
-		self.loss_history = []
+		# Episode data: actions, rewards:
+		self.ep_as = Variable(torch.Tensor())
+		self.ep_rs = []
 
 		self._build_net()
 
 		self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
-		# self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
 
 	def _build_net(self):
 		# **** h-network, also referred to as "phi" in the literature
@@ -77,8 +71,6 @@ class PolicyGradient(nn.Module):
 		# output dim must be n_actions
 		self.g2 = nn.Linear(9, self.n_actions, bias=True)
 		self.softmax = nn.Softmax(dim=0)
-
-		# total number of weights = ...?
 
 	def forward(self, x):
 		# input dim = n_features = 9 x 3 = 27
@@ -106,7 +98,7 @@ class PolicyGradient(nn.Module):
 		return z2
 
 	def choose_action(self, state):
-		#Select an action (0 or 1) by running policy model and choosing based on the probabilities in state
+		#Select an action (0-9) by running policy model and choosing based on the probabilities in state
 		state = torch.from_numpy(state).type(torch.FloatTensor)
 		probs = self(Variable(state))
 		c = Categorical(probs)
@@ -117,15 +109,36 @@ class PolicyGradient(nn.Module):
 		log_prob = c.log_prob(action).unsqueeze(0)
 		# print("log prob:", c.log_prob(action))
 		# print("log prob unsqueezed:", log_prob)
-		if self.policy_history.dim() != 0:
-			self.policy_history = torch.cat([self.policy_history, log_prob])
+		if self.ep_as.dim() != 0:
+			self.ep_as = torch.cat([self.ep_as, log_prob])
 		else:
-			self.policy_history = (log_prob)
+			self.ep_as = (log_prob)
 		return action
 
-	def store_transition(self, s, a, r):		# state, action, reward
-		self.ep_obs.append(s)
-		self.ep_as.append(a)
+	def play_random(self, state, action_space):
+		# Select an action (0-9) randomly
+		# NOTE: random player never chooses occupied squares
+		while True:
+			action = action_space.sample()
+			x = action % 3
+			y = action // 3
+			occupied = False
+			for i in range(0, 27, 3):		# scan through all 9 propositions, each proposition is a 3-vector
+				# 'proposition' is a numpy array[3]
+				proposition = state[i : i + 3]
+				# print("proposition=",proposition)
+				if ([x,y,1] == proposition).all():
+					occupied = True
+					break
+				if ([x,y,-1] == proposition).all():
+					occupied = True
+					break
+			if not occupied:
+				break
+		return action
+
+	def store_transition(self, s, a, r):	# state, action, reward
+		# s is not needed, a is stored during learn().
 		self.ep_rs.append(r)
 
 	def learn(self):
@@ -133,7 +146,7 @@ class PolicyGradient(nn.Module):
 		rewards = []
 
 		# Discount future rewards back to the present using gamma
-		# print("\nLength of reward episode:", len(self.ep_rs)) 
+		# print("\nLength of reward episode:", len(self.ep_rs))
 		for r in self.ep_rs[::-1]:			# [::-1] reverses a list
 			R = r + self.gamma * R
 			rewards.insert(0, R)
@@ -143,22 +156,19 @@ class PolicyGradient(nn.Module):
 		rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
 
 		# Calculate loss
-		# print("policy history:", self.policy_history)
+		# print("policy history:", self.ep_as)
 		# print("rewards:", rewards)
-		loss = (torch.sum(torch.mul(self.policy_history, Variable(rewards)).mul(-1), -1))
+		loss = (torch.sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1))
+		print("loss =", loss)
 
 		# Update network weights
 		self.optimizer.zero_grad()
 		loss.backward()
 		self.optimizer.step()
 
-		#Save and intialize episode history counters
-		self.loss_history.append(loss.item())
-		self.reward_history.append(np.sum(self.ep_rs))
-		self.policy_history = Variable(torch.Tensor())
-		self.reward_episode= []
-
-		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
+		# Empty episode data
+		self.ep_as = Variable(torch.Tensor())
+		self.ep_rs = []
 		return rewards		# == discounted_ep_rs_norm
 
 	def save_net(self, fname):
