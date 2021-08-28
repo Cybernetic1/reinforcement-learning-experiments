@@ -1,69 +1,69 @@
-episode: 23100   reward: -12
-episode: 23200   reward: -11
-episode: 23300   reward: -10
-episode: 23400   reward: -10
-episode: 23500   reward: -13
-episode: 23600   reward: -11
-episode: 23700   reward: -10
-episode: 23800   reward: -10
-episode: 23900   reward: -12
-episode: 24000   reward: -11
-episode: 24100   reward: -11
-episode: 24200   reward: -10
-episode: 24300   reward: -8
-episode: 24400   reward: -9
-episode: 24500   reward: -11
-episode: 24600   reward: -10
-episode: 24700   reward: -12
-episode: 24800   reward: -10
-episode: 24900   reward: -11
-episode: 25000   reward: -12
-episode: 25100   reward: -10
-episode: 25200   reward: -10
-episode: 25300   reward: -10
-episode: 25400   reward: -9
-episode: 25500   reward: -8
-episode: 25600   reward: -10
-episode: 25700   reward: -12
-episode: 25800   reward: -11
-episode: 25900   reward: -10
-episode: 26000   reward: -10
-episode: 26100   reward: -11
-episode: 26200   reward: -12
-episode: 26300   reward: -10
-episode: 26400   reward: -12
-episode: 26500   reward: -12
-episode: 26600   reward: -10
-episode: 26700   reward: -10
-episode: 26800   reward: -12
-episode: 26900   reward: -11
-episode: 27000   reward: -12
-episode: 27100   reward: -15
-episode: 27200   reward: -15
-episode: 27300   reward: -16
-episode: 27400   reward: -14
-episode: 27500   reward: -14
-episode: 27600   reward: -14
-episode: 27700   reward: -13
-episode: 27800   reward: -14
-episode: 27900   reward: -13
-episode: 28000   reward: -13
-episode: 28100   reward: -10
-episode: 28200   reward: -11
-episode: 28300   reward: -10
-episode: 28400   reward: -11
-episode: 28500   reward: -11
-episode: 28600   reward: -11
-episode: 28700   reward: -11
-episode: 28800   reward: -10
-episode: 28900   reward: -11
-episode: 29000   reward: -11
-episode: 29100   reward: -11
-episode: 29200   reward: -11
-episode: 29300   reward: -11
-episode: 29400   reward: -10
-episode: 29500   reward: -10
-episode: 29600   reward: -12
-episode: 29700   reward: -10
-episode: 29800   reward: -9
-episode: 29900   reward: -11
+23100 -12
+23200 -11
+23300 -10
+23400 -10
+23500 -13
+23600 -11
+23700 -10
+23800 -10
+23900 -12
+24000 -11
+24100 -11
+24200 -10
+24300 -8
+24400 -9
+24500 -11
+24600 -10
+24700 -12
+24800 -10
+24900 -11
+25000 -12
+25100 -10
+25200 -10
+25300 -10
+25400 -9
+25500 -8
+25600 -10
+25700 -12
+25800 -11
+25900 -10
+26000 -10
+26100 -11
+26200 -12
+26300 -10
+26400 -12
+26500 -12
+26600 -10
+26700 -10
+26800 -12
+26900 -11
+27000 -12
+27100 -15
+27200 -15
+27300 -16
+27400 -14
+27500 -14
+27600 -14
+27700 -13
+27800 -14
+27900 -13
+28000 -13
+28100 -10
+28200 -11
+28300 -10
+28400 -11
+28500 -11
+28600 -11
+28700 -11
+28800 -10
+28900 -11
+29000 -11
+29100 -11
+29200 -11
+29300 -11
+29400 -10
+29500 -10
+29600 -12
+29700 -10
+29800 -9
+29900 -11

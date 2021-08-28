@@ -34,7 +34,7 @@ class PolicyGradient:
 			n_features,
 			learning_rate=0.001,
 			gamma=0.99,
-			output_graph=True,
+			output_graph=False,
 	):
 		self.n_actions = n_actions
 		self.n_features = n_features

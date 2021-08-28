@@ -1,14 +1,32 @@
 import sys
 import matplotlib.pyplot as plt
-import pandas as pd
+import pandas as pd		# for calculating rolling mean
 
-fname = "TTT-test-results.txt"
+import glob
+files = glob.glob("./results.*.txt")
+for i, fname in enumerate(files):
+	print(i, fname)
+
+s = input("Enter one or two file number (eg. 1,2): ").split(',')
+c = int(s[0])
+if len(s) == 2:
+	c2 = int(s[1])
+else:
+	c2 = -1
+
+"""
 if len(sys.argv) == 2:
 	fname = sys.argv[1]
 f = open(fname, 'r')
+"""
 
+f = open(files[c], 'r')
 data = []
+
+"""		**** Old Format ****
 for line in f:
+	if line[0] == '#':		# comments
+		continue
 	try:
 		head, tail = line.split('reward: ')
 	except:
@@ -17,34 +35,68 @@ for line in f:
 		data.append(int(tail.split(' ')[1]))
 	else:
 		data.append(int(tail))
+"""
+
+for line in f:
+	if line[0] == '#':		# comments
+		continue
+	try:
+		head, tail = line.split(' ')
+	except:
+		continue
+	data.append(float(tail))
 
 print("size=", len(data))
 
+if c2 >= 0:
+	f2 = open(files[c2], 'r')
+	data2 = []
+
+	for line in f2:
+		if line[0] == '#':		# comments
+			continue
+		try:
+			head, tail = line.split(' ')
+		except:
+			continue
+		data2.append(float(tail))
+
+	print("size2=", len(data2))
+
+"""  *** Old Plot ***
+plt.xlabel('episodes')
 plt.ylabel('reward')
 plt.plot(data)
 plt.show()
+"""
 
-def old_plot():
-	plt.plot(vt)    # plot the episode vt
-	plt.xlabel('episode steps')
-	plt.ylabel('normalized state-action value')
-	plt.show()
+window = int(len(data)/20)
 
-def new_plot():
-	window = int(episodes/20)
+fig, ((ax1), (ax2)) = plt.subplots(2, 1, sharey=True, figsize=[9,9])
 
-	fig, ((ax1), (ax2)) = plt.subplots(2, 1, sharey=True, figsize=[9,9]);
-	rolling_mean = pd.Series(policy.reward_history).rolling(window).mean()
-	std = pd.Series(policy.reward_history).rolling(window).std()
-	ax1.plot(rolling_mean)
-	ax1.fill_between(range(len(policy.reward_history)),rolling_mean-std, rolling_mean+std, color='orange', alpha=0.2)
-	ax1.set_title('Episode Length Moving Average ({}-episode window)'.format(window))
-	ax1.set_xlabel('Episode'); ax1.set_ylabel('Episode Length')
+ax1.set_title('Rewards Moving Average ({}-episode window)'.format(window))
+ax1.set_xlabel('Episode'); ax1.set_ylabel('Reward')
 
-	ax2.plot(policy.reward_history)
-	ax2.set_title('Episode Length')
-	ax2.set_xlabel('Episode'); ax2.set_ylabel('Episode Length')
+rolling_mean = pd.Series(data).rolling(window).mean()
+std = pd.Series(data).rolling(window).std()
+ax1.plot(rolling_mean, color='red')
+ax1.fill_between(range(len(data)),rolling_mean - std, rolling_mean + std, color='red', alpha=0.2)
 
-	fig.tight_layout(pad=2)
-	plt.show()
-	fig.savefig('results-2.png')
+if c2 >=0:
+	rolling_mean2 = pd.Series(data2).rolling(window).mean()
+	std2 = pd.Series(data2).rolling(window).std()
+	ax1.plot(rolling_mean2, color='blue')
+	ax1.fill_between(range(len(data2)),rolling_mean2 - std2, rolling_mean2 + std2, color='blue', alpha=0.2)
+
+# -----------------
+
+ax2.set_title('Rewards')
+ax2.set_xlabel('Episode'); ax2.set_ylabel('Reward')
+
+ax2.plot(data, color='red')
+if c2 >= 0:
+	ax2.plot(data2, color='blue')
+
+fig.tight_layout(pad=2)
+plt.show()
+fig.savefig('results.png')

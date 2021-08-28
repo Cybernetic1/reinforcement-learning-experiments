@@ -46,7 +46,7 @@ startTime = datetime.now()
 timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 
 fname = "results." + tag + "." + timeStamp + ".txt"
-log_file = open(fname, "a+")
+log_file = open(fname, "w+")
 print("Log file opened:", fname)
 
 RL = PolicyGradient(
@@ -54,7 +54,6 @@ RL = PolicyGradient(
 	n_features=env.state_space.shape[0],
 	learning_rate = 0.001,
 	gamma = 0.9,	# doesn't matter for gym TicTacToe
-	# output_graph=True,
 )
 
 # print("action_space =", env.action_space)

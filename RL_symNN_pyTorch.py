@@ -22,7 +22,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.distributions import Categorical
 
-# reproducible
+# reproducible (this may be an overkill...)
 seed=777
 np.random.seed(seed)
 torch.manual_seed(seed)
@@ -138,7 +138,7 @@ class PolicyGradient(nn.Module):
 		return action
 
 	def store_transition(self, s, a, r):	# state, action, reward
-		# s is not needed, a is stored during learn().
+		# s is not needed, a is stored during choose_action().
 		self.ep_rs.append(r)
 
 	def learn(self):
@@ -158,8 +158,8 @@ class PolicyGradient(nn.Module):
 		# Calculate loss
 		# print("policy history:", self.ep_as)
 		# print("rewards:", rewards)
-		loss = (torch.sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1))
-		print("loss =", loss)
+		# loss = torch.sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1)
+		loss = sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1)
 
 		# Update network weights
 		self.optimizer.zero_grad()
