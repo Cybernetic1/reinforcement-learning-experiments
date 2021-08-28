@@ -1,14 +1,18 @@
 """
 Tic Tac Toe with Policy Gradient
 
-with a choice of configs:
-PyTorch: 1.9.0+cpu
-TensorFlow: 2.0
+With a choice of engines:
+- PyTorch: 1.9.0+cpu
+- TensorFlow: 2.0
+
+With a choice of representations:
+- fully-connected
+- symmetric NN 
 """
 
-print("1. PyTorch\t Symmetric NN")
+print("1. PyTorch\t symmetric NN")
 print("2. PyTorch\t fully-connected NN")
-print("3. TensorFlow\t Symmetric NN")
+print("3. TensorFlow\t symmetric NN")
 print("4. TensorFlow\t fully-connected NN")
 config = int(input("Choose config: "))
 
