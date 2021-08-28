@@ -95,19 +95,20 @@ This will show a menu of choices:
 
 The other python programs are broken because I've modified RL_brain.py:
 
-~~    run_CartPole.py~~
-~~    run_MountainCar.py
-~~
+~~run_CartPole.py~~
+~~run_MountainCar.py~~
 
-This is a typical run of the "logic" version:
+This is a plot to compare the performance of "fully-connected" (blue) and "symmetric" (red) NN:
 
 <img src="comparison.png" width="700"/>
 
-Convergence can be observed early on (1000-2000), but afterwards performance remains unstable though above average.  This behavior is also observed in the "plain" version, indicating that it might be a problem in the policy gradient approach as applied to this game.
+Convergence can be observed early on (1000-2000), but afterwards performance remains unstable though above average.  This behavior is observed in both the "plain" and "symmetric" version, indicating that it might be a problem in the policy gradient approach as applied to this game.
 
-To plot graphs:
+To plot graphs like the above:
 
 	python plot.py
+	
+The program will list a choice of all data files in the directory.
 
 ## Code comments
 
