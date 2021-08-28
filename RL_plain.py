@@ -1,16 +1,13 @@
 """
 This is the plain version, where the state vector is a 3 x 3 = 9-vector
 
-Network topology: (9 inputs) -9-7-5- (9 outputs)
-Total # weights = 9 x 9 x 7 x 5 x 9 = 25515
+Network topology: (9 inputs)-16-16-16-16-(9 outputs)
+Total # weights = 9 * 16 * 2 + 16 * 16 * 3 = 1056
+We want # of weights to be close to that of symNN = 1080
 
 ============================================================
-This part of code is the reinforcement learning brain, which is a brain of the agent.
-All decisions are made in here.
-
-Policy Gradient, Reinforcement Learning.
-
-View more on my tutorial page: https://morvanzhou.github.io/tutorials/
+Policy Gradient, Reinforcement Learning.  Adapted from:
+Morvan Zhou's tutorial page: https://morvanzhou.github.io/tutorials/
 
 Using:
 PyTorch: 1.9.0+cpu
@@ -59,10 +56,11 @@ class PolicyGradient(nn.Module):
 		# self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
 
 	def _build_net(self):
-		self.l1 = nn.Linear(self.n_features, 9, bias=True)
-		self.l2 = nn.Linear(9, 7, bias=True)
-		self.l3 = nn.Linear(7, 5, bias=True)
-		self.l4 = nn.Linear(5, self.n_actions, bias=False)
+		self.l1 = nn.Linear(self.n_features, 16, bias=True)
+		self.l2 = nn.Linear(16, 16, bias=True)
+		self.l3 = nn.Linear(16, 16, bias=True)
+		self.l4 = nn.Linear(16, 16, bias=True)
+		self.l5 = nn.Linear(16, self.n_actions, bias=False)
 
 		# self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
 		# self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
@@ -73,13 +71,15 @@ class PolicyGradient(nn.Module):
 	def forward(self, x):
 		model = torch.nn.Sequential(
 			self.l1,
-			nn.Dropout(p=0.6),
+			# nn.Dropout(p=0.6),
 			nn.ReLU(),
 			self.l2,
 			nn.ReLU(),
 			self.l3,
 			nn.ReLU(),
 			self.l4,
+			nn.ReLU(),
+			self.l5,
 			nn.Softmax(dim=-1),
 			)
 		return model(x)

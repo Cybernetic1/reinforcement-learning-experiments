@@ -1,15 +1,13 @@
 """
-This is the original version, where the state vector is a 3 x 3 = 9-vector
+This is the 'plain' version, where the state vector is a 3 x 3 = 9-vector
 
-Network topology = 9-inputs -9-7-5- 9-outputs
+Network topology = (9 inputs)-16-16-16-16-(9 outputs)
+Total # of weights = 9*16*2 + 16*16*3 = 1056
+We want # of weights to be close to that of symNN = 1080
 
-=====================================================================================
-This part of code is the reinforcement learning brain, which is a brain of the agent.
-All decisions are made in here.
-
-Policy Gradient, Reinforcement Learning.
-
-View more on my tutorial page: https://morvanzhou.github.io/tutorials/
+=====================================================================
+Policy Gradient, Reinforcement Learning.  Adapted from:
+Morvan Zhou's tutorial page: https://morvanzhou.github.io/tutorials/
 
 Using:
 Tensorflow: 2.0
@@ -61,7 +59,7 @@ class PolicyGradient:
 		# fc1
 		layer1 = tf.layers.dense(
 			inputs = self.tf_obs,
-			units = 9,
+			units = 16,
 			activation = tf.nn.tanh,  # tanh activation
 			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
 			bias_initializer = tf.constant_initializer(0.1),
@@ -70,7 +68,7 @@ class PolicyGradient:
 		# fc2
 		layer2 = tf.layers.dense(
 			inputs = layer1,
-			units = 7,
+			units = 16,
 			activation = tf.nn.tanh,
 			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
 			bias_initializer = tf.constant_initializer(0.1),
@@ -79,23 +77,30 @@ class PolicyGradient:
 		# fc3
 		layer3 = tf.layers.dense(
 			inputs = layer2,
-			units = 5,
+			units = 16,
 			activation = tf.nn.tanh,
 			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
 			bias_initializer = tf.constant_initializer(0.1),
 			name='fc3'
 		)
 		# fc4
-		all_act = tf.layers.dense(
+		layer4 = tf.layers.dense(
 			inputs = layer3,
+			units = 16,
+			activation = tf.nn.tanh,
+			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
+			bias_initializer = tf.constant_initializer(0.1),
+			name='fc4'
+		)
+		# fc5
+		all_act = tf.layers.dense(
+			inputs = layer4,
 			units = self.n_actions,
 			activation = None,
 			kernel_initializer = tf.random_normal_initializer( mean=0, stddev=0.3 ),
 			bias_initializer = tf.constant_initializer(0.1),
-			name='fc4'
+			name='fc5'
 		)
-
-		# total number of weights = 9 * 9 + 9 * 7 + 7 * 5 + 5 * 9 = 81 + 63 + 35 + 45 = 224
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 

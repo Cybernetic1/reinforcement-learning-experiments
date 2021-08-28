@@ -40,7 +40,7 @@ startTime = datetime.now()
 timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 print ("\nStart Time =", timeStamp)
 
-fname = "results.symNN." + timeStamp + ".txt"
+fname = "results.symNN.pyTorch." + timeStamp + ".txt"
 log_file = open(fname, "a+")
 print("Log file opened:", fname)
 
@@ -115,7 +115,7 @@ while True:
 
 	# **** Game ended:
 	# print(RL.ep_rs)
-	per_game_reward = sum(RL.ep_rs)		# actually only the last reward is non-zero, for TicTacToe
+	per_game_reward = sum(RL.ep_rs)		# actually only the last reward is non-zero, for gym TicTacToe
 
 	if 'running_reward' not in globals():
 		running_reward = per_game_reward

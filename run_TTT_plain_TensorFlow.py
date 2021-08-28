@@ -8,36 +8,42 @@ Tensorflow: 2.0
 gym: 0.8.0
 """
 
-import datetime
-
 import gym
 from RL_plain_TensorFlow import PolicyGradient
-import matplotlib.pyplot as plt
 
-DISPLAY_REWARD_THRESHOLD = 300  # renders environment if total episode reward is greater then this threshold
+DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward is greater then this threshold
 RENDER = False  # rendering wastes time
 
 import gym_tictactoe
 env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
-env.seed(1)     # reproducible, general Policy gradient has high variance
-
-print("action_space =", env.action_space)
-print("state_space =", env.state_space)
+env.seed(777)     # reproducible, general Policy gradient has high variance
 
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
 	n_features=env.state_space.shape[0],
-	# learning_rate=0.002,
-	reward_decay=0.98,
+	learning_rate=0.001,
+	reward_decay=0.98,		# doesn't matter for gym TicTacToe
 	# output_graph=True,
 )
 
-# print(RL.n_features)
+print("\nParameters:")
+print("action_space =", env.action_space)
+print("n_actions =", env.action_space.n)
+print("state_space =", env.state_space)
+print("n_features =", env.state_space.shape[0])
+print("learning rate =", RL.lr)
 
-now = datetime.datetime.now()
-print ("Start Time =", now.strftime("%Y-%m-%d %H:%M:%S"))
+from datetime import datetime
+startTime = datetime.now()
+timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
+print ("\nStart Time =", timeStamp)
 
-# for i_episode in range(30000):
+fname = "results.plain.TensorFlow." + timeStamp + ".txt"
+log_file = open(fname, "a+")
+print("Log file opened:", fname)
+
+import sys
+
 i_episode = 0
 while True:
 	i_episode += 1
@@ -71,31 +77,34 @@ while True:
 		if not done:
 			user = 0 if user == 1 else 1
 
-	# **** Done for 1 game:
+	# **** Game over
 	ep_rs_sum = sum(RL.ep_rs)
 
 	if 'running_reward' not in globals():
 		running_reward = ep_rs_sum
 	else:
-		running_reward = running_reward * 0.98 + ep_rs_sum * 0.01
+		running_reward = running_reward * 0.99 + ep_rs_sum * 0.01
 	if running_reward > DISPLAY_REWARD_THRESHOLD:
 		RENDER = True     # rendering
 
 	if i_episode % 100 == 0:
-		print("episode:", i_episode, "  reward:", int(running_reward))
+		rr = round(running_reward,5)
+		print(i_episode, "running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 		# RL.set_learning_rate(i_episode)
+		log_file.write(str(i_episode) + ' ' + str(rr) + '\n')
+		log_file.flush()
 
-	if i_episode % 1000 == 0:
-		now = datetime.datetime.now()
-		print (now.strftime("%Y-%m-%d %H:%M:%S"))
+		if i_episode % 1000 == 0:
+			delta = datetime.now() - startTime
+			# print (now.strftime("%Y-%m-%d %H:%M:%S"))
+			print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))
+
+			if i_episode == 200000:		# approx 1 hours' run
+				log_file.close()
+				# RL.save_net(fname)	# not implemented yet
+				sys.exit(0)
 
 	vt = RL.learn()		# Learn for 1 entire episode (= game)
-
-	if i_episode == -1:
-		plt.plot(vt)    # plot the episode vt
-		plt.xlabel('episode steps')
-		plt.ylabel('normalized state-action value')
-		plt.show()
 
 	# if reward == 10:
 		# print("Draw !")

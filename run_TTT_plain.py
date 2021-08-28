@@ -38,7 +38,7 @@ startTime = datetime.now()
 timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 print ("\nStart Time =", timeStamp)
 
-fname = "TTT-results.symNN." + timeStamp + ".txt"
+fname = "TTT-results.plain.pyTorch." + timeStamp + ".txt"
 log_file = open(fname, "a+")
 print("Log file opened:", fname)
 
@@ -85,12 +85,20 @@ while True:
 		RENDER = True     # rendering
 
 	if i_episode % 100 == 0:
-		rr = int(running_reward)
-		print(i_episode, "running reward:", "\x1b[32m" if rr >= 0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
+		rr = round(running_reward,5)
+		print(i_episode, "running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 		# RL.set_learning_rate(i_episode)
+		log_file.write(str(i_episode) + ' ' + str(rr) + '\n')
+		log_file.flush()
 
-	if i_episode % 1000 == 0:
-		now = datetime.datetime.now()
-		print (now.strftime("%Y-%m-%d %H:%M:%S"))
+		if i_episode % 1000 == 0:
+			delta = datetime.now() - startTime
+			# print (now.strftime("%Y-%m-%d %H:%M:%S"))
+			print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))
+
+			if i_episode == 200000:		# approx 1 hours' run
+				log_file.close()
+				RL.save_net(fname)
+				sys.exit(0)
 
 	vt = RL.learn()

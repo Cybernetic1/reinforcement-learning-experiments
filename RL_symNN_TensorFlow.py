@@ -1,15 +1,13 @@
 """
 Symmetric NN version.
 
-Network topology: 9-inputs, h = -6-9-, g = -9-9- 
+Network topology: 9 x 3 inputs, h = (3)-8-(9), g = (9)-12-(9)
+Total # of weights: (3*8 + 8*9) *9 + 9*12 + 12*9 = 1080
+	not counting duplicates: 312
+
 ======================================================
-This part of code is the reinforcement learning brain,
-which is a brain of the agent.
-All decisions are made in here.
-
-Policy Gradient, Reinforcement Learning.
-
-View more on my tutorial page: https://morvanzhou.github.io/tutorials/
+Policy Gradient, Reinforcement Learning.  Adapted from:
+Morvan Zhou's tutorial page: https://morvanzhou.github.io/tutorials/
 
 Using:
 Tensorflow: 2.0
@@ -88,10 +86,10 @@ class PolicyGradient:
 		output = g(y)
 		"""
 
-		shared_layer1 = Dense(8, input_shape=(None, 3), activation='tanh')
 		xs = tf.split(self.tf_obs, 9, axis=1)		# split tensor into 9 parts, each part is 3-dims wide. ie, shape = [None, 3]
 		# output shape = [None, 6]
 		ys = []
+		shared_layer1 = Dense(8, input_shape=(None, 3), activation='tanh')
 		for i in range(9):							# repeat the 1st layer 9 times
 			ys.append( shared_layer1(xs[i]) )
 		# print("y0 shape=", ys[0].shape)
@@ -116,8 +114,8 @@ class PolicyGradient:
 
 		with tf.name_scope('loss'):
 			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and TF only has minimize(loss)
-			print("logits shape=", all_act.shape)			# (None, 9)
-			print("labels shape=", self.tf_acts.shape)		# (None, )  1-hot
+			# print("logits shape=", all_act.shape)			# (None, 9)
+			# print("labels shape=", self.tf_acts.shape)		# (None, )  1-hot
 			neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
 			# or in this way:
 			# neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)

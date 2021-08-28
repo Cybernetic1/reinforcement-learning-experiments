@@ -2,16 +2,12 @@
 This is the symNN version, where the state vector is 9 propositions = 9 x 3 = 27-vector
 
 Network topology: h = (3-9-9) x 9, g = (9-12-9) x 1
-Total # weights = (3 x 8 + 8 x 9) x 9 + 9 x 12 + 12 x 9 = 1080
-	not counting duplicates = 312
+Total # weights = (3 * 9 + 9 * 9) * 9 + 9 * 9 + 9 * 9 = 1134
+	not counting duplicates = 270
 
 ============================================================
-This part of code is the reinforcement learning brain, which is a brain of the agent.
-All decisions are made in here.
-
-Policy Gradient, Reinforcement Learning.
-
-View more on my tutorial page: https://morvanzhou.github.io/tutorials/
+Policy Gradient, Reinforcement Learning.  Adapted from:
+Morvan Zhou's tutorial page: https://morvanzhou.github.io/tutorials/
 
 Using:
 PyTorch: 1.9.0+cpu
@@ -70,16 +66,16 @@ class PolicyGradient(nn.Module):
 		# input dim = 3 because each proposition is a 3-vector
 		self.h1 = nn.Linear(3, 9, bias=True)
 		self.relu1 = nn.ReLU()
-		self.h2 = nn.Linear(9, self.n_actions, bias=True)
+		self.h2 = nn.Linear(9, 9, bias=True)
 		self.relu2 = nn.ReLU()
 
 		# **** g-network, also referred to as "rho" in the literature
 		# input dim can be arbitrary, here chosen to be n_actions
-		self.g1 = nn.Linear(self.n_actions, self.n_actions + 3, bias=True)
+		self.g1 = nn.Linear(9, 9, bias=True)
 		self.relu3 = nn.ReLU()
 
 		# output dim must be n_actions
-		self.g2 = nn.Linear(self.n_actions + 3, self.n_actions, bias=True)
+		self.g2 = nn.Linear(9, self.n_actions, bias=True)
 		self.softmax = nn.Softmax(dim=0)
 
 		# total number of weights = ...?
