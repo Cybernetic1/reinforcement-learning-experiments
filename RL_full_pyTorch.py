@@ -89,6 +89,14 @@ class PolicyGradient(nn.Module):
 			self.policy_history = (log_probs)
 		return action
 
+	def play_random(self, state, action_space):
+		# Select an action (0-9) randomly
+		# NOTE: random player never chooses occupied squares
+		while True:
+			action = action_space.sample()
+			if state[action] == 0:
+				break
+		return action
 
 	def store_transition(self, s, a, r):	# state, action, reward
 		self.ep_obs.append(s)
@@ -124,3 +132,7 @@ class PolicyGradient(nn.Module):
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
 		return rewards		# == discounted_ep_rs_norm
+
+	def save_net(self, fname):
+		torch.save(self.state_dict(), fname)
+		print("Model saved.")

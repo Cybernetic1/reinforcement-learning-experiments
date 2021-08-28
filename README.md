@@ -70,8 +70,9 @@ where the overall symmetrtic function F has the form:
 Requires
 
      TensorFlow 2.0
+     or pyTorch 1.9
      Python 3.6
-     
+
 For example, on my Ubuntu computer I'd activate the virtual environment:
 
 	source ~/venv/bin/activate
@@ -81,32 +82,32 @@ Run this to install Gym TicTacToe:
      cd gym-tictactoe
      python setup.py install
 
-The first demo is "plain" policy gradient:
+To run the experiments:
 
-    python run_TTT_plain_TensorFlow.py
+    python run_TicTacToe.py
+    
+This will show a menu of choices:
 
-Second demo is policy gradient + symmetric NN:
-
-    python run_TTT_symNN_TensorFlow.py
+1. PyTorch, symmetric NN
+2. PyTorch, fully-connected NN
+3. TensorFlow, symmetric NN
+4. TensorFlow, fully-connected NN
 
 The other python programs are broken because I've modified RL_brain.py:
 
-    run_CartPole.py
-    run_MountainCar.py
+~~    run_CartPole.py~~
+~~    run_MountainCar.py
+~~
 
 This is a typical run of the "logic" version:
 
-<img src="TTT2-test4-convergence.png" width="700"/>
+<img src="comparison.png" width="700"/>
 
 Convergence can be observed early on (1000-2000), but afterwards performance remains unstable though above average.  This behavior is also observed in the "plain" version, indicating that it might be a problem in the policy gradient approach as applied to this game.
 
-To record results to a file:
+To plot graphs:
 
-	python run_TTT_TensorFlow.py | tee TTT-test-results.txt
-
-To plot graph:
-
-	python plot.py TTT-test-results.txt
+	python plot.py
 
 ## Code comments
 

@@ -123,6 +123,15 @@ class PolicyGradient:
 		action = np.random.choice(range(prob_weights.shape[1]), p=prob_weights.ravel())  # select action w.r.t the actions prob
 		return action
 
+	def play_random(self, state, action_space):
+		# Select an action (0-9) randomly
+		# NOTE: random player never chooses occupied squares
+		while True:
+			action = action_space.sample()
+			if state[action] == 0:
+				break
+		return action
+
 	def store_transition(self, s, a, r):		# state, action, reward
 		self.ep_obs.append(s)
 		self.ep_as.append(a)
@@ -163,3 +172,6 @@ class PolicyGradient:
 		discounted_ep_rs -= np.mean(discounted_ep_rs)
 		discounted_ep_rs /= np.std(discounted_ep_rs)
 		return discounted_ep_rs
+
+	def save_net(self, fname):
+		print("Save model not implemented yet.")

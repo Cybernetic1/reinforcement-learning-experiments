@@ -45,9 +45,9 @@ from datetime import datetime
 startTime = datetime.now()
 timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 
-fname = "results." + tag + "." + timeStamp + ".txt"
-log_file = open(fname, "w+")
-print("Log file opened:", fname)
+log_name = "results." + tag + "." + timeStamp + ".txt"
+log_file = open(log_name, "w+")
+print("Log file opened:", log_name)
 
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
@@ -76,18 +76,19 @@ for f in [log_file, sys.stdout]:
 import signal
 print("Press Ctrl-C to pause and optionally save network to file\n")
 
+model_name = "model." + tag + ".dict"
+
 def ctrl_C_handler(sig, frame):
 	print("\n **** program paused ****")
-	fname = "model." + tag + ".dict"
-	print("Enter filename (default: {s}) to save network to file".format(s=fname))
+	print("Enter filename (default: {s}) to save network to file".format(s=model_name))
 	print("Enter 'x' to exit")
-	fname = input() or fname
-	if fname == "x":
+	model_name = input() or model_name
+	if model_name == "x":
 		log_file.close()
 		exit(0)
 	else:
 		if config == 1 or config == 2:
-			RL.save_net(fname)
+			RL.save_net(model_name)
 		else:
 			print("Save model not implemented yet.")
 
@@ -146,8 +147,7 @@ while True:
 
 			if i_episode == 200000:		# approx 1 hours' run for pyTorch, half hour for TensorFlow
 				log_file.close()
-				if config == 1 or config == 2:
-					RL.save_net(fname)
+				RL.save_net(model_name)
 				exit(0)
 
 	vt = RL.learn()

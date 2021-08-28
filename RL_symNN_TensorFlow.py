@@ -193,6 +193,9 @@ class PolicyGradient:
 		discounted_ep_rs /= np.std(discounted_ep_rs)
 		return discounted_ep_rs
 
+	def save_net(self, fname):
+		print("Save model not implemented yet.")
+
 	# Not used, because ADAM takes care of learning rate
 	def set_learning_rate(self, i):
 		self.lr = self.A * np.exp(- self.k * i)
