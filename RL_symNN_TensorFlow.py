@@ -68,7 +68,7 @@ class PolicyGradient:
 
 		self.sess.run(tf.global_variables_initializer())
 
-	def net_config(self):
+	def net_info(self):
 		config_h = "(3)-8-9"
 		config_g = "9-12-(9)"
 		total = 0

@@ -57,7 +57,7 @@ class PolicyGradient(nn.Module):
 
 		self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
-	def net_config(self):
+	def net_info(self):
 		config_h = "(3)-9-9"
 		config_g = "9-12-(9)"
 		total = 0

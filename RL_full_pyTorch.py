@@ -52,7 +52,7 @@ class PolicyGradient(nn.Module):
 
 		self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
-	def net_config(self):
+	def net_info(self):
 		config = "(9)-16-16-16-16-(9)"
 		neurons = config.split('-')
 		last_n = 9

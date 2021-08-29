@@ -44,8 +44,8 @@ env_seed = 7 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
 RL = PolicyGradient(
-	n_actions=env.action_space.n,
-	n_features=env.state_space.shape[0],
+	n_actions = env.action_space.n,
+	n_features = env.state_space.shape[0],
 	learning_rate = 0.001,
 	gamma = 0.9,	# doesn't matter for gym TicTacToe
 )
@@ -54,7 +54,7 @@ from datetime import datetime
 startTime = datetime.now()
 timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 
-topology, num_weights = RL.net_config()
+topology, num_weights = RL.net_info()
 tag += "." + topology
 log_name = "results." + tag + "." + timeStamp + ".txt"
 log_file = open(log_name, "w+")

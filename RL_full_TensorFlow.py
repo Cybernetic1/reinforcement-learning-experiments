@@ -1,9 +1,9 @@
 """
 This is the 'plain' version, where the state vector is a 3 x 3 = 9-vector
 
-Refer to net_config() below for the current network topology and total number of weights info.
+Network is automatically generated from the string 'self.topology'
 
-For example:  config = (9 inputs)-12-12-12-12-12-12-12-(9 outputs)
+For example:  topology = (9 inputs)-12-12-12-12-12-12-12-(9 outputs)
 Total # of weights = 9 * 12 * 2 + 12 * 12 * 6 = 1080
 
 Another example: (9 inputs)-16-16-16-16-(9 outputs)
@@ -45,6 +45,7 @@ class PolicyGradient:
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
 
+		self.topology = "(9)-12-12-12-12-12-12-12-(9)"
 		self._build_net()
 
 		self.sess = tf.Session()
@@ -56,9 +57,8 @@ class PolicyGradient:
 
 		self.sess.run(tf.global_variables_initializer())
 
-	def net_config(self):
-		config = "(9)-12-12-12-12-12-12-12-(9)"
-		neurons = config.split('-')
+	def net_info(self):
+		neurons = self.topology.split('-')
 		last_n = 9
 		total = 0
 		for n in neurons[1:-1]:
@@ -66,85 +66,34 @@ class PolicyGradient:
 			total += last_n * n
 			last_n = n
 		total += last_n * 9
-		return (config, total)
+		return (self.topology, total)
 
 	def _build_net(self):
 		with tf.name_scope('inputs'):
 			self.tf_obs = tf.placeholder(tf.float32, [None, self.n_features], name="observations")
 			self.tf_acts = tf.placeholder(tf.int32, [None, ], name="actions_num")
 			self.tf_vt = tf.placeholder(tf.float32, [None, ], name="actions_value")
-		# fc1
-		layer1 = tf.layers.dense(
-			inputs = self.tf_obs,
-			units = 12,
-			activation = tf.nn.tanh,
-			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer = tf.constant_initializer(0.1),
-			name='fc1'
-		)
-		# fc2
-		layer2 = tf.layers.dense(
-			inputs = layer1,
-			units = 12,
-			activation = tf.nn.tanh,
-			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer = tf.constant_initializer(0.1),
-			name='fc2'
-		)
-		# fc3
-		layer3 = tf.layers.dense(
-			inputs = layer2,
-			units = 12,
-			activation = tf.nn.tanh,
-			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer = tf.constant_initializer(0.1),
-			name='fc3'
-		)
-		# fc4
-		layer4 = tf.layers.dense(
-			inputs = layer3,
-			units = 12,
-			activation = tf.nn.tanh,
-			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer = tf.constant_initializer(0.1),
-			name='fc4'
-		)
-		# fc5
-		layer5 = tf.layers.dense(
-			inputs = layer4,
-			units = 12,
-			activation = tf.nn.tanh,
-			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer = tf.constant_initializer(0.1),
-			name='fc5'
-		)
-		# fc6
-		layer6 = tf.layers.dense(
-			inputs = layer5,
-			units = 12,
-			activation = tf.nn.tanh,
-			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer = tf.constant_initializer(0.1),
-			name='fc6'
-		)
-		# fc7
-		layer7 = tf.layers.dense(
-			inputs = layer6,
-			units = 12,
-			activation = tf.nn.tanh,
-			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
-			bias_initializer = tf.constant_initializer(0.1),
-			name='fc7'
-		)
-		# fc8
+
+		neurons = self.topology.split('-')
+		layer = []
+		for i, n in enumerate(neurons[1:-1]):
+			n = int(n)
+			layer.append(tf.layers.dense(
+				inputs = self.tf_obs if i == 0 else layer[i - 1],
+				units = n,
+				activation = tf.nn.tanh,
+				kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
+				bias_initializer = tf.constant_initializer(0.1),
+				name='fc' + str(i) ))
+
+		# Last layer
 		all_act = tf.layers.dense(
-			inputs = layer7,
+			inputs = layer[len(neurons) - 3],	# layers start from 0
 			units = self.n_actions,
 			activation = None,
 			kernel_initializer = tf.random_normal_initializer( mean=0, stddev=0.3 ),
 			bias_initializer = tf.constant_initializer(0.1),
-			name='fc8'
-		)
+			name='fc-last' )
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
