@@ -82,13 +82,13 @@ for f in [log_file, sys.stdout]:
 import signal
 print("Press Ctrl-C to pause and optionally save network to file\n")
 
-model_name = "model." + tag + ".dict"
+model_name = "model." + tag
 
 def ctrl_C_handler(sig, frame):
 	global model_name
 	print("\n **** program paused ****")
 	print("Enter filename to save network to file")
-	print("Default file: ", model_name)
+	print("Default file: ", model_name + "." + timeStamp)
 	print("Enter 'x' to exit")
 	model_name = input() or model_name
 	if model_name == "x":
@@ -96,11 +96,20 @@ def ctrl_C_handler(sig, frame):
 		exit(0)
 	else:
 		if config == 1 or config == 2:
-			RL.save_net(model_name)
+			RL.save_net(model_name + "." + timeStamp)
 		else:
 			print("Save model not implemented yet.")
 
 signal.signal(signal.SIGINT, ctrl_C_handler)
+
+import glob
+files = glob.glob("training/" + model_name + "*.index")
+files.sort()
+for i, fname in enumerate(files):
+	print("%2d %s" %(i, fname[15:-6]))
+j = input("Load model? (Enter number or none): ")
+if j:
+	RL.load_net(files[int(j)][9:-11])
 
 i_episode = 0
 while True:
@@ -155,7 +164,9 @@ while True:
 
 			if i_episode == 200000:		# approx 1 hours' run for pyTorch, half hour for TensorFlow
 				log_file.close()
-				RL.save_net(model_name)
-				exit(0)
+				RL.save_net(model_name + "." + timeStamp)
+				break
 
 	vt = RL.learn()
+
+print('\007')	# sound beep

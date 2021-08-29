@@ -16,7 +16,7 @@ Policy Gradient, Reinforcement Learning.  Adapted from:
 Morvan Zhou's tutorial page: https://morvanzhou.github.io/tutorials/
 
 Using:
-Tensorflow: 2.0
+Tensorflow: 2.0 (as 1.0)
 gym: 0.8.0
 """
 
@@ -36,7 +36,7 @@ class PolicyGradient:
 			n_features,
 			learning_rate=0.01,
 			gamma=0.95,
-			output_graph=True,
+			output_graph=False,
 	):
 		self.n_actions = n_actions
 		self.n_features = n_features
@@ -218,4 +218,6 @@ class PolicyGradient:
 		return discounted_ep_rs
 
 	def save_net(self, fname):
-		print("Save model not implemented yet.")
+		saver = tf.train.Saver()
+		save_path = saver.save(self.sess, "training/" + fname + ".ckpt")
+		print("Model saved as: %s" % save_path)

@@ -194,5 +194,5 @@ class PolicyGradient(nn.Module):
 		return rewards		# == discounted_ep_rs_norm
 
 	def save_net(self, fname):
-		torch.save(self.state_dict(), fname)
+		torch.save(self.state_dict(), fname + ".dict")
 		print("Model saved.")

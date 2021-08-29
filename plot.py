@@ -6,7 +6,12 @@ import glob
 files = glob.glob("./results.*.txt")
 files.sort()
 for i, fname in enumerate(files):
+	if i % 2:
+		print(end="\x1b[32m")
+	else:
+		print(end="\x1b[0m")
 	print("%2d %s" %(i, fname[10:-4]))
+print(end="\x1b[0m")
 
 s = input("Enter one or two file number (eg. 1,2): ").split(',')
 c = int(s[0])

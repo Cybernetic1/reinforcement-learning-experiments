@@ -12,7 +12,7 @@ Policy Gradient, Reinforcement Learning.  Adapted from:
 Morvan Zhou's tutorial page: https://morvanzhou.github.io/tutorials/
 
 Using:
-Tensorflow: 2.0
+Tensorflow: 2.0 (as 1.0)
 gym: 0.8.0
 """
 
@@ -22,12 +22,14 @@ tf.disable_eager_execution()
 
 import keras.backend as K
 from keras.layers import Dense, Embedding, Lambda, Reshape, Input, Concatenate
-from keras.models import Model, load_model
-from keras.optimizers import Adam
+# from keras.models import Model, load_model
+# from keras.optimizers import Adam
 
 # reproducible
-np.random.seed(1)
-tf.set_random_seed(1)
+numpy_seed = 1
+np.random.seed(numpy_seed)
+tensorflow_seed = 1
+tf.set_random_seed(tensorflow_seed)
 
 class PolicyGradient:
 	def __init__(
@@ -54,6 +56,12 @@ class PolicyGradient:
 		self._build_net()
 
 		self.sess = tf.Session()
+
+		# **** Prepare for saving model:
+		# self.checkpoint_path = "training/checkpoint1"
+		# self.callback = tf.keras.callbacks.ModelCheckpoint( \
+		#	filepath = self.checkpoint_path, \
+		#	save_weights_only=True, verbose=1 )
 
 		if output_graph:
 			tf.summary.FileWriter("logs/", self.sess.graph)
@@ -189,10 +197,10 @@ class PolicyGradient:
 
 		# train on episode
 		self.sess.run(self.train_op, feed_dict={
-			 self.tf_obs: np.vstack(self.ep_obs),  # shape=[None, n_obs]
-			 self.tf_acts: np.array(self.ep_as),  # shape=[None, ]
-			 self.tf_vt: discounted_ep_rs_norm,  # shape=[None, ]
-		})
+			self.tf_obs: np.vstack(self.ep_obs),  # shape=[None, n_obs]
+			self.tf_acts: np.array(self.ep_as),  # shape=[None, ]
+			self.tf_vt: discounted_ep_rs_norm,  # shape=[None, ]
+			})
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
 		return discounted_ep_rs_norm
@@ -213,7 +221,14 @@ class PolicyGradient:
 		return discounted_ep_rs
 
 	def save_net(self, fname):
-		print("Save model not implemented yet.")
+		saver = tf.train.Saver()
+		save_path = saver.save(self.sess, "training/" + fname + ".ckpt")
+		print("Model saved as: %s" % save_path)
+
+	def load_net(self, fname):
+		saver = tf.train.Saver()
+		saver.restore(self.sess, "training/" + fname + ".ckpt")
+		print("Model loaded.")
 
 	# Not used, because ADAM takes care of learning rate
 	def set_learning_rate(self, i):
