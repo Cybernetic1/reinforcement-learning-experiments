@@ -1,9 +1,11 @@
 """
 This is the symNN version, where the state vector is 9 propositions = 9 x 3 = 27-vector
 
-Network topology: h = (3-9-9) x 9, g = (9-12-9) x 1
+Refer to net_config() below for the current network topology and total number of weights info.
+
+For example: h = (3-9-9) x 9, g = (9-12-9) x 1
 Total # weights = (3 * 9 + 9 * 9) * 9 + 9 * 9 + 9 * 9 = 1134
-	not counting duplicates = 270
+Duplicate weights are counted because they are updated multiple times.
 
 ============================================================
 Policy Gradient, Reinforcement Learning.  Adapted from:
@@ -54,6 +56,26 @@ class PolicyGradient(nn.Module):
 		self._build_net()
 
 		self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+
+	def net_config(self):
+		config_h = "(3)-9-9"
+		config_g = "9-12-(9)"
+		total = 0
+		neurons = config_h.split('-')
+		last_n = 3
+		for n in neurons[1:]:
+			n = int(n)
+			total += last_n * n
+			last_n = n
+		total *= 9
+
+		neurons = config_g.split('-')
+		for n in neurons[1:-1]:
+			n = int(n)
+			total += last_n * n
+			last_n = n
+		total += last_n * 9
+		return (config_h + 'x' + config_g, total)
 
 	def _build_net(self):
 		# **** h-network, also referred to as "phi" in the literature

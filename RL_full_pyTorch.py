@@ -1,9 +1,11 @@
 """
 Fully-connected version, where state vector is a 3 x 3 = 9-vector
 
-Network topology: (9 inputs)-16-16-16-16-(9 outputs)
-Total # weights = 9 * 16 * 2 + 16 * 16 * 3 = 1056
-We want # of weights to be close to that of symNN = 1080
+Refer to net_config() below for the current network topology and # of weights info.
+
+For example: (9 inputs)-16-16-16-16-(9 outputs)
+Total num of weights = 9 * 16 * 2 + 16 * 16 * 3 = 1056
+We want num of weights to be close to that of symNN = 1080
 
 ============================================================
 Policy Gradient, Reinforcement Learning.  Adapted from:
@@ -49,6 +51,18 @@ class PolicyGradient(nn.Module):
 		self._build_net()
 
 		self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+
+	def net_config(self):
+		config = "(9)-16-16-16-16-(9)"
+		neurons = config.split('-')
+		last_n = 9
+		total = 0
+		for n in neurons[1:-1]:
+			n = int(n)
+			total += last_n * n
+			last_n = n
+		total += last_n * 9
+		return (config, total)
 
 	def _build_net(self):
 		self.l1 = nn.Linear(self.n_features, 16, bias=True)

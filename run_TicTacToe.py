@@ -39,15 +39,9 @@ if config == 1 or config == 3:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
-env.seed(666)     # reproducible, general Policy gradient has high variance
 
-from datetime import datetime
-startTime = datetime.now()
-timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
-
-log_name = "results." + tag + "." + timeStamp + ".txt"
-log_file = open(log_name, "w+")
-print("Log file opened:", log_name)
+env_seed = 7 # reproducible, general Policy gradient has high variance
+env.seed(env_seed)
 
 RL = PolicyGradient(
 	n_actions=env.action_space.n,
@@ -55,6 +49,16 @@ RL = PolicyGradient(
 	learning_rate = 0.001,
 	gamma = 0.9,	# doesn't matter for gym TicTacToe
 )
+
+from datetime import datetime
+startTime = datetime.now()
+timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
+
+topology, num_weights = RL.net_config()
+tag += "." + topology
+log_name = "results." + tag + "." + timeStamp + ".txt"
+log_file = open(log_name, "w+")
+print("Log file opened:", log_name)
 
 # print("action_space =", env.action_space)
 # print("n_actions =", env.action_space.n)
@@ -66,7 +70,9 @@ RL = PolicyGradient(
 import sys
 for f in [log_file, sys.stdout]:
 	f.write("# Model = " + tag + '\n')
+	f.write("# Num weights = " + str(num_weights) + '\n')
 	f.write("# Learning rate = " + str(RL.lr) + '\n')
+	f.write("# Env random seed = " + str(env_seed) + '\n')
 	f.write("# Start time: " + timeStamp + '\n')
 
 # **** This is for catching warnings and to debug them:
@@ -81,7 +87,8 @@ model_name = "model." + tag + ".dict"
 def ctrl_C_handler(sig, frame):
 	global model_name
 	print("\n **** program paused ****")
-	print("Enter filename (default: {s}) to save network to file".format(s=model_name))
+	print("Enter filename to save network to file")
+	print("Default file: ", model_name)
 	print("Enter 'x' to exit")
 	model_name = input() or model_name
 	if model_name == "x":

@@ -91,7 +91,9 @@ if c2 >=0:
 	ax1.plot(rolling_mean2, color='blue')
 	ax1.fill_between(range(len(data2)),rolling_mean2 - std2, rolling_mean2 + std2, color='blue', alpha=0.2)
 
-ax1.legend([tag, tag2])
+	ax1.legend([tag, tag2])
+else:
+	ax1.legend([tag])
 
 # -----------------
 
@@ -101,8 +103,9 @@ ax2.set_xlabel('Episode'); ax2.set_ylabel('Reward')
 ax2.plot(data, color='red', alpha=0.6)
 if c2 >= 0:
 	ax2.plot(data2, color='blue', alpha=0.5)
-
-ax2.legend([tag, tag2])
+	ax2.legend([tag, tag2])
+else:
+	ax2.legend([tag])
 
 fig.tight_layout(pad=2)
 plt.show()

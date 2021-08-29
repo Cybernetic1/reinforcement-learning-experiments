@@ -1,4 +1,5 @@
-# Model = full.TensorFlow
+# Model = full.TensorFlow.(9)-12-12-12-12-12-12-(9)
+# Num weights = 936
 # Learning rate = 0.001
 # Start time: 29-08-2021(02:45)
 100 -18.20720341342093

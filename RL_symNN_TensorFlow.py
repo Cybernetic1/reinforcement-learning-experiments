@@ -1,9 +1,11 @@
 """
 Symmetric NN version.
 
-Network topology: 9 x 3 inputs, h = (3)-8-(9), g = (9)-12-(9)
+Refer to net_config() below for the current network topology and total number of weights info.
+
+For example: 9 x 3 inputs, h = (3)-8-(9), g = (9)-12-(9)
 Total # of weights: (3*8 + 8*9) *9 + 9*12 + 12*9 = 1080
-	not counting duplicates: 312
+Duplicate weights are counted because they are updated multiple times.
 
 ======================================================
 Policy Gradient, Reinforcement Learning.  Adapted from:
@@ -54,12 +56,29 @@ class PolicyGradient:
 		self.sess = tf.Session()
 
 		if output_graph:
-			# $ tensorboard --logdir=logs
-			# http://0.0.0.0:6006/
-			# tf.train.SummaryWriter soon be deprecated, use following
 			tf.summary.FileWriter("logs/", self.sess.graph)
 
 		self.sess.run(tf.global_variables_initializer())
+
+	def net_config(self):
+		config_h = "(3)-8-9"
+		config_g = "9-12-(9)"
+		total = 0
+		neurons = config_h.split('-')
+		last_n = 3
+		for n in neurons[1:]:
+			n = int(n)
+			total += last_n * n
+			last_n = n
+		total *= 9
+
+		neurons = config_g.split('-')
+		for n in neurons[1:-1]:
+			n = int(n)
+			total += last_n * n
+			last_n = n
+		total += last_n * 9
+		return (config_h + 'x' + config_g, total)
 
 	def _build_net(self):
 		# with tf.name_scope('inputs'):

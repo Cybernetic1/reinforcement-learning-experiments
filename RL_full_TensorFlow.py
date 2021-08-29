@@ -1,14 +1,15 @@
 """
 This is the 'plain' version, where the state vector is a 3 x 3 = 9-vector
 
+Refer to net_config() below for the current network topology and total number of weights info.
+
+For example:  config = (9 inputs)-12-12-12-12-12-12-12-(9 outputs)
+Total # of weights = 9 * 12 * 2 + 12 * 12 * 6 = 1080
+
+Another example: (9 inputs)-16-16-16-16-(9 outputs)
+Total # of weights = 9 * 16 * 2 + 16 * 16 * 3 = 1056
+
 We want # of weights to be close to that of symNN = 1080
-
-old:
-\\\ Network topology = (9 inputs)-16-16-16-16-(9 outputs)
-\\\ Total # of weights = 9*16*2 + 16*16*3 = 1056
-
-Network topology = (9 inputs)-12-12-12-12-12-12-(9 outputs)
-Total # of weights = 9*12*2 + 12*12*5 = 1080
 
 =====================================================================
 Policy Gradient, Reinforcement Learning.  Adapted from:
@@ -51,10 +52,21 @@ class PolicyGradient:
 		if output_graph:
 			# $ tensorboard --logdir=logs
 			# http://0.0.0.0:6006/
-			# tf.train.SummaryWriter soon be deprecated, use following
 			tf.summary.FileWriter("logs/", self.sess.graph)
 
 		self.sess.run(tf.global_variables_initializer())
+
+	def net_config(self):
+		config = "(9)-12-12-12-12-12-12-12-(9)"
+		neurons = config.split('-')
+		last_n = 9
+		total = 0
+		for n in neurons[1:-1]:
+			n = int(n)
+			total += last_n * n
+			last_n = n
+		total += last_n * 9
+		return (config, total)
 
 	def _build_net(self):
 		with tf.name_scope('inputs'):
@@ -65,7 +77,7 @@ class PolicyGradient:
 		layer1 = tf.layers.dense(
 			inputs = self.tf_obs,
 			units = 12,
-			activation = tf.nn.tanh,  # tanh activation
+			activation = tf.nn.tanh,
 			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
 			bias_initializer = tf.constant_initializer(0.1),
 			name='fc1'
@@ -116,13 +128,22 @@ class PolicyGradient:
 			name='fc6'
 		)
 		# fc7
-		all_act = tf.layers.dense(
+		layer7 = tf.layers.dense(
 			inputs = layer6,
+			units = 12,
+			activation = tf.nn.tanh,
+			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
+			bias_initializer = tf.constant_initializer(0.1),
+			name='fc7'
+		)
+		# fc8
+		all_act = tf.layers.dense(
+			inputs = layer7,
 			units = self.n_actions,
 			activation = None,
 			kernel_initializer = tf.random_normal_initializer( mean=0, stddev=0.3 ),
 			bias_initializer = tf.constant_initializer(0.1),
-			name='fc7'
+			name='fc8'
 		)
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
