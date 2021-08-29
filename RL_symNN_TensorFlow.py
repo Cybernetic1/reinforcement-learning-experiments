@@ -106,7 +106,7 @@ class PolicyGradient:
 		z2 = Dense(self.n_actions + 3, input_shape=(None, self.n_actions), activation='tanh')(z)				# input shape = [None, 9]
 		all_act = Dense(self.n_actions, input_shape=(None, self.n_actions + 3), activation=None)(z2)			# [None, 9] again
 
-		# self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
+		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
 		with tf.name_scope('loss'):
 			# to maximize total reward (log_p * R) is to minimize -(log_p * R), and TF only has minimize(loss)
