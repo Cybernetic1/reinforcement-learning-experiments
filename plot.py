@@ -4,8 +4,9 @@ import pandas as pd		# for calculating rolling mean
 
 import glob
 files = glob.glob("./results.*.txt")
+files.sort()
 for i, fname in enumerate(files):
-	print(i, fname)
+	print("%2d %s" %(i, fname[10:-4]))
 
 s = input("Enter one or two file number (eg. 1,2): ").split(',')
 c = int(s[0])
@@ -21,6 +22,7 @@ f = open(fname, 'r')
 """
 
 f = open(files[c], 'r')
+tag = ' '.join( files[c][10:-4].split('.', 2) )
 data = []
 
 """		**** Old Format ****
@@ -50,6 +52,7 @@ print("size=", len(data))
 
 if c2 >= 0:
 	f2 = open(files[c2], 'r')
+	tag2 = ' '.join( files[c2][10:-4].split('.', 2) )
 	data2 = []
 
 	for line in f2:
@@ -88,14 +91,18 @@ if c2 >=0:
 	ax1.plot(rolling_mean2, color='blue')
 	ax1.fill_between(range(len(data2)),rolling_mean2 - std2, rolling_mean2 + std2, color='blue', alpha=0.2)
 
+ax1.legend([tag, tag2])
+
 # -----------------
 
 ax2.set_title('Rewards')
 ax2.set_xlabel('Episode'); ax2.set_ylabel('Reward')
 
-ax2.plot(data, color='red')
+ax2.plot(data, color='red', alpha=0.6)
 if c2 >= 0:
-	ax2.plot(data2, color='blue')
+	ax2.plot(data2, color='blue', alpha=0.5)
+
+ax2.legend([tag, tag2])
 
 fig.tight_layout(pad=2)
 plt.show()

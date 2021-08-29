@@ -39,7 +39,7 @@ if config == 1 or config == 3:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
-env.seed(777)     # reproducible, general Policy gradient has high variance
+env.seed(666)     # reproducible, general Policy gradient has high variance
 
 from datetime import datetime
 startTime = datetime.now()
@@ -79,6 +79,7 @@ print("Press Ctrl-C to pause and optionally save network to file\n")
 model_name = "model." + tag + ".dict"
 
 def ctrl_C_handler(sig, frame):
+	global model_name
 	print("\n **** program paused ****")
 	print("Enter filename (default: {s}) to save network to file".format(s=model_name))
 	print("Enter 'x' to exit")

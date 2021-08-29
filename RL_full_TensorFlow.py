@@ -1,9 +1,14 @@
 """
 This is the 'plain' version, where the state vector is a 3 x 3 = 9-vector
 
-Network topology = (9 inputs)-16-16-16-16-(9 outputs)
-Total # of weights = 9*16*2 + 16*16*3 = 1056
 We want # of weights to be close to that of symNN = 1080
+
+old:
+\\\ Network topology = (9 inputs)-16-16-16-16-(9 outputs)
+\\\ Total # of weights = 9*16*2 + 16*16*3 = 1056
+
+Network topology = (9 inputs)-12-12-12-12-12-12-(9 outputs)
+Total # of weights = 9*12*2 + 12*12*5 = 1080
 
 =====================================================================
 Policy Gradient, Reinforcement Learning.  Adapted from:
@@ -29,13 +34,13 @@ class PolicyGradient:
 			n_actions,
 			n_features,
 			learning_rate=0.01,
-			reward_decay=0.95,
+			gamma=0.95,
 			output_graph=True,
 	):
 		self.n_actions = n_actions
 		self.n_features = n_features
 		self.lr = learning_rate
-		self.gamma = reward_decay
+		self.gamma = gamma
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
 
@@ -59,7 +64,7 @@ class PolicyGradient:
 		# fc1
 		layer1 = tf.layers.dense(
 			inputs = self.tf_obs,
-			units = 16,
+			units = 12,
 			activation = tf.nn.tanh,  # tanh activation
 			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
 			bias_initializer = tf.constant_initializer(0.1),
@@ -68,7 +73,7 @@ class PolicyGradient:
 		# fc2
 		layer2 = tf.layers.dense(
 			inputs = layer1,
-			units = 16,
+			units = 12,
 			activation = tf.nn.tanh,
 			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
 			bias_initializer = tf.constant_initializer(0.1),
@@ -77,7 +82,7 @@ class PolicyGradient:
 		# fc3
 		layer3 = tf.layers.dense(
 			inputs = layer2,
-			units = 16,
+			units = 12,
 			activation = tf.nn.tanh,
 			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
 			bias_initializer = tf.constant_initializer(0.1),
@@ -86,20 +91,38 @@ class PolicyGradient:
 		# fc4
 		layer4 = tf.layers.dense(
 			inputs = layer3,
-			units = 16,
+			units = 12,
 			activation = tf.nn.tanh,
 			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
 			bias_initializer = tf.constant_initializer(0.1),
 			name='fc4'
 		)
 		# fc5
-		all_act = tf.layers.dense(
+		layer5 = tf.layers.dense(
 			inputs = layer4,
+			units = 12,
+			activation = tf.nn.tanh,
+			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
+			bias_initializer = tf.constant_initializer(0.1),
+			name='fc5'
+		)
+		# fc6
+		layer6 = tf.layers.dense(
+			inputs = layer5,
+			units = 12,
+			activation = tf.nn.tanh,
+			kernel_initializer = tf.random_normal_initializer(mean=0, stddev=0.3),
+			bias_initializer = tf.constant_initializer(0.1),
+			name='fc6'
+		)
+		# fc7
+		all_act = tf.layers.dense(
+			inputs = layer6,
 			units = self.n_actions,
 			activation = None,
 			kernel_initializer = tf.random_normal_initializer( mean=0, stddev=0.3 ),
 			bias_initializer = tf.constant_initializer(0.1),
-			name='fc5'
+			name='fc7'
 		)
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
