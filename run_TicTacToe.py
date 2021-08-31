@@ -40,7 +40,7 @@ if config == 1 or config == 3:
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
-env_seed = 7 # reproducible, general Policy gradient has high variance
+env_seed = 111 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
 RL = PolicyGradient(
@@ -80,13 +80,22 @@ for f in [log_file, sys.stdout]:
 # warnings.filterwarnings("error")
 
 import signal
-print("Press Ctrl-C to pause and optionally save network to file\n")
+print("Press Ctrl-C to pause and execute your own Python code\n")
 
 model_name = "model." + tag
 
+command = None
+
 def ctrl_C_handler(sig, frame):
-	global model_name
+	# global model_name
+	global command
 	print("\n **** program paused ****")
+	print("Enter your code (! to exit)")
+	command = input(">>> ")
+	if command == '!':
+		log_file.close()
+		exit(0)
+	"""
 	print("Enter filename to save network to file")
 	print("Default file: ", model_name + "." + timeStamp)
 	print("Enter 'x' to exit")
@@ -99,6 +108,7 @@ def ctrl_C_handler(sig, frame):
 			RL.save_net(model_name + "." + timeStamp)
 		else:
 			print("Save model not implemented yet.")
+	"""
 
 signal.signal(signal.SIGINT, ctrl_C_handler)
 
@@ -106,11 +116,17 @@ import glob
 files = glob.glob("training/" + model_name + "*.index")
 files.sort()
 for i, fname in enumerate(files):
+	if i % 2:
+		print(end="\x1b[32m")
+	else:
+		print(end="\x1b[0m")
 	print("%2d %s" %(i, fname[15:-6]))
+print(end="\x1b[0m")
 j = input("Load model? (Enter number or none): ")
 if j:
 	RL.load_net(files[int(j)][9:-11])
 
+train_once = False		# you may use Ctrl-C to change this
 i_episode = 0
 while True:
 	i_episode += 1
@@ -119,6 +135,12 @@ while True:
 	done = False
 	user = 0
 	reward1 = reward2 = 0
+
+	# ***** Pre-play moves:
+	state, _, _, _ = env.step(0, -1)
+	state, _, _, _ = env.step(3, 1)
+	state, _, _, _ = env.step(6, -1)
+	state, _, _, _ = env.step(4, 1)
 	while not done:
 
 		if user == 0:
@@ -158,14 +180,33 @@ while True:
 		log_file.write(str(i_episode) + ' ' + str(running_reward) + '\n')
 		log_file.flush()
 
+		if command:
+			try:
+				exec(command)
+			except Exception as e:
+				print("Exception:")
+				print(e)
+			finally:
+				command = None
+
 		if i_episode % 1000 == 0:
 			delta = datetime.now() - startTime
 			print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))
 
 			if i_episode == 200000:		# approx 1 hours' run for pyTorch, half hour for TensorFlow
+				print('\007')	# sound beep
 				log_file.close()
 				RL.save_net(model_name + "." + timeStamp)
-				break
+				if train_once:
+					break
+
+				# Preferable to get a new time stamp now:
+				startTime = datetime.now()
+				timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
+				i_episode = 0
+				log_name = "results." + tag + "." + timeStamp + ".txt"
+				log_file = open(log_name, "w+")
+				print("New log file opened:", log_name)
 
 	vt = RL.learn()
 

@@ -49,7 +49,9 @@ class PolicyGradient:
 		# when i = 100000, rate = 0.001
 		# self.A = 0.003
 		# self.k = 1.00000
-		self.lr = learning_rate
+		# self.lr = learning_rate
+		# This makes the learning rate adjustable during training:
+		self.lr = tf.Variable(learning_rate, trainable=False)
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
 
@@ -116,11 +118,11 @@ class PolicyGradient:
 		xs = tf.split(self.tf_obs, 9, axis=1)		# split tensor into 9 parts, each part is 3-dims wide. ie, shape = [None, 3]
 		# output shape = [None, 6]
 		ys = []
-		shared_layer1 = Dense(8, input_shape=(None, 3), activation='tanh')
+		shared_layer1 = Dense(8, input_shape=(None, 3), activation=tf.keras.layers.LeakyReLU(alpha=0.01))
 		for i in range(9):							# repeat the 1st layer 9 times
 			ys.append( shared_layer1(xs[i]) )
 		# print("y0 shape=", ys[0].shape)
-		shared_layer2 = Dense(9, input_shape=(None, 8), activation='tanh')		# output shape = [None, 9]
+		shared_layer2 = Dense(9, input_shape=(None, 8), activation=tf.keras.layers.LeakyReLU(alpha=0.01))		# output shape = [None, 9]
 		zs = []
 		for i in range(9):							# repeat the 2nd layer 9 times
 			zs.append( shared_layer2(ys[i]) )
@@ -130,7 +132,7 @@ class PolicyGradient:
 		Adder = Lambda(lambda x: K.sum(x, axis=1))	# whatever this is, it means summing over the 9 dimensions
 		z = Adder(z)
 		# print("z shape after Adder=", z.shape)
-		z2 = Dense(self.n_actions + 3, input_shape=(None, self.n_actions), activation='tanh')(z)				# input shape = [None, 9]
+		z2 = Dense(self.n_actions + 3, input_shape=(None, self.n_actions), activation=tf.keras.layers.LeakyReLU(alpha=0.01))(z)				# input shape = [None, 9]
 		all_act = Dense(self.n_actions, input_shape=(None, self.n_actions + 3), activation=None)(z2)			# [None, 9] again
 
 		self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
@@ -145,7 +147,8 @@ class PolicyGradient:
 			loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
 
 		with tf.name_scope('train'):
-			self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
+			self.opt = tf.train.AdamOptimizer(self.lr)
+			self.train_op = self.opt.minimize(loss)
 
 	def choose_action(self, observation):
 		prob_weights = self.sess.run(self.all_act_prob, feed_dict={self.tf_obs: observation[np.newaxis, :]})
@@ -231,5 +234,6 @@ class PolicyGradient:
 		print("Model loaded.")
 
 	# Not used, because ADAM takes care of learning rate
-	def set_learning_rate(self, i):
-		self.lr = self.A * np.exp(- self.k * i)
+	def set_learning_rate(self, lr):
+		# self.lr = self.A * np.exp(- self.k * i)
+		self.lr.assign(lr)

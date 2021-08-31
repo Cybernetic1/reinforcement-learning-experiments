@@ -45,7 +45,8 @@ class PolicyGradient:
 
 		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
 
-		self.topology = "(9)-12-12-12-12-12-12-12-(9)"
+		# self.topology = "(9)-12-12-12-12-12-12-12-(9)"
+		self.topology = "(9)-16-16-16-16-(9)"
 		self._build_net()
 
 		self.sess = tf.Session()
@@ -170,3 +171,8 @@ class PolicyGradient:
 		saver = tf.train.Saver()
 		save_path = saver.save(self.sess, "training/" + fname + ".ckpt")
 		print("Model saved as: %s" % save_path)
+
+	def load_net(self, fname):
+		saver = tf.train.Saver()
+		saver.restore(self.sess, "training/" + fname + ".ckpt")
+		print("Model loaded.")
