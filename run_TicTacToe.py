@@ -56,7 +56,7 @@ timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 
 topology, num_weights = RL.net_info()
 tag += "." + topology
-log_name = "results." + tag + "." + timeStamp + ".txt"
+log_name = "results/results." + tag + "." + timeStamp + ".txt"
 log_file = open(log_name, "w+")
 print("Log file opened:", log_name)
 
@@ -206,7 +206,7 @@ while True:
 				startTime = datetime.now()
 				timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 				i_episode = 0
-				log_name = "results." + tag + "." + timeStamp + ".txt"
+				log_name = "results/results." + tag + "." + timeStamp + ".txt"
 				log_file = open(log_name, "w+")
 				print("New log file opened:", log_name)
 
