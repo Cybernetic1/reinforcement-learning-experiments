@@ -58,8 +58,8 @@ class PolicyGradient(nn.Module):
 		self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
 
 	def net_info(self):
-		config_h = "(3)-9-9"
-		config_g = "9-12-(9)"
+		config_h = "(3)-10-8"
+		config_g = "8-(9)"
 		total = 0
 		neurons = config_h.split('-')
 		last_n = 3

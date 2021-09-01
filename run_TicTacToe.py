@@ -46,7 +46,7 @@ env.seed(env_seed)
 RL = PolicyGradient(
 	n_actions = env.action_space.n,
 	n_features = env.state_space.shape[0],
-	learning_rate = 0.005,
+	learning_rate = 0.001,
 	gamma = 0.9,	# doesn't matter for gym TicTacToe
 )
 

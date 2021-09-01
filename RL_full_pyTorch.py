@@ -25,8 +25,8 @@ from torch.autograd import Variable
 from torch.distributions import Categorical
 
 # reproducible
-np.random.seed(1)
-torch.manual_seed(1)
+np.random.seed(7)
+torch.manual_seed(7)
 
 class PolicyGradient(nn.Module):
 	def __init__(
