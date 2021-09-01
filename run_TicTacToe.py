@@ -46,7 +46,7 @@ env.seed(env_seed)
 RL = PolicyGradient(
 	n_actions = env.action_space.n,
 	n_features = env.state_space.shape[0],
-	learning_rate = 0.005,
+	learning_rate = 0.001,
 	gamma = 0.9,	# doesn't matter for gym TicTacToe
 )
 
@@ -56,7 +56,7 @@ timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 
 topology, num_weights = RL.net_info()
 tag += "." + topology
-log_name = "results." + tag + "." + timeStamp + ".txt"
+log_name = "results/results." + tag + "." + timeStamp + ".txt"
 log_file = open(log_name, "w+")
 print("Log file opened:", log_name)
 
@@ -206,7 +206,7 @@ while True:
 				startTime = datetime.now()
 				timeStamp = startTime.strftime("%d-%m-%Y(%H:%M)")
 				i_episode = 0
-				log_name = "results." + tag + "." + timeStamp + ".txt"
+				log_name = "results/results." + tag + "." + timeStamp + ".txt"
 				log_file = open(log_name, "w+")
 				print("New log file opened:", log_name)
 

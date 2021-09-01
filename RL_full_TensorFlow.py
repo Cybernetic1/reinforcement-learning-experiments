@@ -163,16 +163,16 @@ class PolicyGradient:
 
 		# normalize episode rewards
 		# print("discounted episode rewards=", discounted_ep_rs)
-		discounted_ep_rs -= np.mean(discounted_ep_rs)
-		discounted_ep_rs /= np.std(discounted_ep_rs)
+		# discounted_ep_rs -= np.mean(discounted_ep_rs)
+		# discounted_ep_rs /= np.std(discounted_ep_rs)
 		return discounted_ep_rs
 
 	def save_net(self, fname):
 		saver = tf.train.Saver()
-		save_path = saver.save(self.sess, "training/" + fname + ".ckpt")
+		save_path = saver.save(self.sess, "TensorFlow_models/" + fname + ".ckpt")
 		print("Model saved as: %s" % save_path)
 
 	def load_net(self, fname):
 		saver = tf.train.Saver()
-		saver.restore(self.sess, "training/" + fname + ".ckpt")
+		saver.restore(self.sess, "TensorFlow_models/" + fname + ".ckpt")
 		print("Model loaded.")
