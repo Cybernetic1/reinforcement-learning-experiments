@@ -12,7 +12,7 @@ class TicTacToeEnv(gym.Env):
 		self.win_size = win_size
 		self.board_size = board_size
 		self.symbols = {
-			symbols[0]: "x",
+			symbols[0]: "x",	# This is over-ridden by [-1,1]
 			symbols[1]: "o",
 			"Bad": "!"
 		}

@@ -40,13 +40,13 @@ if config == 1 or config == 3:
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
-env_seed = 111 # reproducible, general Policy gradient has high variance
+env_seed = 113 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
 RL = PolicyGradient(
 	n_actions = env.action_space.n,
 	n_features = env.state_space.shape[0],
-	learning_rate = 0.001,
+	learning_rate = 0.005,
 	gamma = 0.9,	# doesn't matter for gym TicTacToe
 )
 
@@ -113,14 +113,14 @@ def ctrl_C_handler(sig, frame):
 signal.signal(signal.SIGINT, ctrl_C_handler)
 
 import glob
-files = glob.glob("training/" + model_name + "*.index")
+files = glob.glob("TensorFlow_models/" + model_name + "*.index")
 files.sort()
 for i, fname in enumerate(files):
 	if i % 2:
 		print(end="\x1b[32m")
 	else:
 		print(end="\x1b[0m")
-	print("%2d %s" %(i, fname[15:-6]))
+	print("%2d %s" %(i, fname[24:-6]))
 print(end="\x1b[0m")
 j = input("Load model? (Enter number or none): ")
 if j:
@@ -141,6 +141,8 @@ while True:
 	state, _, _, _ = env.step(3, 1)
 	state, _, _, _ = env.step(6, -1)
 	state, _, _, _ = env.step(4, 1)
+	state, _, _, _ = env.step(5, -1)
+	state, _, _, _ = env.step(1, 1)
 	while not done:
 
 		if user == 0:
@@ -154,7 +156,7 @@ while True:
 			# NOTE: random player never chooses occupied squares
 			action2 = RL.play_random(state1, env.action_space)
 			state2, reward2, done, infos = env.step(action2, 1)
-			RL.store_transition(state, action1, reward1 - reward2)		# why is it r1 + r2? wouldn't the rewards cancel out each other? 
+			RL.store_transition(state, action1, reward1 - reward2)		# not r1 + r2 as rewards cancel out each other
 			state = state2
 			reward1 = reward2 = 0
 
@@ -208,6 +210,6 @@ while True:
 				log_file = open(log_name, "w+")
 				print("New log file opened:", log_name)
 
-	vt = RL.learn()
+	RL.learn()
 
 print('\007')	# sound beep

@@ -33,8 +33,8 @@ class PolicyGradient(nn.Module):
 			self,
 			n_actions,
 			n_features,
-			learning_rate=0.01,
-			gamma=0.95,
+			learning_rate,
+			gamma,
 	):
 		super(PolicyGradient, self).__init__()
 		self.n_actions = n_actions
@@ -43,14 +43,13 @@ class PolicyGradient(nn.Module):
 		self.lr = learning_rate
 		self.gamma = gamma
 
-		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
-
+		self.ep_rs = []
 		# Episode policy
-		self.policy_history = Variable(torch.Tensor())
+		self.ep_as = Variable(torch.Tensor())
 
 		self._build_net()
 
-		self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+		self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
 
 	def net_info(self):
 		config = "(9)-16-16-16-16-(9)"
@@ -75,32 +74,36 @@ class PolicyGradient(nn.Module):
 		model = torch.nn.Sequential(
 			self.l1,
 			# nn.Dropout(p=0.6),
-			nn.ReLU(),
+			# nn.ReLU(),
+			nn.Tanh(),
 			self.l2,
-			nn.ReLU(),
+			nn.Tanh(),
 			self.l3,
-			nn.ReLU(),
+			nn.Tanh(),
 			self.l4,
-			nn.ReLU(),
+			nn.Tanh(),
 			self.l5,
 			nn.Softmax(dim=-1),
 			)
 		return model(x)
 
 	def choose_action(self, state):
-		#Select an action (0-8) by running policy model and choosing based on the probabilities in state
+		#Select an action (0-8) by running policy model and choosing based on the probabilities
 		state = torch.from_numpy(state).type(torch.FloatTensor)
-		state = self(Variable(state))
-		c = Categorical(state)
+		probs = self(Variable(state))
+		# print("probs =", probs)
+		# action = torch.argmax(probs)
+		c = Categorical(probs)
 		action = c.sample()
+		# print("action =", action)
 
-		# Add log probability of our chosen action to our history
-		log_probs = c.log_prob(action).unsqueeze(0)
-		if self.policy_history.dim() != 0:
-			# print("log probs:", log_probs)
-			self.policy_history = torch.cat([self.policy_history, log_probs])
+		# log probability of our chosen action
+		log_prob = c.log_prob(action).unsqueeze(0)
+		# print("log prob:", log_prob)
+		if self.ep_as.dim() != 0:
+			self.ep_as = torch.cat([self.ep_as, log_prob])
 		else:
-			self.policy_history = (log_probs)
+			self.ep_as = (log_prob)
 		return action
 
 	def play_random(self, state, action_space):
@@ -113,8 +116,7 @@ class PolicyGradient(nn.Module):
 		return action
 
 	def store_transition(self, s, a, r):	# state, action, reward
-		self.ep_obs.append(s)
-		self.ep_as.append(a)
+		# s is not needed, a is stored during choose_action().
 		self.ep_rs.append(r)
 
 	def learn(self):
@@ -128,25 +130,31 @@ class PolicyGradient(nn.Module):
 			rewards.insert(0, R)
 
 		# Scale rewards
+		#if len(rewards) == 1:
+		#	rewards = torch.FloatTensor([0])
+		#else:
 		rewards = torch.FloatTensor(rewards)
-		rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
+		#	rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
 
 		# Calculate loss
-		# print("policy history:", self.policy_history)
+		# print("policy history:", self.ep_as)
 		# print("rewards:", rewards)
-		loss = (torch.sum(torch.mul(self.policy_history, Variable(rewards)).mul(-1), -1))
+		loss = (torch.sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1))
 
 		# Update network weights
 		self.optimizer.zero_grad()
 		loss.backward()
 		self.optimizer.step()
 
-		#Save and intialize episode history counters
-		self.policy_history = Variable(torch.Tensor())
-
-		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
-		return rewards		# == discounted_ep_rs_norm
+		# empty episode data
+		self.ep_as = Variable(torch.Tensor())
+		self.ep_rs = []
+		return
 
 	def save_net(self, fname):
 		torch.save(self.state_dict(), fname + ".dict")
 		print("Model saved.")
+
+	def load_net(self, fname):
+		torch.load(self.state_dict(), fname + ".dict")
+		print("Model loaded.")

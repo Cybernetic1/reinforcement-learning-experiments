@@ -25,7 +25,7 @@ from torch.autograd import Variable
 from torch.distributions import Categorical
 
 # reproducible (this may be an overkill...)
-seed=777
+seed=666
 np.random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
@@ -39,8 +39,8 @@ class PolicyGradient(nn.Module):
 			self,
 			n_actions,
 			n_features,
-			learning_rate=0.001,
-			gamma=0.9,		# only for discounting within a game (episode), seems useless
+			learning_rate,
+			gamma,		# only for discounting within a game (episode), seems useless
 	):
 		super(PolicyGradient, self).__init__()
 		self.n_actions = n_actions
@@ -55,7 +55,7 @@ class PolicyGradient(nn.Module):
 
 		self._build_net()
 
-		self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+		self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
 
 	def net_info(self):
 		config_h = "(3)-9-9"
@@ -81,14 +81,14 @@ class PolicyGradient(nn.Module):
 		# **** h-network, also referred to as "phi" in the literature
 		# input dim = 3 because each proposition is a 3-vector
 		self.h1 = nn.Linear(3, 9, bias=True)
-		self.relu1 = nn.ReLU()
+		self.relu1 = nn.Tanh()
 		self.h2 = nn.Linear(9, 9, bias=True)
-		self.relu2 = nn.ReLU()
+		self.relu2 = nn.Tanh()
 
 		# **** g-network, also referred to as "rho" in the literature
 		# input dim can be arbitrary, here chosen to be n_actions
 		self.g1 = nn.Linear(9, 9, bias=True)
-		self.relu3 = nn.ReLU()
+		self.relu3 = nn.Tanh()
 
 		# output dim must be n_actions
 		self.g2 = nn.Linear(9, self.n_actions, bias=True)
@@ -174,8 +174,12 @@ class PolicyGradient(nn.Module):
 			rewards.insert(0, R)
 
 		# Scale rewards
+		#if len(rewards) == 1:
+			#rewards = torch.FloatTensor([-1.0])
+		#else:
 		rewards = torch.FloatTensor(rewards)
-		rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
+			#rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
+		# print(rewards)
 
 		# Calculate loss
 		# print("policy history:", self.ep_as)
@@ -196,3 +200,7 @@ class PolicyGradient(nn.Module):
 	def save_net(self, fname):
 		torch.save(self.state_dict(), fname + ".dict")
 		print("Model saved.")
+
+	def load_net(self, fname):
+		torch.load(self.state_dict(), fname + ".dict")
+		print("Model loaded.")
