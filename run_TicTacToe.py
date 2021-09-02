@@ -141,8 +141,8 @@ while True:
 	state, _, _, _ = env.step(3, 1)
 	state, _, _, _ = env.step(6, -1)
 	state, _, _, _ = env.step(4, 1)
-	state, _, _, _ = env.step(5, -1)
-	state, _, _, _ = env.step(1, 1)
+	# state, _, _, _ = env.step(5, -1)
+	# state, _, _, _ = env.step(1, 1)
 	while not done:
 
 		if user == 0:
