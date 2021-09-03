@@ -157,10 +157,10 @@ while True:
 			action2 = RL.play_random(state1, env.action_space)
 			state2, reward2, done, infos = env.step(action2, 1)
 			r_x = reward1		# reward w.r.t. player X = AI
-			if reward2 == 10:	# draw: both players +10
-				r_x += 10
-			elif reward2 == 20:
-				r_x -= 20
+			if reward2 > 19.0:
+				r_x -= 20.0
+			elif reward2 > 9.0:	# draw: both players +10
+				r_x += 10.0
 			RL.store_transition(state, action1, r_x)
 			state = state2
 			reward1 = reward2 = 0
