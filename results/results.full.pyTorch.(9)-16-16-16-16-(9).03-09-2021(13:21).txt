@@ -2,7 +2,7 @@
 # Num weights = 1056
 # Learning rate = 0.001
 # Env random seed = 113
-# Start time: 02-09-2021(17:07)
+# Start time: 03-09-2021(13:21)
 100 -20.0
 200 -18.500839256587383
 300 -19.451258683143717

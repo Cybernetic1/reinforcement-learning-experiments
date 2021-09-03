@@ -152,7 +152,7 @@ class PolicyGradient(nn.Module):
 		return
 
 	def save_net(self, fname):
-		torch.save(self.state_dict(), fname + ".dict")
+		torch.save(self.state_dict(), "PyTorch_models/" + fname + ".dict")
 		print("Model saved.")
 
 	def load_net(self, fname):

@@ -27,7 +27,7 @@ f = open(fname, 'r')
 """
 
 f = open(files[c], 'r')
-tag = ' '.join( files[c][10:-4].split('.', 2) )
+tag = ' '.join( files[c][16:-4].split('.', 2) )
 data = []
 
 """		**** Old Format ****
@@ -57,7 +57,7 @@ print("size=", len(data))
 
 if c2 >= 0:
 	f2 = open(files[c2], 'r')
-	tag2 = ' '.join( files[c2][10:-4].split('.', 2) )
+	tag2 = ' '.join( files[c2][16:-4].split('.', 2) )
 	data2 = []
 
 	for line in f2:
