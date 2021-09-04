@@ -124,7 +124,7 @@ for i, fname in enumerate(files):
 print(end="\x1b[0m")
 j = input("Load model? (Enter number or none): ")
 if j:
-	RL.load_net(files[int(j)][9:-11])
+	RL.load_net(files[int(j)][18:-11])
 
 train_once = False		# you may use Ctrl-C to change this
 i_episode = 0
