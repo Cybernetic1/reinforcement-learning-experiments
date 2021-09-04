@@ -90,11 +90,13 @@ def ctrl_C_handler(sig, frame):
 	# global model_name
 	global command
 	print("\n **** program paused ****")
-	print("Enter your code (! to exit)")
+	print("Enter your code (! to exit, G to play game)")
 	command = input(">>> ")
 	if command == '!':
 		log_file.close()
 		exit(0)
+	elif command == 'G':
+		command = "play_1_game_with_human()"
 	"""
 	print("Enter filename to save network to file")
 	print("Default file: ", model_name + "." + timeStamp)
@@ -113,18 +115,63 @@ def ctrl_C_handler(sig, frame):
 signal.signal(signal.SIGINT, ctrl_C_handler)
 
 import glob
-files = glob.glob("TensorFlow_models/" + model_name + "*.index")
+if config >= 3:		# TensorFlow
+	files = glob.glob("TensorFlow_models/" + model_name + "*.index")
+else:
+	files = glob.glob("PyTorch_models/" + model_name + "*.dict")
 files.sort()
 for i, fname in enumerate(files):
 	if i % 2:
 		print(end="\x1b[32m")
 	else:
 		print(end="\x1b[0m")
-	print("%2d %s" %(i, fname[24:-6]))
+	if config >= 3:		# TensorFlow
+		print("%2d %s" %(i, fname[24:-6]))
+	else:
+		print("%2d %s" %(i, fname[21:-5]))
 print(end="\x1b[0m")
 j = input("Load model? (Enter number or none): ")
 if j:
-	RL.load_net(files[int(j)][18:-11])
+	if config >= 3:		# TensorFlow
+		RL.load_net(files[int(j)][18:-11])
+	else:
+		RL.load_net(files[int(j)][15:-5])
+
+def play_1_game_with_human():
+	state = env.reset()
+	state, _, _, _ = env.step(0, -1)
+	state, _, _, _ = env.step(3, 1)
+	state, _, _, _ = env.step(6, -1)
+	state, _, _, _ = env.step(4, 1)
+	# state, _, _, _ = env.step(5, -1)
+	# state, _, _, _ = env.step(1, 1)
+
+	done = False
+	user = 0
+	while not done:
+		env.render()
+		if user == 0:
+			action1 = RL.choose_action(state)
+			print("X action =", action1)
+			state1, reward1, done, _ = env.step(action1, -1)
+			if done:
+				state = state1
+				reward1 = reward2 = 0
+		elif user == 1:			# human player
+			action2 = int(input("Your move (0-8)? "))
+			state2, reward2, done, _ = env.step(action2, 1)
+			r_x = reward1		# reward w.r.t. player X = AI
+			if reward2 > 19.0:
+				r_x -= 20.0
+			elif reward2 > 9.0:	# draw: both players +10
+				r_x += 10.0
+			state = state2
+			reward1 = reward2 = 0
+
+		# If the game isn't over, change the current player
+		if not done:
+			user = 0 if user == 1 else 1
+	RL.clear_data()
 
 train_once = False		# you may use Ctrl-C to change this
 i_episode = 0
@@ -180,6 +227,8 @@ while True:
 	if running_reward > DISPLAY_REWARD_THRESHOLD:
 		RENDER = True     # rendering
 
+	RL.learn()
+
 	if i_episode % 100 == 0:
 		rr = round(running_reward,5)
 		print(i_episode, "running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
@@ -215,6 +264,5 @@ while True:
 				log_file = open(log_name, "w+")
 				print("New log file opened:", log_name)
 
-	RL.learn()
-
 print('\007')	# sound beep
+

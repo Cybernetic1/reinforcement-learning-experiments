@@ -33,8 +33,8 @@ class PolicyGradient(nn.Module):
 			self,
 			n_actions,
 			n_features,
-			learning_rate,
-			gamma,
+			learning_rate = 0.001,
+			gamma = 0.9,
 	):
 		super(PolicyGradient, self).__init__()
 		self.n_actions = n_actions
@@ -70,8 +70,7 @@ class PolicyGradient(nn.Module):
 		self.l4 = nn.Linear(16, 16, bias=True)
 		self.l5 = nn.Linear(16, self.n_actions, bias=False)
 
-	def forward(self, x):
-		model = torch.nn.Sequential(
+		self.model = torch.nn.Sequential(
 			self.l1,
 			# nn.Dropout(p=0.6),
 			# nn.ReLU(),
@@ -85,7 +84,9 @@ class PolicyGradient(nn.Module):
 			self.l5,
 			nn.Softmax(dim=-1),
 			)
-		return model(x)
+
+	def forward(self, x):
+		return self.model(x)
 
 	def choose_action(self, state):
 		#Select an action (0-8) by running policy model and choosing based on the probabilities
@@ -151,10 +152,17 @@ class PolicyGradient(nn.Module):
 		self.ep_rs = []
 		return
 
+	def clear_data(self):
+		# empty episode data
+		self.ep_as = Variable(torch.Tensor())
+		self.ep_rs = []
+
 	def save_net(self, fname):
 		torch.save(self.state_dict(), "PyTorch_models/" + fname + ".dict")
 		print("Model saved.")
 
 	def load_net(self, fname):
-		torch.load(self.state_dict(), fname + ".dict")
+		model = PolicyGradient(9, 9)
+		model.load_state_dict(torch.load("PyTorch_models/" + fname + ".dict"))
+		model.eval()
 		print("Model loaded.")

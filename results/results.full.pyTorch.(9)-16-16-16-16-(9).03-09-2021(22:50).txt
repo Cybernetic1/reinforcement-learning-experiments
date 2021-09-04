@@ -1,0 +1,5 @@
+# Model = full.pyTorch.(9)-16-16-16-16-(9)
+# Num weights = 1056
+# Learning rate = 0.001
+# Env random seed = 113
+# Start time: 03-09-2021(22:50)
