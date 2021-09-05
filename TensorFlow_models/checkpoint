@@ -1,2 +1,2 @@
-model_checkpoint_path: "model.symNN.TensorFlow.(3)-8-9x9-12-(9).31-08-2021(13:47).ckpt"
-all_model_checkpoint_paths: "model.symNN.TensorFlow.(3)-8-9x9-12-(9).31-08-2021(13:47).ckpt"
+model_checkpoint_path: "model.full.TensorFlow.(9)-16-16-16-16-(9).03-09-2021(19:26).ckpt"
+all_model_checkpoint_paths: "model.full.TensorFlow.(9)-16-16-16-16-(9).03-09-2021(19:26).ckpt"

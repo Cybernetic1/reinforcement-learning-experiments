@@ -133,7 +133,7 @@ print(end="\x1b[0m")
 j = input("Load model? (Enter number or none): ")
 if j:
 	if config >= 3:		# TensorFlow
-		RL.load_net(files[int(j)][9:-11])
+		RL.load_net(files[int(j)][18:-11])
 	else:
 		RL.load_net(files[int(j)][15:-5])
 
