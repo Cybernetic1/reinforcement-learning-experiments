@@ -14,12 +14,12 @@ test_board = 9 * [0]
 # X|O|
 # O|O|X
 # X| |
-test_board[0] = -1
-test_board[3] = 1
-test_board[6] = -1
-test_board[4] = 1
-test_board[5] = -1
-test_board[1] = 1
+# test_board[0] = -1
+# test_board[3] = 1
+# test_board[6] = -1
+# test_board[4] = 1
+# test_board[5] = -1
+# test_board[1] = 1
 
 def show_board(board):
 	for i in [0, 3, 6]:
@@ -48,6 +48,7 @@ def expectation(board, player):
 		# Calculate expectation of these moves;
 		# Player 'X' will only choose the one of maximum value.
 		max_v = - math.inf
+		best = None
 		for m in moves:
 			new_board = board.copy()
 			new_board[m] = -1		# Player 'X'
@@ -61,7 +62,7 @@ def expectation(board, player):
 				v = expectation(new_board, 1)
 				if v > max_v:
 					max_v = v
-		# show_board(board)
+		#show_board(board)
 		print("X's turn.  Expectation w.r.t. Player X =", max_v, end='\r')
 		return max_v
 
@@ -85,11 +86,11 @@ def expectation(board, player):
 				if r == 10:				# draw is +10 for either player
 					Rx += r * p
 				else:
-					Rx += - r * p		# sign of reward is reversed
+					Rx -= r * p			# sign of reward is reversed
 			else:
 				v = expectation(new_board, -1)
 				Rx += v * p
-		# show_board(board)
+		#show_board(board)
 		print("O's turn.  Expectation w.r.t. Player X =", Rx, end='\r')
 		return Rx
 
@@ -131,4 +132,6 @@ def game_over(board, player):
 	# Another way is to assign draw = 0.
 	return 10
 
+# Change to 1 if player 'O' goes first:
 print("\u001b[2K\nOptimal value =", expectation(test_board, -1) )
+
