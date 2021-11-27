@@ -97,6 +97,7 @@ def ctrl_C_handler(sig, frame):
 		exit(0)
 	elif command == 'G':
 		command = "play_1_game_with_human()"
+	# Other commands will be executed in the main loop, see below
 	"""
 	print("Enter filename to save network to file")
 	print("Default file: ", model_name + "." + timeStamp)
