@@ -127,10 +127,11 @@ class PolicyGradient(nn.Module):
 		action = c.sample()
 
 		# Add log probability of our chosen action to our history
+		# Unsqueeze: returns a new tensor with a dimension of size 1 inserted at the specified position.
 		# Unsqueeze(0): tensor (prob, grad_fn) ==> ([prob], grad_fn)
 		log_prob = c.log_prob(action).unsqueeze(0)
-		# print("log prob:", c.log_prob(action))
-		# print("log prob unsqueezed:", log_prob)
+		print("log prob:", c.log_prob(action))
+		print("log prob unsqueezed:", log_prob)
 		if self.ep_as.dim() != 0:
 			self.ep_as = torch.cat([self.ep_as, log_prob])
 		else:
@@ -182,8 +183,8 @@ class PolicyGradient(nn.Module):
 		# print(rewards)
 
 		# Calculate loss
-		# print("policy history:", self.ep_as)
-		# print("rewards:", rewards)
+		print("policy history:", self.ep_as)
+		print("rewards:", rewards)
 		# loss = torch.sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1)
 		loss = sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1)
 

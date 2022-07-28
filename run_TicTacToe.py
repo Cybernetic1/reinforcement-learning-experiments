@@ -14,6 +14,7 @@ print("1. PyTorch\t symmetric NN")
 print("2. PyTorch\t fully-connected NN")
 print("3. TensorFlow\t symmetric NN")
 print("4. TensorFlow\t fully-connected NN")
+print("5. PyTorch\t Transformer")
 config = int(input("Choose config: "))
 
 import gym
@@ -30,12 +31,15 @@ elif config == 3:
 elif config == 4:
 	from RL_full_TensorFlow import PolicyGradient
 	tag = "full.TensorFlow"
+elif config == 5:
+	from RL_Transformer_pyTorch import PolicyGradient
+	tag = "Transformer.pyTorch"
 
 DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward > threshold
 RENDER = False  # rendering wastes time
 
 import gym_tictactoe
-if config == 1 or config == 3:
+if config == 1 or config == 3 or config == 5:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)

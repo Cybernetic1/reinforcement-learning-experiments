@@ -58,28 +58,13 @@ class PolicyGradient(nn.Module):
 		self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
 
 	def net_info(self):
-		config_h = "(3)-10-8"
-		config_g = "8-(9)"
-		total = 0
-		neurons = config_h.split('-')
-		last_n = 3
-		for n in neurons[1:]:
-			n = int(n)
-			total += last_n * n
-			last_n = n
-		total *= 9
-
-		neurons = config_g.split('-')
-		for n in neurons[1:-1]:
-			n = int(n)
-			total += last_n * n
-			last_n = n
-		total += last_n * 9
-		return (config_h + 'x' + config_g, total)
+		# Total number of params:
+		total = 3*4*3
+		return ("3x4x3", total)
 
 	def _build_net(self):
 		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=4)
-		self.tr = nn.TransformerEncoder(encoder_layer, num_layers=4)
+		self.tr = nn.TransformerEncoder(encoder_layer, num_layers=3)
 
 	def forward(self, x):
 		# input dim = n_features = 9 x 3 = 27
@@ -87,15 +72,19 @@ class PolicyGradient(nn.Module):
 		# First we need to split the input into 9 parts:
 		xs = torch.split(x, 3)
 
-		out = self.tr(x)
+		out = self.tr(xs)
 		return out
+		# What is the output here?  Old output = probs over actions
+		# New output = 9 action suggestions
+		# We choose probabilistically one of them.
 
 	def choose_action(self, state):
-		#Select an action (0-9) by running policy model and choosing based on the probabilities in state
+		# Select an action (0-9) by running policy model and choosing based on the probabilities in state
 		state = torch.from_numpy(state).type(torch.FloatTensor)
-		probs = self(Variable(state))
-		c = Categorical(probs)
-		action = c.sample()
+		acts = self(Variable(state))		# check: dim(acts) = 9
+		print("dim acts =", len(acts))
+		action_xy = random.choice(acts)		# action in [x,y,player] format
+		action = action_xy[0] + action_xy[1] * 3
 
 		# Add log probability of our chosen action to our history
 		# Unsqueeze(0): tensor (prob, grad_fn) ==> ([prob], grad_fn)
