@@ -80,6 +80,8 @@ class PolicyGradient(nn.Module):
 		# Perhaps an even better output format is: probability distribution over specific [x,y]'s.
 		# Then we need to deal with the problem of merging duplicated [x,y] values.
 		# The duplicated probabilities could be added or maxed.
+		# P(A or B) = P(A) + P(B) - P(A and B)  but it's difficult to estimate P(A and B)
+		# Non-monotonic logic is actually more economical as knowledge representation!
 
 	def choose_action(self, state):
 		# Select an action (0-9) by running policy model and choosing based on the probabilities in state
