@@ -75,8 +75,11 @@ class PolicyGradient(nn.Module):
 		out = self.tr(xs)
 		return out
 		# What is the output here?  Old output = probs over actions
-		# New output = 9 action suggestions
-		# We choose probabilistically one of them.
+		# The most reasonable output is: probability distribution over actions.
+		# But there is a waste of 3 dimensions
+		# Perhaps an even better output format is: probability distribution over specific [x,y]'s.
+		# Then we need to deal with the problem of merging duplicated [x,y] values.
+		# The duplicated probabilities could be added or maxed.
 
 	def choose_action(self, state):
 		# Select an action (0-9) by running policy model and choosing based on the probabilities in state
