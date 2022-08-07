@@ -82,18 +82,26 @@ class PolicyGradient(nn.Module):
 		# The duplicated probabilities could be added or maxed.
 		# P(A or B) = P(A) + P(B) - P(A and B)  but it's difficult to estimate P(A and B)
 		# Non-monotonic logic is actually more economical as knowledge representation!
+		# Another question is: if the rule-base suggests action X with probability P1,
+		# and it also alternatively suggests the same action X with probability P2.
+		# So it is actually up to us to interpret P1 and P2.
+		# Naturally, we can normalize all P[i]'s to 1.
+		# But then X would be chosen with probability P1 + P2.
 
 	def choose_action(self, state):
 		# Select an action (0-9) by running policy model and choosing based on the probabilities in state
 		state = torch.from_numpy(state).type(torch.FloatTensor)
-		acts = self(Variable(state))		# check: dim(acts) = 9
-		print("dim acts =", len(acts))
-		action_xy = random.choice(acts)		# action in [x,y,player] format
-		action = action_xy[0] + action_xy[1] * 3
+		y = self(Variable(state))
+		# y = 27-dim vector = [probability, X, Y] x 9
+		probs = y[0::3]		# get every 3rd element in list
+		c = Categorical(probs)
+		i = c.sample()
+		action = y[i * 3 + 1] + y[i * 3 + 2] * 3
+		# **** Is it OK for action to be different from i (for back-prop) ?
 
 		# Add log probability of our chosen action to our history
 		# Unsqueeze(0): tensor (prob, grad_fn) ==> ([prob], grad_fn)
-		log_prob = c.log_prob(action).unsqueeze(0)
+		log_prob = c.log_prob(i).unsqueeze(0)
 		# print("log prob:", c.log_prob(action))
 		# print("log prob unsqueezed:", log_prob)
 		if self.ep_as.dim() != 0:
