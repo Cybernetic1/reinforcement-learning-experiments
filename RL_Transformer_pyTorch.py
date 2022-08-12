@@ -59,8 +59,8 @@ class PolicyGradient(nn.Module):
 
 	def net_info(self):
 		# Total number of params:
-		total = 3*4*3
-		return ("3x4x3", total)
+		total = 0		# **** TO-DO
+		return ("?x?x?", total)
 
 	def _build_net(self):
 		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=3)
