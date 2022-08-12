@@ -24,7 +24,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.distributions import Categorical
 
-# reproducible (this may be an overkill...)
+# reproducible (this may be an overkill... but it works)
 seed=666
 np.random.seed(seed)
 torch.manual_seed(seed)
@@ -50,8 +50,8 @@ class PolicyGradient(nn.Module):
 		self.gamma = gamma
 
 		# Episode data: actions, rewards:
-		self.ep_as = Variable(torch.Tensor())
-		self.ep_rs = []
+		self.ep_actions = Variable(torch.Tensor())
+		self.ep_rewards = []
 
 		self._build_net()
 
@@ -63,17 +63,19 @@ class PolicyGradient(nn.Module):
 		return ("3x4x3", total)
 
 	def _build_net(self):
-		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=4)
-		self.tr = nn.TransformerEncoder(encoder_layer, num_layers=3)
+		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=3)
+		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=4)
+		self.softmax = nn.Softmax(dim=0)
 
 	def forward(self, x):
 		# input dim = n_features = 9 x 3 = 27
 		# there are 9 h-networks each taking a dim-3 vector input
 		# First we need to split the input into 9 parts:
-		xs = torch.split(x, 3)
+		xs = torch.stack(torch.split(x, 3))
+		# print("xs =", xs)
 
-		out = self.tr(xs)
-		return out
+		y = self.trm(xs)
+		return y
 		# What is the output here?  Old output = probs over actions
 		# The most reasonable output is: probability distribution over actions.
 		# But there is a waste of 3 dimensions
@@ -92,22 +94,40 @@ class PolicyGradient(nn.Module):
 		# Select an action (0-9) by running policy model and choosing based on the probabilities in state
 		state = torch.from_numpy(state).type(torch.FloatTensor)
 		y = self(Variable(state))
+		# print("y =", y)
 		# y = 27-dim vector = [probability, X, Y] x 9
-		probs = y[0::3]		# get every 3rd element in list
+		probs = self.softmax(torch.select(y, 1, 0))		# get every 1st element = probability
+		# print("probs =", probs)
 		c = Categorical(probs)
 		i = c.sample()
-		action = y[i * 3 + 1] + y[i * 3 + 2] * 3
-		# **** Is it OK for action to be different from i (for back-prop) ?
+		# print("i =", i)
+
+		def discretize(z):
+			if z > 0.5:
+				return 2
+			elif z < -0.5:
+				return 0
+			else:
+				return 1
+
+		action = discretize(y[i][1]) + discretize(y[i][2]) * 3
+		print(action, end='')
+		# **** Is it OK for "action" to be different from "i" (for back-prop) ?
+		# Yes, as long as the reward (for action "i") is assigned correctly.
+		# **** Explanation for failure of convergence:
+		# "i" is real number, but "action" is discretized.
+		# When i changes infinitesimally, "action" may remain unchanged.
+		# Thus the reward fails to reflect changes in learned parameters.
 
 		# Add log probability of our chosen action to our history
 		# Unsqueeze(0): tensor (prob, grad_fn) ==> ([prob], grad_fn)
 		log_prob = c.log_prob(i).unsqueeze(0)
 		# print("log prob:", c.log_prob(action))
 		# print("log prob unsqueezed:", log_prob)
-		if self.ep_as.dim() != 0:
-			self.ep_as = torch.cat([self.ep_as, log_prob])
+		if self.ep_actions.dim() != 0:
+			self.ep_actions = torch.cat([self.ep_actions, log_prob])
 		else:
-			self.ep_as = (log_prob)
+			self.ep_actions = (log_prob)
 		return action
 
 	def play_random(self, state, action_space):
@@ -134,15 +154,15 @@ class PolicyGradient(nn.Module):
 
 	def store_transition(self, s, a, r):	# state, action, reward
 		# s is not needed, a is stored during choose_action().
-		self.ep_rs.append(r)
+		self.ep_rewards.append(r)
 
 	def learn(self):
 		R = 0
 		rewards = []
 
 		# Discount future rewards back to the present using gamma
-		# print("\nLength of reward episode:", len(self.ep_rs))
-		for r in self.ep_rs[::-1]:			# [::-1] reverses a list
+		# print("\nLength of reward episode:", len(self.ep_rewards))
+		for r in self.ep_rewards[::-1]:			# [::-1] reverses a list
 			R = r + self.gamma * R
 			rewards.insert(0, R)
 
@@ -155,10 +175,10 @@ class PolicyGradient(nn.Module):
 		# print(rewards)
 
 		# Calculate loss
-		# print("policy history:", self.ep_as)
+		# print("policy history:", self.ep_actions)
 		# print("rewards:", rewards)
-		# loss = torch.sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1)
-		loss = sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1)
+		# loss = torch.sum(torch.mul(self.ep_actions, Variable(rewards)).mul(-1), -1)
+		loss = sum(torch.mul(self.ep_actions, Variable(rewards)).mul(-1), -1)
 
 		# Update network weights
 		self.optimizer.zero_grad()
@@ -166,9 +186,9 @@ class PolicyGradient(nn.Module):
 		self.optimizer.step()
 
 		# Empty episode data
-		self.ep_as = Variable(torch.Tensor())
-		self.ep_rs = []
-		return rewards		# == discounted_ep_rs_norm
+		self.ep_actions = Variable(torch.Tensor())
+		self.ep_rewards = []
+		return rewards		# == discounted_ep_rewards_norm
 
 	def save_net(self, fname):
 		torch.save(self.state_dict(), "PyTorch_models/" + fname + ".dict")

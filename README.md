@@ -79,6 +79,7 @@ For example, on my Ubuntu computer I'd activate the virtual environment:
 
 Run this to install Gym TicTacToe:
 
+     pip3 install gym=0.19.0
      cd gym-tictactoe
      python setup.py install
 

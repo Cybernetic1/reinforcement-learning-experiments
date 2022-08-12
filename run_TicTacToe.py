@@ -236,7 +236,7 @@ while True:
 
 	if i_episode % 100 == 0:
 		rr = round(running_reward,5)
-		print(i_episode, "running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
+		print("\n\t", i_episode, "running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 		# RL.set_learning_rate(i_episode)
 		log_file.write(str(i_episode) + ' ' + str(running_reward) + '\n')
 		log_file.flush()

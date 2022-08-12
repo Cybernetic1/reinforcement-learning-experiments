@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import pandas as pd		# for calculating rolling mean
 
 import glob
+import os
 files = glob.glob("results/results.*.txt")
-files.sort()
+files.sort(key=os.path.getmtime)
 for i, fname in enumerate(files):
 	if i % 2:
 		print(end="\x1b[32m")
