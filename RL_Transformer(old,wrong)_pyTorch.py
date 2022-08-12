@@ -95,7 +95,7 @@ class PolicyGradient(nn.Module):
 		state = torch.from_numpy(state).type(torch.FloatTensor)
 		y = self(Variable(state))
 		# print("y =", y)
-		# y = 3 x 9 = 27-dim vector
+		# y = 27-dim vector = [probability, X, Y] x 9
 		probs = self.softmax(torch.select(y, 1, 0))		# get every 1st element = probability
 		# print("probs =", probs)
 		c = Categorical(probs)
