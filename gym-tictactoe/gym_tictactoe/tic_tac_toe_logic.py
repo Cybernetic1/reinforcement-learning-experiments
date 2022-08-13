@@ -11,9 +11,9 @@ class TicTacToeEnv(gym.Env):
 		self.win_size = win_size
 		self.board_size = board_size
 		self.symbols = {
-			symbols[0]: "x",
-			symbols[1]: "o",
-			"Bad": "!"
+			symbols[0]: "❌",
+			symbols[1]: "⭕",
+			"Bad": "!!"
 		}
 		self.action_space = spaces.Discrete(self.board_size * self.board_size)
 
@@ -150,16 +150,16 @@ class TicTacToeEnv(gym.Env):
 		grid = []
 		for value in self.board:
 			if value == 0:
-				grid.append(value)
+				grid.append(0)
 			else:
 				grid.append(self.symbols[value])
 		return grid
 
 	def print_grid_line(self, grid, offset=0):
-		print(" " + "-" * (self.board_size * 4 + 1))
+		print(" " + "-" * (self.board_size * 5 + 1))
 		for i in range(self.board_size):
 			if grid[i + offset] == 0:
-				print(" | " + " ", end='')
+				print(" | " + "  ", end='')
 			else:
 				print(" | " + str(grid[i + offset]), end='')
 		print(" |")
@@ -169,7 +169,7 @@ class TicTacToeEnv(gym.Env):
 		for i in range(0, self.board_size * self.board_size, self.board_size):
 			self.print_grid_line(grid, i)
 
-		print(" " + "-" * (self.board_size * 4 + 1))
+		print(" " + "-" * (self.board_size * 5 + 1))
 
 	def render(self, mode=None, close=False):
 		self.display_grid(self.get_state_vector_to_display())
