@@ -54,11 +54,11 @@ class PolicyGradient(nn.Module):
 	def net_info(self):
 		# Total number of params:
 		total = 0		# **** TO-DO
-		return ("3,3,3", total)
+		return ("3,3,5", total)
 
 	def _build_net(self):
 		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=3)
-		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=3)
+		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=5)
 		self.softmax = nn.Softmax(dim=0)
 		# W is a 3x9 matrix, to convert 3-vector to 9-vector probability distribution:
 		self.W = Variable(torch.randn(3, 9), requires_grad=True)
@@ -103,14 +103,7 @@ class PolicyGradient(nn.Module):
 		# print("probs =", probs)
 		distro = Categorical(probs)
 		action = distro.sample()
-
 		print(action.item(), end='')
-		# **** Is it OK for "action" to be different from "i" (for back-prop) ?
-		# Yes, as long as the reward (for action "i") is assigned correctly.
-		# **** Explanation for failure of convergence:
-		# "i" is real number, but "action" is discretized.
-		# When i changes infinitesimally, "action" may remain unchanged.
-		# Thus the reward fails to reflect changes in learned parameters.
 
 		# Add log probability of our chosen action to our history
 		# Unsqueeze(0): tensor (prob, grad_fn) ==> ([prob], grad_fn)
@@ -163,9 +156,8 @@ class PolicyGradient(nn.Module):
 		#if len(rewards) == 1:
 			#rewards = torch.FloatTensor([-1.0])
 		#else:
-		rewards = torch.FloatTensor(rewards)
 			#rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
-		# print(rewards)
+		rewards = torch.FloatTensor(rewards)
 
 		# Calculate loss
 		# print("policy history:", self.ep_actions)
@@ -187,8 +179,7 @@ class PolicyGradient(nn.Module):
 		self.ep_rewards = []
 		return rewards		# == discounted_ep_rewards_norm
 
-	def clear_data(self):
-		# empty episode data
+	def clear_data(self):			# empty episode data
 		self.ep_actions = Variable(torch.Tensor())
 		self.ep_rewards = []
 

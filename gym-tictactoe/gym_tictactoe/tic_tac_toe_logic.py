@@ -27,7 +27,7 @@ class TicTacToeEnv(gym.Env):
 			'still_in_game': 0.0,
 			'draw': 10.0,
 			'win': 20.0,
-			'bad_position': -20.0
+			'bad_position': -30.0
 			}
 
 	def reset(self):

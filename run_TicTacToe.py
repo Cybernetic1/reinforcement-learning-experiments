@@ -151,6 +151,11 @@ def preplay_moves():
 	# state, _, _, _ = env.step(1, 1)
 	return
 
+print("Pre-play moves:")
+state = env.reset()
+preplay_moves()
+env.render()
+
 def play_1_game_with_human():
 	state = env.reset()
 	preplay_moves()
@@ -159,7 +164,7 @@ def play_1_game_with_human():
 	while not done:
 		env.render()
 		if user == 0:
-			print("X's move =")			# will be printed by RL.choose_action()
+			print("X's move =", end='')			# will be printed by RL.choose_action()
 			action1 = RL.choose_action(state)
 			state1, reward1, done, _ = env.step(action1, -1)
 			if done:
@@ -185,6 +190,7 @@ def play_1_game_with_human():
 
 train_once = False		# you may use Ctrl-C to change this
 i_episode = 0
+
 while True:
 	i_episode += 1
 	state = env.reset()
@@ -208,6 +214,8 @@ while True:
 			action2 = RL.play_random(state1, env.action_space)
 			state2, reward2, done, infos = env.step(action2, 1)
 			r_x = reward1		# reward w.r.t. player X = AI
+			# **** Scoring: AI win > draw > lose > crash
+			#                +20      +10   -20    -30
 			if reward2 > 19.0:
 				r_x -= 20.0
 			elif reward2 > 9.0:	# draw: both players +10
