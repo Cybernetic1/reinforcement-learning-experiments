@@ -43,9 +43,9 @@ class PolicyGradient(nn.Module):
 		self.lr = learning_rate
 		self.gamma = gamma
 
-		self.ep_rs = []
+		self.ep_rewards = []
 		# Episode policy
-		self.ep_as = Variable(torch.Tensor())
+		self.ep_actions = Variable(torch.Tensor())
 
 		self._build_net()
 
@@ -101,10 +101,10 @@ class PolicyGradient(nn.Module):
 		# log probability of our chosen action
 		log_prob = c.log_prob(action).unsqueeze(0)
 		# print("log prob:", log_prob)
-		if self.ep_as.dim() != 0:
-			self.ep_as = torch.cat([self.ep_as, log_prob])
+		if self.ep_actions.dim() != 0:
+			self.ep_actions = torch.cat([self.ep_actions, log_prob])
 		else:
-			self.ep_as = (log_prob)
+			self.ep_actions = (log_prob)
 		return action
 
 	def play_random(self, state, action_space):
@@ -118,15 +118,15 @@ class PolicyGradient(nn.Module):
 
 	def store_transition(self, s, a, r):	# state, action, reward
 		# s is not needed, a is stored during choose_action().
-		self.ep_rs.append(r)
+		self.ep_rewards.append(r)
 
 	def learn(self):
 		R = 0
 		rewards = []
 
 		# Discount future rewards back to the present using gamma
-		# print("\nLength of reward episode:", len(self.ep_rs)) 
-		for r in self.ep_rs[::-1]:			# [::-1] reverses a list
+		# print("\nLength of reward episode:", len(self.ep_rewards)) 
+		for r in self.ep_rewards[::-1]:			# [::-1] reverses a list
 			R = r + self.gamma * R
 			rewards.insert(0, R)
 
@@ -138,9 +138,9 @@ class PolicyGradient(nn.Module):
 		#	rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
 
 		# Calculate loss
-		# print("policy history:", self.ep_as)
+		# print("policy history:", self.ep_actions)
 		# print("rewards:", rewards)
-		loss = (torch.sum(torch.mul(self.ep_as, Variable(rewards)).mul(-1), -1))
+		loss = (torch.sum(torch.mul(self.ep_actions, Variable(rewards)).mul(-1), -1))
 
 		# Update network weights
 		self.optimizer.zero_grad()
@@ -148,14 +148,14 @@ class PolicyGradient(nn.Module):
 		self.optimizer.step()
 
 		# empty episode data
-		self.ep_as = Variable(torch.Tensor())
-		self.ep_rs = []
+		self.ep_actions = Variable(torch.Tensor())
+		self.ep_rewards = []
 		return
 
 	def clear_data(self):
 		# empty episode data
-		self.ep_as = Variable(torch.Tensor())
-		self.ep_rs = []
+		self.ep_actions = Variable(torch.Tensor())
+		self.ep_rewards = []
 
 	def save_net(self, fname):
 		torch.save(self.state_dict(), "PyTorch_models/" + fname + ".dict")

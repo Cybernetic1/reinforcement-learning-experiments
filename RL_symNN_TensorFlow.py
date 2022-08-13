@@ -53,7 +53,7 @@ class PolicyGradient:
 		# This makes the learning rate adjustable during training:
 		self.lr = tf.Variable(learning_rate, trainable=False)
 
-		self.ep_obs, self.ep_as, self.ep_rs = [], [], []
+		self.ep_obs, self.ep_actions, self.ep_rewards = [], [], []
 
 		self._build_net()
 
@@ -182,46 +182,51 @@ class PolicyGradient:
 
 	def store_transition(self, s, a, r):		# state, action, reward
 		self.ep_obs.append(s)
-		self.ep_as.append(a)
-		self.ep_rs.append(r)
+		self.ep_actions.append(a)
+		self.ep_rewards.append(r)
 
 	def learn(self):
 		# discount and normalize episode reward
-		discounted_ep_rs_norm = self._discount_and_norm_rewards()
+		discounted_ep_rewards_norm = self._discount_and_norm_rewards()
 
 		# obs = np.vstack(self.ep_obs)
 		# print("*shape obs=", obs.shape)
 		# print("*dtype obs=", obs.dtype)
-		# acts = np.array(self.ep_as)
+		# acts = np.array(self.ep_actions)
 		# print("*shape acts=", acts.shape)
 		# print("*dtype acts=", acts.dtype)
-		# acts2 = np.vstack(self.ep_as)
+		# acts2 = np.vstack(self.ep_actions)
 		# print("*shape acts2=", acts2.shape)
 
 		# train on episode
 		self.sess.run(self.train_op, feed_dict={
 			self.tf_obs: np.vstack(self.ep_obs),  # shape=[None, n_obs]
-			self.tf_acts: np.array(self.ep_as),  # shape=[None, ]
-			self.tf_vt: discounted_ep_rs_norm,  # shape=[None, ]
+			self.tf_acts: np.array(self.ep_actions),  # shape=[None, ]
+			self.tf_vt: discounted_ep_rewards_norm,  # shape=[None, ]
 			})
 
-		self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
-		return discounted_ep_rs_norm
+		self.ep_obs, self.ep_actions, self.ep_rewards = [], [], []    # empty episode data
+		return discounted_ep_rewards_norm
 
 	def _discount_and_norm_rewards(self):
 		# discount episode rewards
-		# print("ep_rs=", self.ep_rs)
-		discounted_ep_rs = np.zeros_like(self.ep_rs)
+		# print("ep_rewards=", self.ep_rewards)
+		discounted_ep_rewards = np.zeros_like(self.ep_rewards)
 		running_add = 0
-		for t in reversed(range(0, len(self.ep_rs))):
-			running_add = running_add * self.gamma + self.ep_rs[t]
-			discounted_ep_rs[t] = running_add
+		for t in reversed(range(0, len(self.ep_rewards))):
+			running_add = running_add * self.gamma + self.ep_rewards[t]
+			discounted_ep_rewards[t] = running_add
 
 		# normalize episode rewards
-		# print("discounted episode rewards=", discounted_ep_rs)
-		# discounted_ep_rs -= np.mean(discounted_ep_rs)
-		# discounted_ep_rs /= np.std(discounted_ep_rs)
-		return discounted_ep_rs
+		# print("discounted episode rewards=", discounted_ep_rewards)
+		# discounted_ep_rewards -= np.mean(discounted_ep_rewards)
+		# discounted_ep_rewards /= np.std(discounted_ep_rewards)
+		return discounted_ep_rewards
+
+	def clear_data(self):
+		# empty episode data
+		self.ep_actions = []
+		self.ep_rewards = []
 
 	def save_net(self, fname):
 		saver = tf.train.Saver()

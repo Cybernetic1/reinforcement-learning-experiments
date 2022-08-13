@@ -1,19 +1,13 @@
 """
 This is the Transformer version, where the state vector is 9 propositions = 9 x 3 = 27-vector
 
-Refer to net_config() below for the current network topology and total number of weights info.
-
-For example: h = (3-9-9) x 9, g = (9-12-9) x 1
-Total # weights = (3 * 9 + 9 * 9) * 9 + 9 * 9 + 9 * 9 = 1134
-Duplicate weights are counted because they are updated multiple times.
-
 ============================================================
 Policy Gradient, Reinforcement Learning.  Adapted from:
 Morvan Zhou's tutorial page: https://morvanzhou.github.io/tutorials/
 
 Using:
-PyTorch: 1.9.0+cpu
-gym: 0.8.0
+PyTorch: 1.12.1+cpu
+gym: 0.19.0
 """
 
 import numpy as np
@@ -25,7 +19,7 @@ from torch.autograd import Variable
 from torch.distributions import Categorical
 
 # reproducible (this may be an overkill... but it works)
-seed=666
+seed=777
 np.random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
@@ -60,12 +54,13 @@ class PolicyGradient(nn.Module):
 	def net_info(self):
 		# Total number of params:
 		total = 0		# **** TO-DO
-		return ("?x?x?", total)
+		return ("3,3,6", total)
 
 	def _build_net(self):
 		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=3)
-		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=4)
+		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=6)
 		self.softmax = nn.Softmax(dim=0)
+		self.W_y = Variable(torch.randn(3, 9), requires_grad=True)
 
 	def forward(self, x):
 		# input dim = n_features = 9 x 3 = 27
@@ -74,8 +69,16 @@ class PolicyGradient(nn.Module):
 		xs = torch.stack(torch.split(x, 3))
 		# print("xs =", xs)
 
-		y = self.trm(xs)
-		return y
+		ys = self.trm(xs)
+		uniform_distro = Categorical(torch.tensor([1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9]))
+		i = uniform_distro.sample()
+		# print("i =", i)
+		y = ys[i]
+		# print("y =", y)
+		y2 = torch.matmul(y, self.W_y)
+		# print("y2 =", y2)
+		y3 = self.softmax(y2)
+		return y3
 		# What is the output here?  Old output = probs over actions
 		# The most reasonable output is: probability distribution over actions.
 		# But there is a waste of 3 dimensions
@@ -93,25 +96,13 @@ class PolicyGradient(nn.Module):
 	def choose_action(self, state):
 		# Select an action (0-9) by running policy model and choosing based on the probabilities in state
 		state = torch.from_numpy(state).type(torch.FloatTensor)
-		y = self(Variable(state))
-		# print("y =", y)
-		# y = 27-dim vector = [probability, X, Y] x 9
-		probs = self.softmax(torch.select(y, 1, 0))		# get every 1st element = probability
+		probs = self(Variable(state))
+		# probs = 9-dim vector
 		# print("probs =", probs)
-		c = Categorical(probs)
-		i = c.sample()
-		# print("i =", i)
+		distro = Categorical(probs)
+		action = distro.sample()
 
-		def discretize(z):
-			if z > 0.5:
-				return 2
-			elif z < -0.5:
-				return 0
-			else:
-				return 1
-
-		action = discretize(y[i][1]) + discretize(y[i][2]) * 3
-		print(action, end='')
+		print(action.item(), end='')
 		# **** Is it OK for "action" to be different from "i" (for back-prop) ?
 		# Yes, as long as the reward (for action "i") is assigned correctly.
 		# **** Explanation for failure of convergence:
@@ -121,7 +112,7 @@ class PolicyGradient(nn.Module):
 
 		# Add log probability of our chosen action to our history
 		# Unsqueeze(0): tensor (prob, grad_fn) ==> ([prob], grad_fn)
-		log_prob = c.log_prob(i).unsqueeze(0)
+		log_prob = distro.log_prob(action).unsqueeze(0)
 		# print("log prob:", c.log_prob(action))
 		# print("log prob unsqueezed:", log_prob)
 		if self.ep_actions.dim() != 0:
@@ -183,12 +174,21 @@ class PolicyGradient(nn.Module):
 		# Update network weights
 		self.optimizer.zero_grad()
 		loss.backward()
+
+		self.W_y.data -= self.lr * self.W_y.grad.data
+		self.W_y.grad.data.zero_()					# Manually zero the gradients after updating weights
+
 		self.optimizer.step()
 
 		# Empty episode data
 		self.ep_actions = Variable(torch.Tensor())
 		self.ep_rewards = []
 		return rewards		# == discounted_ep_rewards_norm
+
+	def clear_data(self):
+		# empty episode data
+		self.ep_actions = Variable(torch.Tensor())
+		self.ep_rewards = []
 
 	def save_net(self, fname):
 		torch.save(self.state_dict(), "PyTorch_models/" + fname + ".dict")

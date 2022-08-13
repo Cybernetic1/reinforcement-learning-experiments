@@ -142,15 +142,18 @@ if j:
 	else:
 		RL.load_net(files[int(j)][15:-5])
 
-def play_1_game_with_human():
-	state = env.reset()
-	state, _, _, _ = env.step(0, -1)
-	state, _, _, _ = env.step(3, 1)
-	state, _, _, _ = env.step(6, -1)
-	state, _, _, _ = env.step(4, 1)
+def preplay_moves():
+	# state, _, _, _ = env.step(0, -1)
+	# state, _, _, _ = env.step(3, 1)
+	# state, _, _, _ = env.step(6, -1)
+	# state, _, _, _ = env.step(4, 1)
 	# state, _, _, _ = env.step(5, -1)
 	# state, _, _, _ = env.step(1, 1)
+	return
 
+def play_1_game_with_human():
+	state = env.reset()
+	preplay_moves()
 	done = False
 	user = 0
 	while not done:
@@ -176,6 +179,7 @@ def play_1_game_with_human():
 		# If the game isn't over, change the current player
 		if not done:
 			user = 0 if user == 1 else 1
+	env.render()
 	RL.clear_data()
 
 train_once = False		# you may use Ctrl-C to change this
@@ -183,18 +187,12 @@ i_episode = 0
 while True:
 	i_episode += 1
 	state = env.reset()
+	preplay_moves()
 
 	done = False
 	user = 0
 	reward1 = reward2 = 0
 
-	# ***** Pre-play moves:
-	state, _, _, _ = env.step(0, -1)
-	state, _, _, _ = env.step(3, 1)
-	state, _, _, _ = env.step(6, -1)
-	state, _, _, _ = env.step(4, 1)
-	# state, _, _, _ = env.step(5, -1)
-	# state, _, _, _ = env.step(1, 1)
 	while not done:
 
 		if user == 0:
@@ -223,7 +221,7 @@ while True:
 
 	# **** Game ended:
 	# print(RL.ep_rs)
-	per_game_reward = sum(RL.ep_rs)		# actually only the last reward is non-zero, for gym TicTacToe
+	per_game_reward = sum(RL.ep_rewards)		# actually only the last reward is non-zero, for gym TicTacToe
 
 	if 'running_reward' not in globals():
 		running_reward = per_game_reward
