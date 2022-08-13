@@ -70,8 +70,8 @@ where the overall symmetrtic function F has the form:
 Requires
 
      TensorFlow 2.0
-     or pyTorch 1.9
-     Python 3.6
+     or pyTorch 1.12.1
+     Python 3.8
 
 For example, on my Ubuntu computer I'd activate the virtual environment:
 
@@ -93,6 +93,7 @@ This will show a menu of choices:
 2. PyTorch, fully-connected NN
 3. TensorFlow, symmetric NN
 4. TensorFlow, fully-connected NN
+5. PyTorch, Transformer [new!]
 
 The other python programs are broken because I've modified RL_brain.py:
 
@@ -105,11 +106,11 @@ This is a plot to compare the performance of "fully-connected" (blue) and "symme
 
 Convergence can be observed early on (1000-2000), but afterwards performance remains unstable though above average.  This behavior is observed in both the "plain" and "symmetric" version, indicating that it might be a problem in the policy gradient approach as applied to this game.
 
-To plot graphs like the above:
+To plot graphs like the above: （This can be run during training!)
 
 	python plot.py
 	
-The program will list a choice of all data files in the directory.
+The program will list a choice of all data files in the directory。
 
 ## Code comments
 
