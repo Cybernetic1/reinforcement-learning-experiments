@@ -19,7 +19,7 @@ from torch.autograd import Variable
 from torch.distributions import Categorical
 
 # reproducible (this may be an overkill... but it works)
-seed=555
+seed=777
 np.random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
@@ -54,13 +54,13 @@ class PolicyGradient(nn.Module):
 	def net_info(self):
 		# Total number of params:
 		total = 0		# **** TO-DO
-		return ("3,3,3", total)
+		return ("3,3,8", total)
 
 	def _build_net(self):
 		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=3)
-		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=3)
+		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=8)
 		self.softmax = nn.Softmax(dim=0)
-		self.W = Variable(torch.randn(3, 9), requires_grad=True)
+		self.W_y = Variable(torch.randn(3, 9), requires_grad=True)
 
 	def forward(self, x):
 		# input dim = n_features = 9 x 3 = 27
@@ -69,20 +69,16 @@ class PolicyGradient(nn.Module):
 		xs = torch.stack(torch.split(x, 3))
 		# print("xs =", xs)
 
-		ys = self.trm(xs)		# no need to split results, already in 9x3 chunks
-		zs = []
-		for i in range(9):
-			w = torch.matmul( ys[i], self.W )
-			# zs.append( self.softmax(w) )
-			zs.append( w )
-		# print("zs =", zs)		
-		# *** multiply the probability distributions together:
-		u = zs[0]
-		for i in range(8):
-			u = torch.mul( u, zs[i + 1] )
-		v = self.softmax(u)
-		print("v =", v)
-		return v
+		ys = self.trm(xs)
+		uniform_distro = Categorical(torch.tensor([1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9]))
+		i = uniform_distro.sample()
+		# print("i =", i)
+		y = ys[i]
+		# print("y =", y)
+		y2 = torch.matmul(y, self.W_y)
+		# print("y2 =", y2)
+		y3 = self.softmax(y2)
+		return y3
 		# What is the output here?  Old output = probs over actions
 		# The most reasonable output is: probability distribution over actions.
 		# But there is a waste of 3 dimensions
@@ -179,8 +175,8 @@ class PolicyGradient(nn.Module):
 		self.optimizer.zero_grad()
 		loss.backward()
 
-		self.W.data -= self.lr * self.W.grad.data
-		self.W.grad.data.zero_()					# Manually zero the gradients after updating weights
+		self.W_y.data -= self.lr * self.W_y.grad.data
+		self.W_y.grad.data.zero_()					# Manually zero the gradients after updating weights
 
 		self.optimizer.step()
 

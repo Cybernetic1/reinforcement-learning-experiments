@@ -165,11 +165,11 @@ class TicTacToeEnv(gym.Env):
 		print(" |")
 
 	def display_grid(self, grid):
+		print()
 		for i in range(0, self.board_size * self.board_size, self.board_size):
 			self.print_grid_line(grid, i)
 
 		print(" " + "-" * (self.board_size * 4 + 1))
-		print()
 
 	def render(self, mode=None, close=False):
 		self.display_grid(self.get_state_vector_to_display())

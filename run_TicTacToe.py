@@ -44,7 +44,7 @@ if config == 1 or config == 3 or config == 5:
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
-env_seed = 113 # reproducible, general Policy gradient has high variance
+env_seed = 666 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
 RL = PolicyGradient(
@@ -143,10 +143,10 @@ if j:
 		RL.load_net(files[int(j)][15:-5])
 
 def preplay_moves():
-	# state, _, _, _ = env.step(0, -1)
-	# state, _, _, _ = env.step(3, 1)
-	# state, _, _, _ = env.step(6, -1)
-	# state, _, _, _ = env.step(4, 1)
+	state, _, _, _ = env.step(0, -1)
+	state, _, _, _ = env.step(3, 1)
+	state, _, _, _ = env.step(6, -1)
+	state, _, _, _ = env.step(4, 1)
 	# state, _, _, _ = env.step(5, -1)
 	# state, _, _, _ = env.step(1, 1)
 	return
@@ -160,7 +160,7 @@ def play_1_game_with_human():
 		env.render()
 		if user == 0:
 			action1 = RL.choose_action(state)
-			print("X action =", action1)
+			print(" <= X's move")			# already printed in RL.choose_action()
 			state1, reward1, done, _ = env.step(action1, -1)
 			if done:
 				state = state1
@@ -181,6 +181,7 @@ def play_1_game_with_human():
 			user = 0 if user == 1 else 1
 	env.render()
 	RL.clear_data()
+	print("*** GAME OVER ***")
 
 train_once = False		# you may use Ctrl-C to change this
 i_episode = 0
@@ -232,21 +233,21 @@ while True:
 
 	RL.learn()
 
+	if command:					# wait till end-of-game now to execute command
+		try:
+			exec(command)
+		except Exception as e:
+			print("Exception:")
+			print(e)
+		finally:
+			command = None
+
 	if i_episode % 100 == 0:
 		rr = round(running_reward,5)
 		print("\n\t", i_episode, "running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 		# RL.set_learning_rate(i_episode)
 		log_file.write(str(i_episode) + ' ' + str(running_reward) + '\n')
 		log_file.flush()
-
-		if command:
-			try:
-				exec(command)
-			except Exception as e:
-				print("Exception:")
-				print(e)
-			finally:
-				command = None
 
 		if i_episode % 1000 == 0:
 			delta = datetime.now() - startTime
