@@ -159,8 +159,8 @@ def play_1_game_with_human():
 	while not done:
 		env.render()
 		if user == 0:
+			print("X's move =")			# will be printed by RL.choose_action()
 			action1 = RL.choose_action(state)
-			print(" <= X's move")			# already printed in RL.choose_action()
 			state1, reward1, done, _ = env.step(action1, -1)
 			if done:
 				state = state1

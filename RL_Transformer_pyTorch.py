@@ -74,13 +74,12 @@ class PolicyGradient(nn.Module):
 		for i in range(9):
 			w = torch.matmul( ys[i], self.W )
 			zs.append( self.softmax(w) )
-		print("zs =", zs)		
-		# *** multiply the probability distributions together:
-		u = zs[0]
-		for i in range(8):
-			u = torch.mul( u, zs[i + 1] )
+		# print("zs =", zs)
+		# *** sum the probability distributions together:
+		z = torch.stack(zs, dim=1)
+		u = torch.sum(z, dim=1)
 		v = self.softmax(u)
-		print("v =", v)
+		# print("v =", v)
 		return v
 		# What is the output here?  Old output = probs over actions
 		# The most reasonable output is: probability distribution over actions.
