@@ -94,13 +94,15 @@ def ctrl_C_handler(sig, frame):
 	# global model_name
 	global command
 	print("\n **** program paused ****")
-	print("Enter your code (! to exit, G to play game)")
+	print("Enter your code (! to exit, S to save model, G to play game)")
 	command = input(">>> ")
 	if command == '!':
 		log_file.close()
 		exit(0)
 	elif command == 'G':
 		command = "play_1_game_with_human()"
+	elif command == 'S':
+		command = "RL.save_net(model_name + '.' + timeStamp)"
 	# Other commands will be executed in the main loop, see below
 	"""
 	print("Enter filename to save network to file")

@@ -14,12 +14,12 @@ test_board = 9 * [0]
 # X|O|
 # O|O|X
 # X| |
-#test_board[0] = -1
-#test_board[3] = 1
-#test_board[6] = -1
-#test_board[4] = 1
-#test_board[5] = -1
-#test_board[1] = 1
+test_board[0] = -1
+test_board[3] = 1
+test_board[6] = -1
+test_board[4] = 1
+test_board[5] = -1
+test_board[1] = 1
 
 def show_board(board):
 	for i in [0, 3, 6]:

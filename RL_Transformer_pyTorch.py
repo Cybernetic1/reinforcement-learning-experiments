@@ -1,5 +1,5 @@
 """
-This is the Transformer version, where the state vector is 9 propositions = 9 x 3 = 27-vector
+This is the Transformer version, where the state vector is 9 propositions = 9 x 3 = 27-dim vector
 
 ============================================================
 Policy Gradient, Reinforcement Learning.  Adapted from:
@@ -9,6 +9,18 @@ Using:
 PyTorch: 1.12.1+cpu
 gym: 0.19.0
 """
+
+# Ideas for improvement:
+# * embedding dimension too small
+# * make input format similar to output
+# * averaging or random selection is very inefficient because the chosen
+#	action is dependent on all 9 outputs
+# * need a competitive mechanism to select actions:
+#	- use the variance within the probability distribution of each output
+#		to indicate its confidence
+#	- ie, the output with the highest variance wins
+#	- final output = sum { exp(var(y[i])) * y[i] / sum exp(var(y[i])) }
+#	- or use 1 vector component as "confidence" (exponential weight)
 
 import numpy as np
 import torch
@@ -54,33 +66,37 @@ class PolicyGradient(nn.Module):
 	def net_info(self):
 		# Total number of params:
 		total = 0		# **** TO-DO
-		return ("3,3,5", total)
+		return ("exponential-select,9D,5L", total)
 
 	def _build_net(self):
-		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=3)
+		encoder_layer = nn.TransformerEncoderLayer(d_model=9, nhead=3)
 		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=5)
 		self.softmax = nn.Softmax(dim=0)
 		# W is a 3x9 matrix, to convert 3-vector to 9-vector probability distribution:
-		self.W = Variable(torch.randn(3, 9), requires_grad=True)
+		self.W = Variable(torch.randn(8, 9), requires_grad=True)
 
 	def forward(self, x):
 		# input dim = n_features = 9 x 3 = 27
 		# First we need to split the input into 9 parts:
 		xs = torch.stack(torch.split(x, 3))
-		# print("xs =", xs)
+		xxxs = xs.repeat_interleave(3, dim=1)
+		# print("xxxs =", xxxs)
 
-		ys = self.trm(xs)		# no need to split results, already in 9x3 chunks
+		ys = self.trm(xxxs)		# no need to split results, already in 9x3 chunks
+		# print("ys =", ys)
 		zs = []
+		sigma = torch.sum( torch.exp(torch.index_select( ys, 1, torch.tensor(8) )) )
+		# print("sigma =", sigma)
 		for i in range(9):
-			w = torch.matmul( ys[i], self.W )
-			zs.append( self.softmax(w) )
+			w = torch.matmul( ys[i][0:8], self.W )
+			zs.append( self.softmax(w * torch.exp(ys[i][8]) / sigma) )
 		# print("zs =", zs)
 		# *** sum the probability distributions together:
 		z = torch.stack(zs, dim=1)
-		u = torch.sum(z, dim=1)
-		v = self.softmax(u)
+		u = torch.sum(z, dim=1).mul(1/9)
+		# v = self.softmax(u)
 		# print("v =", v)
-		return v
+		return u
 		# What is the output here?  Old output = probs over actions
 		# The most reasonable output is: probability distribution over actions.
 		# But there is a waste of 3 dimensions
