@@ -9,7 +9,7 @@ Using:
 PyTorch: 1.12.1+cpu
 gym: 0.19.0
 """
-
+ 
 # Ideas for improvement:
 # * embedding dimension too small
 # * make input format similar to output
