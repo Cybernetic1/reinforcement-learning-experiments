@@ -1,51 +1,25 @@
 """
-Tic Tac Toe with Policy Gradient
+LLM with PPO
 
 With a choice of engines:
 - PyTorch: 1.9.0+cpu
 - TensorFlow: 2.0
-
-With a choice of representations:
-- fully-connected
-- symmetric NN 
 """
 
-print("1. PyTorch\t symmetric NN")
-print("2. PyTorch\t fully-connected NN")
-print("3. TensorFlow\t symmetric NN")
-print("4. TensorFlow\t fully-connected NN")
-print("5. PyTorch\t Transformer")
+print("1. PyTorch\t Transformer")
 config = int(input("Choose config: "))
 
 import gym
 
 if config == 1:
-	from RL_symNN_pyTorch import PolicyGradient
-	tag = "symNN.pyTorch"
-elif config == 2:
-	from RL_full_pyTorch import PolicyGradient
-	tag = "full.pyTorch"
-elif config == 3:
-	from RL_symNN_TensorFlow import PolicyGradient
-	tag = "symNN.TensorFlow"
-elif config == 4:
-	from RL_full_TensorFlow import PolicyGradient
-	tag = "full.TensorFlow"
-elif config == 5:
-	from RL_Transformer_pyTorch import PolicyGradient
+	from RL_Transformer_pyTorch import PPO
 	tag = "Transformer.pyTorch"
 
 DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward > threshold
 RENDER = False  # rendering wastes time
 
 import gym_LLM
-if config == 1 or config == 3 or config == 5:
-	env = gym.make('LLM-v0')
-else:
-	env = gym.make('LLM-v0')
-
-# env_seed = 666 # reproducible, general Policy gradient has high variance
-# env.seed(env_seed)
+env = gym.make('LLM-v0')
 
 exit(0)
 
@@ -68,7 +42,7 @@ print("Log file opened:", log_name)
 
 # print("action_space =", env.action_space)
 # print("n_actions =", env.action_space.n)
-# print("state_space =", env.state_space)
+# print("state_space =", env.observation_space)
 # print("n_features =", env.state_space.shape[0])
 # print("state_space.high =", env.state_space.high)
 # print("state_space.low =", env.state_space.low)
