@@ -10,11 +10,12 @@ With a choice of representations:
 - symmetric NN 
 """
 
-print("1. PyTorch\t symmetric NN")
-print("2. PyTorch\t fully-connected NN")
-print("3. TensorFlow\t symmetric NN")
-print("4. TensorFlow\t fully-connected NN")
-print("5. PyTorch\t Transformer")
+print("1. PyTorch\tPG\tsymmetric NN")
+print("2. PyTorch\tPG\tfully-connected NN")
+print("3. TensorFlow\tPG\tsymmetric NN")
+print("4. TensorFlow\tPG\tfully-connected NN")
+print("5. PyTorch\tPG\tTransformer")
+print("6. PyTorch\tSAC\tfully-connected NN")
 config = int(input("Choose config: "))
 
 import gym
@@ -34,6 +35,9 @@ elif config == 4:
 elif config == 5:
 	from RL_Transformer_pyTorch import PolicyGradient
 	tag = "Transformer.pyTorch"
+elif config == 6:
+	from SAC_full_pyTorch import SAC
+	tag = "SAC.full.pyTorch"
 
 DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward > threshold
 RENDER = False  # rendering wastes time
@@ -47,12 +51,20 @@ else:
 env_seed = 666 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
-RL = PolicyGradient(
-	n_actions = env.action_space.n,
-	n_features = env.state_space.shape[0],
-	learning_rate = 0.001,
-	gamma = 0.9,	# doesn't matter for gym TicTacToe
-)
+if config == 6:
+	RL = SAC(
+		n_actions = env.action_space.n,
+		n_features = env.state_space.shape[0],
+		learning_rate = 0.001,
+		gamma = 0.9,	# doesn't matter for gym TicTacToe
+	)
+else:
+	RL = PolicyGradient(
+		n_actions = env.action_space.n,
+		n_features = env.state_space.shape[0],
+		learning_rate = 0.001,
+		gamma = 0.9,	# doesn't matter for gym TicTacToe
+	)
 
 from datetime import datetime
 startTime = datetime.now()
