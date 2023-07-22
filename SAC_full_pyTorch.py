@@ -28,15 +28,156 @@ from torch.distributions import Categorical
 np.random.seed(7)
 torch.manual_seed(7)
 
+class NormalizedActions(gym.ActionWrapper):
+    def _action(self, action):
+        low  = self.action_space.low
+        high = self.action_space.high
+        # print('converting actions')
+        
+        action = low + (action + 1.0) * 0.5 * (high - low)
+        action = np.clip(action, low, high)
+        
+        return action
+
+    def _reverse_action(self, action):
+        low  = self.action_space.low
+        high = self.action_space.high
+        
+        action = 2 * (action - low) / (high - low) - 1
+        action = np.clip(action, low, high)
+        
+        return action
+
+class ValueNetwork(nn.Module):
+    def __init__(self, state_dim, hidden_dim, activation=F.relu, init_w=3e-3):
+        super(ValueNetwork, self).__init__()
+        
+        self.linear1 = nn.Linear(state_dim, hidden_dim)
+        self.linear2 = nn.Linear(hidden_dim, hidden_dim)
+        self.linear3 = nn.Linear(hidden_dim, 1)
+        # weights initialization
+        self.linear3.weight.data.uniform_(-init_w, init_w)
+        self.linear3.bias.data.uniform_(-init_w, init_w)
+
+        self.activation = activation
+        
+    def forward(self, state):
+        x = self.activation(self.linear1(state))
+        x = self.activation(self.linear2(x))
+        x = self.linear3(x)
+        return x
+        
+        
+class SoftQNetwork(nn.Module):
+    def __init__(self, num_inputs, num_actions, hidden_size, activation=F.relu, init_w=3e-3):
+        super(SoftQNetwork, self).__init__()
+        
+        self.linear1 = nn.Linear(num_inputs + num_actions, hidden_size)
+        self.linear2 = nn.Linear(hidden_size, hidden_size)
+        self.linear3 = nn.Linear(hidden_size, 1)
+        
+        self.linear3.weight.data.uniform_(-init_w, init_w)
+        self.linear3.bias.data.uniform_(-init_w, init_w)
+
+        self.activation = activation
+        
+    def forward(self, state, action):
+        x = torch.cat([state, action], 1) # the dim 0 is number of samples
+        x = self.activation(self.linear1(x))
+        x = self.activation(self.linear2(x))
+        x = self.linear3(x)
+        return x
+        
+
+class PolicyNetwork(nn.Module):
+    def __init__(self, num_inputs, num_actions, hidden_size, activation=F.relu, init_w=3e-3, log_std_min=-20, log_std_max=2):
+        super(PolicyNetwork, self).__init__()
+        
+        self.log_std_min = log_std_min
+        self.log_std_max = log_std_max
+        
+        self.linear1 = nn.Linear(num_inputs, hidden_size)
+        self.linear2 = nn.Linear(hidden_size, hidden_size)
+        self.linear3 = nn.Linear(hidden_size, hidden_size)
+        self.linear4 = nn.Linear(hidden_size, hidden_size)
+
+        self.mean_linear = nn.Linear(hidden_size, num_actions)
+        self.mean_linear.weight.data.uniform_(-init_w, init_w)
+        self.mean_linear.bias.data.uniform_(-init_w, init_w)
+        
+        self.log_std_linear = nn.Linear(hidden_size, num_actions)
+        self.log_std_linear.weight.data.uniform_(-init_w, init_w)
+        self.log_std_linear.bias.data.uniform_(-init_w, init_w)
+
+        self.action_range = 2.
+        self.num_actions = num_actions
+        self.activation = activation
+
+        
+    def forward(self, state):
+        x = self.activation(self.linear1(state))
+        x = self.activation(self.linear2(x))
+        x = self.activation(self.linear3(x))
+        x = self.activation(self.linear4(x))
+
+        mean    = (self.mean_linear(x))
+        # mean    = F.leaky_relu(self.mean_linear(x))
+        log_std = self.log_std_linear(x)
+        log_std = torch.clamp(log_std, self.log_std_min, self.log_std_max)
+        
+        return mean, log_std
+    
+    def evaluate(self, state, epsilon=1e-6):
+        '''
+        generate sampled action with state as input wrt the policy network;
+        deterministic evaluation provides better performance according to the original paper;
+        '''
+        mean, log_std = self.forward(state)
+        std = log_std.exp() # no clip in evaluation, clip affects gradients flow
+        
+        normal = Normal(0, 1)
+        z      = normal.sample(mean.shape) 
+        action_0 = torch.tanh(mean + std*z.to(device)) # TanhNormal distribution as actions; reparameterization trick
+        action = self.action_range*action_0
+        ''' stochastic evaluation '''
+        log_prob = Normal(mean, std).log_prob(mean + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
+        ''' deterministic evaluation '''
+        # log_prob = Normal(mean, std).log_prob(mean) - torch.log(1. - torch.tanh(mean).pow(2) + epsilon) -  np.log(self.action_range)
+        '''
+         both dims of normal.log_prob and -log(1-a**2) are (N,dim_of_action); 
+         the Normal.log_prob outputs the same dim of input features instead of 1 dim probability, 
+         needs sum up across the features dim to get 1 dim prob; or else use Multivariate Normal.
+         '''
+        log_prob = log_prob.sum(dim=-1, keepdim=True)
+        return action, log_prob, z, mean, log_std
+        
+    
+    def get_action(self, state, deterministic):
+        state = torch.FloatTensor(state).unsqueeze(0).to(device)
+        mean, log_std = self.forward(state)
+        std = log_std.exp()
+        
+        normal = Normal(0, 1)
+        z      = normal.sample(mean.shape).to(device)
+        action = self.action_range* torch.tanh(mean + std*z)        
+        action = torch.tanh(mean).detach().cpu().numpy()[0] if deterministic else action.detach().cpu().numpy()[0]
+        
+        return action
+
+
+    def sample_action(self,):
+        a=torch.FloatTensor(self.num_actions).uniform_(-1, 1)
+        return (self.action_range*a).numpy()
+
+
 class SAC(nn.Module):
 	def __init__(
 			self,
 			n_actions,
 			n_features,
 			learning_rate = 0.001,
-			gamma = 0.9,
-	):
-		super(PolicyGradient, self).__init__()
+			gamma = 0.9 ):
+		super(SAC, self).__init__()
 		self.n_actions = n_actions
 		self.n_features = n_features
 
