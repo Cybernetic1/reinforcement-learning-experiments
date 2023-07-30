@@ -28,26 +28,6 @@ from torch.distributions import Categorical
 np.random.seed(7)
 torch.manual_seed(7)
 
-class NormalizedActions(gym.ActionWrapper):
-    def _action(self, action):
-        low  = self.action_space.low
-        high = self.action_space.high
-        # print('converting actions')
-        
-        action = low + (action + 1.0) * 0.5 * (high - low)
-        action = np.clip(action, low, high)
-        
-        return action
-
-    def _reverse_action(self, action):
-        low  = self.action_space.low
-        high = self.action_space.high
-        
-        action = 2 * (action - low) / (high - low) - 1
-        action = np.clip(action, low, high)
-        
-        return action
-
 class ValueNetwork(nn.Module):
     def __init__(self, state_dim, hidden_dim, activation=F.relu, init_w=3e-3):
         super(ValueNetwork, self).__init__()
@@ -152,7 +132,7 @@ class PolicyNetwork(nn.Module):
         return action, log_prob, z, mean, log_std
         
     
-    def get_action(self, state, deterministic):
+    def choose_action(self, state, deterministic):
         state = torch.FloatTensor(state).unsqueeze(0).to(device)
         mean, log_std = self.forward(state)
         std = log_std.exp()
@@ -171,18 +151,36 @@ class PolicyNetwork(nn.Module):
 
 
 class SAC(nn.Module):
+
 	def __init__(
 			self,
-			n_actions,
-			n_features,
+			sction_dim,
+			state_dim,
 			learning_rate = 0.001,
 			gamma = 0.9 ):
-		super(SAC, self).__init__()
-		self.n_actions = n_actions
-		self.n_features = n_features
+
+		device = torch.device("cpu")
+		hidden_dim = 512
+
+		value_net        = ValueNetwork(state_dim, hidden_dim, activation=F.relu).to(device)
+		target_value_net = ValueNetwork(state_dim, hidden_dim, activation=F.relu).to(device)
+
+		soft_q_net1 = SoftQNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
+		soft_q_net2 = SoftQNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
+		policy_net = PolicyNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
+
+		print('(Target) Value Network: ', value_net)
+		print('Soft Q Network (1,2): ', soft_q_net1)
+		print('Policy Network: ', policy_net)
+
+		self.action_dim = n_actions
+		self.state_dim = n_features
 
 		self.lr = learning_rate
 		self.gamma = gamma
+
+		"""
+		super(SAC, self).__init__()
 
 		self.ep_rewards = []
 		# Episode policy
@@ -191,6 +189,85 @@ class SAC(nn.Module):
 		self._build_net()
 
 		self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
+		"""
+
+	def update(batch_size, reward_scale, gamma=0.99,soft_tau=1e-2):
+		alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q)
+		
+		state, action, reward, next_state, done = replay_buffer.sample(batch_size)
+		# print('sample:', state, action,  reward, done)
+
+		state      = torch.FloatTensor(state).to(device)
+		next_state = torch.FloatTensor(next_state).to(device)
+		action     = torch.FloatTensor(action).to(device)
+		reward     = torch.FloatTensor(reward).unsqueeze(1).to(device)  # reward is single value, unsqueeze() to add one dim to be [reward] at the sample dim;
+		done       = torch.FloatTensor(np.float32(done)).unsqueeze(1).to(device)
+
+		predicted_q_value1 = soft_q_net1(state, action)
+		predicted_q_value2 = soft_q_net2(state, action)
+		predicted_value    = value_net(state)
+		new_action, log_prob, z, mean, log_std = policy_net.evaluate(state)
+
+		reward = reward_scale*(reward - reward.mean(dim=0)) /reward.std(dim=0) # normalize with batch mean and std
+
+		# **** Training Q Function
+		target_value = target_value_net(next_state)
+		target_q_value = reward + (1 - done) * gamma * target_value # if done==1, only reward
+		q_value_loss1 = soft_q_criterion1(predicted_q_value1, target_q_value.detach())  # detach: no gradients for the variable
+		q_value_loss2 = soft_q_criterion2(predicted_q_value2, target_q_value.detach())
+
+
+		soft_q_optimizer1.zero_grad()
+		q_value_loss1.backward()
+		soft_q_optimizer1.step()
+		soft_q_optimizer2.zero_grad()
+		q_value_loss2.backward()
+		soft_q_optimizer2.step()  
+
+		# **** Training Value Function
+		predicted_new_q_value = torch.min(soft_q_net1(state, new_action),soft_q_net2(state, new_action))
+		target_value_func = predicted_new_q_value - alpha * log_prob # for stochastic training, it equals to expectation over action
+		value_loss = value_criterion(predicted_value, target_value_func.detach())
+
+		
+		value_optimizer.zero_grad()
+		value_loss.backward()
+		value_optimizer.step()
+
+		# **** Training Policy Function
+		''' implementation 1 '''
+		policy_loss = (alpha * log_prob - predicted_new_q_value).mean()
+		''' implementation 2 '''
+		# policy_loss = (alpha * log_prob - soft_q_net1(state, new_action)).mean()  # Openai Spinning Up implementation
+		''' implementation 3 '''
+		# policy_loss = (alpha * log_prob - (predicted_new_q_value - predicted_value.detach())).mean() # max Advantage instead of Q to prevent the Q-value drifted high
+
+		''' implementation 4 '''  # version of github/higgsfield
+		# log_prob_target=predicted_new_q_value - predicted_value
+		# policy_loss = (log_prob * (log_prob - log_prob_target).detach()).mean()
+		# mean_lambda=1e-3
+		# std_lambda=1e-3
+		# mean_loss = mean_lambda * mean.pow(2).mean()
+		# std_loss = std_lambda * log_std.pow(2).mean()
+		# policy_loss += mean_loss + std_loss
+
+
+		policy_optimizer.zero_grad()
+		policy_loss.backward()
+		policy_optimizer.step()
+		
+		# print('value_loss: ', value_loss)
+		# print('q loss: ', q_value_loss1, q_value_loss2)
+		# print('policy loss: ', policy_loss )
+
+
+		# **** Soft update the target value net
+		for target_param, param in zip(target_value_net.parameters(), value_net.parameters()):
+			target_param.data.copy_(  # copy data value into target parameters
+				target_param.data * (1.0 - soft_tau) + param.data * soft_tau
+			)
+		return predicted_new_q_value.mean()
+
 
 	def net_info(self):
 		config = "(9)-16-16-16-16-(9)"

@@ -232,7 +232,7 @@ def update(batch_size, reward_scale, gamma=0.99,soft_tau=1e-2):
 
     reward = reward_scale*(reward - reward.mean(dim=0)) /reward.std(dim=0) # normalize with batch mean and std
 
-# Training Q Function
+    # **** Training Q Function
     target_value = target_value_net(next_state)
     target_q_value = reward + (1 - done) * gamma * target_value # if done==1, only reward
     q_value_loss1 = soft_q_criterion1(predicted_q_value1, target_q_value.detach())  # detach: no gradients for the variable
@@ -246,7 +246,7 @@ def update(batch_size, reward_scale, gamma=0.99,soft_tau=1e-2):
     q_value_loss2.backward()
     soft_q_optimizer2.step()  
 
-# Training Value Function
+    # **** Training Value Function
     predicted_new_q_value = torch.min(soft_q_net1(state, new_action),soft_q_net2(state, new_action))
     target_value_func = predicted_new_q_value - alpha * log_prob # for stochastic training, it equals to expectation over action
     value_loss = value_criterion(predicted_value, target_value_func.detach())
@@ -256,7 +256,7 @@ def update(batch_size, reward_scale, gamma=0.99,soft_tau=1e-2):
     value_loss.backward()
     value_optimizer.step()
 
-# Training Policy Function
+    # **** Training Policy Function
     ''' implementation 1 '''
     policy_loss = (alpha * log_prob - predicted_new_q_value).mean()
     ''' implementation 2 '''
@@ -283,7 +283,7 @@ def update(batch_size, reward_scale, gamma=0.99,soft_tau=1e-2):
     # print('policy loss: ', policy_loss )
 
 
-# Soft update the target value net
+    # **** Soft update the target value net
     for target_param, param in zip(target_value_net.parameters(), value_net.parameters()):
         target_param.data.copy_(  # copy data value into target parameters
             target_param.data * (1.0 - soft_tau) + param.data * soft_tau
