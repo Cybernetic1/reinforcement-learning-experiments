@@ -75,7 +75,7 @@ Requires
 
 For example, on my Ubuntu computer I'd activate the virtual environment:
 
-	source ~/venv/bin/activate
+	 source ~/venv/bin/activate
 
 Run this to install Gym TicTacToe:
 
@@ -83,9 +83,14 @@ Run this to install Gym TicTacToe:
      cd gym-tictactoe
      python setup.py install
 
+To check Gym version, in Python:
+
+     >>> from gym.version import VERSION
+     >>> print(VERSION)
+
 To run the experiments:
 
-    python run_TicTacToe.py
+     python run_TicTacToe.py
     
 This will show a menu of choices:
 

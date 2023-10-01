@@ -1,4 +1,8 @@
 """
+TO-DO:
+* transfer functions from SAC.py to here
+* 
+
 Fully-connected version, where state vector is a 3 x 3 = 9-vector
 
 Refer to net_config() below for the current network topology and # of weights info.
