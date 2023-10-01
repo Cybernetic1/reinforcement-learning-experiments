@@ -7,7 +7,7 @@ With a choice of engines:
 
 With a choice of representations:
 - fully-connected
-- symmetric NN 
+- symmetric NN
 """
 
 print("1. PyTorch\tPG\tsymmetric NN")
@@ -53,8 +53,8 @@ env.seed(env_seed)
 
 if config == 6:
 	RL = SAC(
-		n_actions = env.action_space.n,
-		n_features = env.state_space.shape[0],
+		action_dim = env.action_space.n,
+		state_dim = env.state_space.shape[0],
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
@@ -76,12 +76,12 @@ log_name = "results/results." + tag + "." + timeStamp + ".txt"
 log_file = open(log_name, "w+")
 print("Log file opened:", log_name)
 
-# print("action_space =", env.action_space)
-# print("n_actions =", env.action_space.n)
-# print("state_space =", env.state_space)
-# print("n_features =", env.state_space.shape[0])
-# print("state_space.high =", env.state_space.high)
-# print("state_space.low =", env.state_space.low)
+print("action_space =", env.action_space)
+print("n_actions =", env.action_space.n)
+print("state_space =", env.state_space)
+print("n_features =", env.state_space.shape[0])
+print("state_space.high =", env.state_space.high)
+print("state_space.low =", env.state_space.low)
 
 import sys
 for f in [log_file, sys.stdout]:
@@ -203,6 +203,7 @@ def play_1_game_with_human():
 	print("*** GAME OVER ***")
 
 train_once = False		# you may use Ctrl-C to change this
+DETERMINISTIC = False
 i_episode = 0
 
 while True:
@@ -217,7 +218,8 @@ while True:
 	while not done:
 
 		if user == 0:
-			action1 = RL.choose_action(state)
+			# action1 = RL.choose_action(state)
+			action1 = RL.policy_net.choose_action(state, deterministic=DETERMINISTIC)
 			state1, reward1, done, infos = env.step(action1, -1)
 			if done:
 				RL.store_transition(state, action1, reward1)

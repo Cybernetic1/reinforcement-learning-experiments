@@ -1,5 +1,0 @@
-# Model = SAC.full.pyTorch.(9)-16-16-16-16-(9)
-# Num weights = 1056
-# Learning rate = 0.001
-# Env random seed = 666
-# Start time: 22-07-2023(17:51)
