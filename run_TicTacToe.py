@@ -16,7 +16,7 @@ print("3. TensorFlow\tPG\tsymmetric NN")
 print("4. TensorFlow\tPG\tfully-connected NN")
 print("5. PyTorch\tPG\tTransformer")
 print("6. PyTorch\tSAC\tfully-connected NN")
-config = int(input("Choose config: "))
+config = int(input("Choose config: ") or '6')
 
 import gym
 
@@ -219,6 +219,7 @@ while True:
 
 		if user == 0:
 			# action1 = RL.choose_action(state)
+			# action is integer 0...8
 			action1 = RL.policy_net.choose_action(state, deterministic=DETERMINISTIC)
 			state1, reward1, done, infos = env.step(action1, -1)
 			if done:
