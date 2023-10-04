@@ -1,8 +1,23 @@
 """
+Questions：
+* 输出是 概率分布 还是 概率本身？
+* 而 reparameterization trick 又是否可以避免？
+如果是概率分布，则没有了 reparam 的问题？
+最重要问题是： 如果是概率分布，在逻辑下是否仍然可行？
+但我打算用 Transformer 输出的其实就是 distribution！
+
+而 Reparameterization 的目的是：
+1）为了可以计算 随机变量的 gradient
+2）减少 variance
+
+Stochastic sampling network
+Or the NN outputs the state-conditioned distribution directly
+Then the distribution can be sampled
+
+
 TO-DO:
 * transfer functions from SAC.py to here
 * action space seems different
-* 
 
 Fully-connected version, where state vector is a 3 x 3 = 9-vector
 
