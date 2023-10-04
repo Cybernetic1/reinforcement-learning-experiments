@@ -13,6 +13,7 @@ Questions：
 Stochastic sampling network
 Or the NN outputs the state-conditioned distribution directly
 Then the distribution can be sampled
+问题是为什么输出才用 reparameterization trick？
 
 
 TO-DO:
