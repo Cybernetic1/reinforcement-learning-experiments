@@ -1,7 +1,7 @@
 """
 Questions：
-* 输出是 概率分布 还是 概率本身？
-* 而 reparameterization trick 又是否可以避免？
+* SAC 输出是 概率分布 还是 概率本身？ 是前者。
+* 而 reparameterization trick 又是否可以避免？ Doesn't matter.
 如果是概率分布，则没有了 reparam 的问题？
 最重要问题是： 如果是概率分布，在逻辑下是否仍然可行？
 但我打算用 Transformer 输出的其实就是 distribution！
