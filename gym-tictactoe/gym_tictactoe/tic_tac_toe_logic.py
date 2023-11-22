@@ -1,3 +1,6 @@
+# State space has 9 elements, each element is a vector of dim 3
+# Action space = { 0 ... 8 }
+
 import gym
 import numpy
 from gym import spaces, error

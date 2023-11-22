@@ -1,3 +1,4 @@
+# action space = { 0 ... 8 }
 
 import gym
 import numpy

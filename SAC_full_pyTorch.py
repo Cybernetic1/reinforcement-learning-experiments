@@ -165,8 +165,12 @@ class PolicyNetwork(nn.Module):
 		mean, log_std = self.forward(state)
 		std = log_std.exp() # no clip in evaluation, clip affects gradients flow
 
-		normal = Normal(0, 1)
-		z      = normal.sample(mean.shape)
+		logits  = torch.softmax(mean, dim=1)
+		dist    = Categorical(logits)
+		action  = dist.sample().numpy()[0]
+		# normal = Normal(0, 1)
+		# z      = normal.sample(mean.shape)
+		
 		action_0 = torch.tanh(mean + std*z.to(device)) # TanhNormal distribution as actions; reparameterization trick
 		action = self.action_range*action_0
 		''' stochastic evaluation '''
@@ -195,6 +199,8 @@ class PolicyNetwork(nn.Module):
 		print("log_std=", log_std)
 		std = log_std.exp()
 
+		logits = torch.softmax(mean, dim=1)
+		dist   = Categorical(logits)
 		normal = Normal(0, 1)
 		z      = normal.sample(mean.shape).to(device)
 		action = self.action_range* torch.tanh(mean + std*z)
