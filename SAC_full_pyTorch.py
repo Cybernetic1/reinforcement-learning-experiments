@@ -162,17 +162,17 @@ class PolicyNetwork(nn.Module):
 		generate sampled action with state as input wrt the policy network;
 		deterministic evaluation provides better performance according to the original paper;
 		'''
-		mean, log_std = self.forward(state)
+		logits, log_std = self.forward(state)
 		std = log_std.exp() # no clip in evaluation, clip affects gradients flow
 
-		logits  = torch.softmax(mean, dim=1)
-		dist    = Categorical(logits)
+		probs   = torch.softmax(logits, dim=1)
+		dist    = Categorical(probs)
 		action  = dist.sample().numpy()[0]
+		# **** abandon Reparameterization Trick as it seems non-essential
 		# normal = Normal(0, 1)
 		# z      = normal.sample(mean.shape)
-		
-		action_0 = torch.tanh(mean + std*z.to(device)) # TanhNormal distribution as actions; reparameterization trick
-		action = self.action_range*action_0
+		# action_0 = torch.tanh(mean + std*z.to(device)) # TanhNormal distribution as actions; reparameterization trick
+		# action = self.action_range*action_0
 		''' stochastic evaluation '''
 		log_prob = Normal(mean, std).log_prob(mean + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
 		''' deterministic evaluation '''
@@ -194,17 +194,19 @@ class PolicyNetwork(nn.Module):
 		2) log probability that will be needed for calculating H
 		"""
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
-		mean, log_std = self.forward(state)
-		print("mean=", mean)
+		logits, log_std = self.forward(state)
+		print("logits=", logits)
 		print("log_std=", log_std)
 		std = log_std.exp()
 
-		logits = torch.softmax(mean, dim=1)
-		dist   = Categorical(logits)
-		normal = Normal(0, 1)
-		z      = normal.sample(mean.shape).to(device)
-		action = self.action_range* torch.tanh(mean + std*z)
-		action = torch.tanh(mean).detach().cpu().numpy()[0] if deterministic else action.detach().cpu().numpy()[0]
+		probs = torch.softmax(logits, dim=1)
+		dist   = Categorical(probs)
+		action  = dist.sample().numpy()[0]
+		# *** abandon Reparameterization Trick
+		# normal = Normal(0, 1)
+		# z      = normal.sample(mean.shape).to(device)
+		# action = self.action_range* torch.tanh(mean + std*z)
+		# action = torch.tanh(mean).detach().cpu().numpy()[0] if deterministic else action.detach().cpu().numpy()[0]
 
 		print("chosen action=", action)
 		return action
