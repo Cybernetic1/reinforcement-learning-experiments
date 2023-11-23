@@ -36,7 +36,7 @@ elif config == 5:
 	from RL_Transformer_pyTorch import PolicyGradient
 	tag = "Transformer.pyTorch"
 elif config == 6:
-	from SAC_full_pyTorch import SAC
+	from SAC_full_pyTorch import SAC, ReplayBuffer
 	tag = "SAC.full.pyTorch"
 
 DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward > threshold
@@ -170,6 +170,16 @@ state = env.reset()
 preplay_moves()
 env.render()
 
+# hyper-parameters
+batch_size   = 128
+max_episodes = 40
+max_steps    = 150		# Pendulum needs 150 steps per episode to learn well, cannot handle 20
+frame_idx    = 0
+explore_steps = 0
+rewards      = []
+reward_scale = 10.0
+model_path   = './model/sac'
+
 def play_1_game_with_human():
 	state = env.reset()
 	preplay_moves()
@@ -221,15 +231,16 @@ while True:
 			# action1 = RL.choose_action(state)
 			# action is integer 0...8
 			action1 = RL.policy_net.choose_action(state, deterministic=DETERMINISTIC)
-			state1, reward1, done, infos = env.step(action1, -1)
+			state1, reward1, done, _ = env.step(action1, -1)
 			if done:
-				RL.store_transition(state, action1, reward1)
+				RL.replay_buffer.push(state, action1, reward1, state1, done)
+				# RL.store_transition(state, action1, reward1)
 				state = state1
 				reward1 = reward2 = 0
 		elif user == 1:
 			# NOTE: random player never chooses occupied squares
 			action2 = RL.play_random(state1, env.action_space)
-			state2, reward2, done, infos = env.step(action2, 1)
+			state2, reward2, done, _ = env.step(action2, 1)
 			r_x = reward1		# reward w.r.t. player X = AI
 			# **** Scoring: AI win > draw > lose > crash
 			#                +20      +10   -20    -30
@@ -237,7 +248,8 @@ while True:
 				r_x -= 20.0
 			elif reward2 > 9.0:	# draw: both players +10
 				r_x += 10.0
-			RL.store_transition(state, action1, r_x)
+			RL.replay_buffer.push(state1, action2, r_x, state2, done)
+			# RL.store_transition(state, action1, r_x)
 			state = state2
 			reward1 = reward2 = 0
 
@@ -247,7 +259,7 @@ while True:
 
 	# **** Game ended:
 	# print(RL.ep_rs)
-	per_game_reward = sum(RL.ep_rewards)		# actually only the last reward is non-zero, for gym TicTacToe
+	per_game_reward = RL.replay_buffer.sum_R()		# actually only the last reward is non-zero, for gym TicTacToe
 
 	if 'running_reward' not in globals():
 		running_reward = per_game_reward
@@ -256,7 +268,9 @@ while True:
 	if running_reward > DISPLAY_REWARD_THRESHOLD:
 		RENDER = True     # rendering
 
-	RL.learn()
+	if len(RL.replay_buffer) > batch_size:
+		_ = RL.update(batch_size, reward_scale)
+	# RL.learn()
 
 	if command:					# wait till end-of-game now to execute command
 		try:
@@ -294,4 +308,3 @@ while True:
 				print("New log file opened:", log_name)
 
 print('\007')	# sound beep
-

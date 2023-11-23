@@ -37,6 +37,7 @@ PyTorch: 1.9.1+cpu
 gym: 0.8.0
 """
 
+import random
 import numpy as np
 import torch
 import torch.nn as nn
@@ -62,6 +63,12 @@ class ReplayBuffer:
 			self.buffer.append(None)
 		self.buffer[self.position] = (state, action, reward, next_state, done)
 		self.position = (self.position + 1) % self.capacity
+
+	def sum_R(self):
+		s = 0
+		for d in self.buffer:
+			s += d[2]
+		return s
 
 	def sample(self, batch_size):
 		batch = random.sample(self.buffer, batch_size)
@@ -102,6 +109,7 @@ class SoftQNetwork(nn.Module):
 	def __init__(self, num_inputs, num_actions, hidden_size, activation=F.relu, init_w=3e-3):
 		super(SoftQNetwork, self).__init__()
 
+		num_actions = 1		# this overrides because output is actually just 1 action
 		self.linear1 = nn.Linear(num_inputs + num_actions, hidden_size)
 		self.linear2 = nn.Linear(hidden_size, hidden_size)
 		self.linear3 = nn.Linear(hidden_size, 1)
@@ -112,7 +120,8 @@ class SoftQNetwork(nn.Module):
 		self.activation = activation
 
 	def forward(self, state, action):
-		x = torch.cat([state, action], 1) # the dim 0 is number of samples
+		x = torch.cat([state, action[..., None]], dim=-1) # the dim 0 is number of samples
+		print("state, action, x =", state.shape, action.shape, x.shape)
 		x = self.activation(self.linear1(x))
 		x = self.activation(self.linear2(x))
 		x = self.linear3(x)
@@ -174,7 +183,7 @@ class PolicyNetwork(nn.Module):
 		# action_0 = torch.tanh(mean + std*z.to(device)) # TanhNormal distribution as actions; reparameterization trick
 		# action = self.action_range*action_0
 		''' stochastic evaluation '''
-		log_prob = Normal(mean, std).log_prob(mean + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
+		log_prob = Normal(probs, std).log_prob(probs + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
 		''' deterministic evaluation '''
 		# log_prob = Normal(mean, std).log_prob(mean) - torch.log(1. - torch.tanh(mean).pow(2) + epsilon) -  np.log(self.action_range)
 		'''
@@ -216,7 +225,6 @@ class PolicyNetwork(nn.Module):
 		a=torch.FloatTensor(self.num_actions).uniform_(-1, 1)
 		return (self.action_range*a).numpy()
 
-
 class SAC(nn.Module):
 
 	def __init__(
@@ -256,14 +264,14 @@ class SAC(nn.Module):
 		soft_q_optimizer2 = optim.Adam(self.soft_q_net2.parameters(), lr=self.soft_q_lr)
 		policy_optimizer = optim.Adam(self.policy_net.parameters(), lr=self.policy_lr)
 
-		replay_buffer_size = int(1e6)
-		self.replay_buffer = ReplayBuffer(replay_buffer_size)
-
 		self.action_dim = action_dim
 		self.state_dim = state_dim
 
 		self.lr = learning_rate
 		self.gamma = gamma
+
+		replay_buffer_size = int(1e6)
+		self.replay_buffer = ReplayBuffer(replay_buffer_size)
 
 		"""
 		self.ep_rewards = []
@@ -275,11 +283,11 @@ class SAC(nn.Module):
 		self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
 		"""
 
-	def update(batch_size, reward_scale, gamma=0.99,soft_tau=1e-2):
+	def update(self, batch_size, reward_scale, gamma=0.99, soft_tau=1e-2):
 		alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q)
 
-		state, action, reward, next_state, done = replay_buffer.sample(batch_size)
-		# print('sample:', state, action,  reward, done)
+		state, action, reward, next_state, done = self.replay_buffer.sample(batch_size)
+		print('sample (state, action, reward, next state, done):', state, action, reward, next_state, done)
 
 		state      = torch.FloatTensor(state).to(device)
 		next_state = torch.FloatTensor(next_state).to(device)
@@ -287,18 +295,18 @@ class SAC(nn.Module):
 		reward     = torch.FloatTensor(reward).unsqueeze(1).to(device)  # reward is single value, unsqueeze() to add one dim to be [reward] at the sample dim;
 		done       = torch.FloatTensor(np.float32(done)).unsqueeze(1).to(device)
 
-		predicted_q_value1 = soft_q_net1(state, action)
-		predicted_q_value2 = soft_q_net2(state, action)
-		predicted_value    = value_net(state)
-		new_action, log_prob, z, mean, log_std = policy_net.evaluate(state)
+		predicted_q_value1 = self.soft_q_net1(state, action)
+		predicted_q_value2 = self.soft_q_net2(state, action)
+		predicted_value    = self.value_net(state)
+		new_action, log_prob, z, mean, log_std = self.policy_net.evaluate(state)
 
 		reward = reward_scale*(reward - reward.mean(dim=0)) /reward.std(dim=0) # normalize with batch mean and std
 
 		# **** Training Q Function
-		target_value = target_value_net(next_state)
+		target_value = self.target_value_net(next_state)
 		target_q_value = reward + (1 - done) * gamma * target_value # if done==1, only reward
-		q_value_loss1 = soft_q_criterion1(predicted_q_value1, target_q_value.detach())  # detach: no gradients for the variable
-		q_value_loss2 = soft_q_criterion2(predicted_q_value2, target_q_value.detach())
+		q_value_loss1 = self.soft_q_criterion1(predicted_q_value1, target_q_value.detach())  # detach: no gradients for the variable
+		q_value_loss2 = self.soft_q_criterion2(predicted_q_value2, target_q_value.detach())
 
 
 		soft_q_optimizer1.zero_grad()

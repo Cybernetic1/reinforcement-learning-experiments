@@ -13,10 +13,10 @@ class TicTacToeEnv(gym.Env):
 		self.win_size = win_size
 		self.board_size = board_size
 		self.symbols = {
-			symbols[0]: "x",	# This is over-ridden by [-1,1]
-			symbols[1]: "o",
-			"Bad": "!"
-		}
+			-1: "x",
+			1: "o",
+			0.5: "!"
+			}
 		self.action_space = spaces.Discrete(self.board_size * self.board_size)
 
 		self.state_space = spaces.Box( \
@@ -111,13 +111,14 @@ class TicTacToeEnv(gym.Env):
 
 	# --------------------------------------- ACTIONS -------------------------------------
 	def step(self, action, symbol):
+		print(symbol, ":", type(symbol))
 		is_position_already_used = False
 
 		if self.state_vector[action] != 0:
 			is_position_already_used = True
 
 		if is_position_already_used:
-			self.state_vector[action] = "Bad"
+			self.state_vector[action] = 0.5		# signifies "bad"
 			reward_type = 'bad_position'
 			done = True
 		else:
