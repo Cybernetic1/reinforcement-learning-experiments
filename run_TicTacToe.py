@@ -173,7 +173,7 @@ env.render()
 # hyper-parameters
 batch_size   = 128
 max_episodes = 40
-max_steps    = 150		# Pendulum needs 150 steps per episode to learn well, cannot handle 20
+max_steps    = 150	# Pendulum needs 150 steps per episode to learn well, cannot handle 20
 frame_idx    = 0
 explore_steps = 0
 rewards      = []
@@ -270,9 +270,8 @@ while True:
 
 	if len(RL.replay_buffer) > batch_size:
 		_ = RL.update(batch_size, reward_scale)
-	# RL.learn()
 
-	if command:					# wait till end-of-game now to execute command
+	if command:				# wait till end-of-game now to execute command
 		try:
 			exec(command)
 		except Exception as e:
