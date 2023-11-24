@@ -111,7 +111,7 @@ class TicTacToeEnv(gym.Env):
 
 	# --------------------------------------- ACTIONS -------------------------------------
 	def step(self, action, symbol):
-		print(symbol, ":", type(symbol))
+		# print(symbol, ":", type(symbol))
 		is_position_already_used = False
 
 		if self.state_vector[action] != 0:

@@ -73,6 +73,8 @@ class ReplayBuffer:
 	def sample(self, batch_size):
 		batch = random.sample(self.buffer, batch_size)
 		state, action, reward, next_state, done = map(np.stack, zip(*batch)) # stack for each element
+		# print("sampled state=", state)
+		# print("sampled action=", action)
 		'''
 		the * serves as unpack: sum(a,b) <=> batch=(a,b), sum(*batch) ;
 		zip: a=[1,2], b=[2,3], zip(a,b) => [(1, 2), (2, 3)] ;
@@ -120,8 +122,10 @@ class SoftQNetwork(nn.Module):
 		self.activation = activation
 
 	def forward(self, state, action):
+		# print("state, action：", state.shape, action.shape)
+		# print("action =", action)
 		x = torch.cat([state, action[..., None]], dim=-1) # the dim 0 is number of samples
-		print("state, action, x =", state.shape, action.shape, x.shape)
+		# print("x：", x.shape)
 		x = self.activation(self.linear1(x))
 		x = self.activation(self.linear2(x))
 		x = self.linear3(x)
@@ -176,7 +180,7 @@ class PolicyNetwork(nn.Module):
 
 		probs   = torch.softmax(logits, dim=1)
 		dist    = Categorical(probs)
-		action  = dist.sample().numpy()[0]
+		action  = dist.sample()
 		""" # **** abandon Reparameterization Trick as it seems non-essential
 		normal  = Normal(0, 1)
 		z       = normal.sample(probs.shape)
@@ -185,13 +189,7 @@ class PolicyNetwork(nn.Module):
 		action  = self.action_range * action0 """
 
 		# https://stackoverflow.com/questions/54635355/what-does-log-prob-do
-		action_logits = torch.rand(5)
-		action_probs = F.softmax(action_logits, dim=-1)
-		action_probs
-
-		dist = Categorical(action_probs)
-		action = dist.sample()
-		print(dist.log_prob(action), torch.log(action_probs[action]))
+		# print(dist.log_prob(action), torch.log(action_probs[action]))
 
 		# dim-of-action 是 1 还是 9？ 应该是 1
 		# 它的值应该是 probs[action] 的值, 但这经过了采样
@@ -200,18 +198,18 @@ class PolicyNetwork(nn.Module):
 		# 非常不同。如果想保留 Transformer 输出 distro 的优势，则无法计算 log-prob.
 		# The "log" arises from the "log-derivative trick".
 		
-		log_prob = probs[action]
+		log_prob = dist.log_prob(action)
 		''' stochastic evaluation '''
-		log_prob = Normal(mean, std).log_prob(mean + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
+		# log_prob = Normal(mean, std).log_prob(mean + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
 		''' deterministic evaluation '''
 		# log_prob = Normal(mean, std).log_prob(mean) - torch.log(1. - torch.tanh(mean).pow(2) + epsilon) -  np.log(self.action_range)
 		'''
-		 both dims of normal.log_prob and -log(1-a**2) are (N,dim_of_action);
-		 the Normal.log_prob outputs the same dim of input features instead of 1 dim probability,
-		 needs sum up across the features dim to get 1 dim prob; or else use Multivariate Normal.
-		 '''
+		both dims of normal.log_prob and -log(1-a**2) are (N,dim_of_action);
+		the Normal.log_prob outputs the same dim of input features instead of 1 dim probability,
+		needs sum up across the features dim to get 1 dim prob; or else use Multivariate Normal.
+		'''
 		log_prob = log_prob.sum(dim=-1, keepdim=True)
-		return action, log_prob, z, mean, log_std
+		return action, log_prob		# , z, mean, log_std
 
 
 	def choose_action(self, state, deterministic):
@@ -223,20 +221,20 @@ class PolicyNetwork(nn.Module):
 		"""
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
 		logits, log_std = self.forward(state)
-		print("logits=", logits)
-		print("log_std=", log_std)
+		# print("logits=", logits)
+		# print("log_std=", log_std)
 		std = log_std.exp()
 
 		probs = torch.softmax(logits, dim=1)
 		dist   = Categorical(probs)
-		action  = dist.sample().numpy()[0]
+		action = dist.sample().numpy()[0]
 		# *** abandon Reparameterization Trick
 		# normal = Normal(0, 1)
 		# z      = normal.sample(mean.shape).to(device)
 		# action = self.action_range* torch.tanh(mean + std*z)
 		# action = torch.tanh(mean).detach().cpu().numpy()[0] if deterministic else action.detach().cpu().numpy()[0]
 
-		print("chosen action=", action)
+		# print("chosen action=", action)
 		return action
 
 
@@ -278,10 +276,10 @@ class SAC(nn.Module):
 		self.soft_q_lr = learning_rate
 		self.policy_lr = learning_rate
 
-		value_optimizer  = optim.Adam(self.value_net.parameters(), lr=self.value_lr)
-		soft_q_optimizer1 = optim.Adam(self.soft_q_net1.parameters(), lr=self.soft_q_lr)
-		soft_q_optimizer2 = optim.Adam(self.soft_q_net2.parameters(), lr=self.soft_q_lr)
-		policy_optimizer = optim.Adam(self.policy_net.parameters(), lr=self.policy_lr)
+		self.value_optimizer  = optim.Adam(self.value_net.parameters(), lr=self.value_lr)
+		self.soft_q_optimizer1 = optim.Adam(self.soft_q_net1.parameters(), lr=self.soft_q_lr)
+		self.soft_q_optimizer2 = optim.Adam(self.soft_q_net2.parameters(), lr=self.soft_q_lr)
+		self.policy_optimizer = optim.Adam(self.policy_net.parameters(), lr=self.policy_lr)
 
 		self.action_dim = action_dim
 		self.state_dim = state_dim
@@ -306,7 +304,7 @@ class SAC(nn.Module):
 		alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q)
 
 		state, action, reward, next_state, done = self.replay_buffer.sample(batch_size)
-		print('sample (state, action, reward, next state, done):', state, action, reward, next_state, done)
+		# print('sample (state, action, reward, next state, done):', state, action, reward, next_state, done)
 
 		state      = torch.FloatTensor(state).to(device)
 		next_state = torch.FloatTensor(next_state).to(device)
@@ -317,7 +315,7 @@ class SAC(nn.Module):
 		predicted_q_value1 = self.soft_q_net1(state, action)
 		predicted_q_value2 = self.soft_q_net2(state, action)
 		predicted_value    = self.value_net(state)
-		new_action, log_prob, z, mean, log_std = self.policy_net.evaluate(state)
+		new_action, log_prob = self.policy_net.evaluate(state)
 
 		reward = reward_scale*(reward - reward.mean(dim=0)) /reward.std(dim=0) # normalize with batch mean and std
 
@@ -328,22 +326,24 @@ class SAC(nn.Module):
 		q_value_loss2 = self.soft_q_criterion2(predicted_q_value2, target_q_value.detach())
 
 
-		soft_q_optimizer1.zero_grad()
+		self.soft_q_optimizer1.zero_grad()
 		q_value_loss1.backward()
-		soft_q_optimizer1.step()
-		soft_q_optimizer2.zero_grad()
+		self.soft_q_optimizer1.step()
+		self.soft_q_optimizer2.zero_grad()
 		q_value_loss2.backward()
-		soft_q_optimizer2.step()
+		self.soft_q_optimizer2.step()
 
 		# **** Training Value Function
-		predicted_new_q_value = torch.min(soft_q_net1(state, new_action),soft_q_net2(state, new_action))
+		predicted_new_q_value = torch.min(
+			self.soft_q_net1(state, new_action),
+			self.soft_q_net2(state, new_action) )
 		target_value_func = predicted_new_q_value - alpha * log_prob # for stochastic training, it equals to expectation over action
-		value_loss = value_criterion(predicted_value, target_value_func.detach())
+		value_loss = self.value_criterion(predicted_value, target_value_func.detach())
 
 
-		value_optimizer.zero_grad()
+		self.value_optimizer.zero_grad()
 		value_loss.backward()
-		value_optimizer.step()
+		self.value_optimizer.step()
 
 		# **** Training Policy Function
 		''' implementation 1 '''
@@ -363,9 +363,9 @@ class SAC(nn.Module):
 		# policy_loss += mean_loss + std_loss
 
 
-		policy_optimizer.zero_grad()
+		self.policy_optimizer.zero_grad()
 		policy_loss.backward()
-		policy_optimizer.step()
+		self.policy_optimizer.step()
 
 		# print('value_loss: ', value_loss)
 		# print('q loss: ', q_value_loss1, q_value_loss2)
@@ -373,7 +373,7 @@ class SAC(nn.Module):
 
 
 		# **** Soft update the target value net
-		for target_param, param in zip(target_value_net.parameters(), value_net.parameters()):
+		for target_param, param in zip(self.target_value_net.parameters(), self.value_net.parameters()):
 			target_param.data.copy_(  # copy data value into target parameters
 				target_param.data * (1.0 - soft_tau) + param.data * soft_tau
 			)
