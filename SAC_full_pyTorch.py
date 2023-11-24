@@ -177,12 +177,21 @@ class PolicyNetwork(nn.Module):
 		probs   = torch.softmax(logits, dim=1)
 		dist    = Categorical(probs)
 		action  = dist.sample().numpy()[0]
-		# **** abandon Reparameterization Trick as it seems non-essential
+		""" # **** abandon Reparameterization Trick as it seems non-essential
 		normal  = Normal(0, 1)
 		z       = normal.sample(probs.shape)
 		# TanhNormal distribution as actions; reparameterization trick
 		action0 = torch.tanh(probs + std * z.to(device))
-		action  = self.action_range * action0
+		action  = self.action_range * action0 """
+
+		# https://stackoverflow.com/questions/54635355/what-does-log-prob-do
+		action_logits = torch.rand(5)
+		action_probs = F.softmax(action_logits, dim=-1)
+		action_probs
+
+		dist = Categorical(action_probs)
+		action = dist.sample()
+		print(dist.log_prob(action), torch.log(action_probs[action]))
 
 		# dim-of-action 是 1 还是 9？ 应该是 1
 		# 它的值应该是 probs[action] 的值, 但这经过了采样
@@ -190,7 +199,8 @@ class PolicyNetwork(nn.Module):
 		# 但 re-param 要求 NN 输出确定的 mean 值，这跟 Transformer 输出的 distro
 		# 非常不同。如果想保留 Transformer 输出 distro 的优势，则无法计算 log-prob.
 		# The "log" arises from the "log-derivative trick".
-
+		
+		log_prob = probs[action]
 		''' stochastic evaluation '''
 		log_prob = Normal(mean, std).log_prob(mean + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
 		''' deterministic evaluation '''
