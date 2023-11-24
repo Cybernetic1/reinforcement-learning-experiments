@@ -178,12 +178,21 @@ class PolicyNetwork(nn.Module):
 		dist    = Categorical(probs)
 		action  = dist.sample().numpy()[0]
 		# **** abandon Reparameterization Trick as it seems non-essential
-		# normal = Normal(0, 1)
-		# z      = normal.sample(mean.shape)
-		# action_0 = torch.tanh(mean + std*z.to(device)) # TanhNormal distribution as actions; reparameterization trick
-		# action = self.action_range*action_0
+		normal  = Normal(0, 1)
+		z       = normal.sample(probs.shape)
+		# TanhNormal distribution as actions; reparameterization trick
+		action0 = torch.tanh(probs + std * z.to(device))
+		action  = self.action_range * action0
+
+		# dim-of-action 是 1 还是 9？ 应该是 1
+		# 它的值应该是 probs[action] 的值, 但这经过了采样
+		# 所以，还是需要 re-parameterization trick？
+		# 但 re-param 要求 NN 输出确定的 mean 值，这跟 Transformer 输出的 distro
+		# 非常不同。如果想保留 Transformer 输出 distro 的优势，则无法计算 log-prob.
+		# The "log" arises from the "log-derivative trick".
+
 		''' stochastic evaluation '''
-		log_prob = Normal(probs, std).log_prob(probs + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
+		log_prob = Normal(mean, std).log_prob(mean + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
 		''' deterministic evaluation '''
 		# log_prob = Normal(mean, std).log_prob(mean) - torch.log(1. - torch.tanh(mean).pow(2) + epsilon) -  np.log(self.action_range)
 		'''
