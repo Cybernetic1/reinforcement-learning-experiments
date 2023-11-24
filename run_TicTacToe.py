@@ -228,7 +228,6 @@ while True:
 	while not done:
 
 		if user == 0:
-			# action1 = RL.choose_action(state)
 			# action is integer 0...8
 			action1 = RL.policy_net.choose_action(state, deterministic=DETERMINISTIC)
 			state1, reward1, done, _ = env.step(action1, -1)
@@ -248,7 +247,7 @@ while True:
 				r_x -= 20.0
 			elif reward2 > 9.0:	# draw: both players +10
 				r_x += 10.0
-			RL.replay_buffer.push(state1, action2, r_x, state2, done)
+			# RL.replay_buffer.push(state1, action2, r_x, state2, done)
 			# RL.store_transition(state, action1, r_x)
 			state = state2
 			reward1 = reward2 = 0
