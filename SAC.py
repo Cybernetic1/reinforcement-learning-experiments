@@ -402,7 +402,7 @@ if __name__ == '__main__':
 				frame_idx += 1
 
 				if len(replay_buffer) > batch_size:
-					_=update(batch_size, reward_scale)
+					_ = update(batch_size, reward_scale)
 
 				if done:
 					break

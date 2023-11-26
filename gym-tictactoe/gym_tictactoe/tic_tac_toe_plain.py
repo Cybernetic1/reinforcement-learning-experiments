@@ -8,26 +8,26 @@ import os
 
 class TicTacToeEnv(gym.Env):
 
-	def __init__(self, symbols, board_size=3, win_size=3):
+	def __init__(self, symbols=[-1,1], board_size=3, win_size=3):
 		super(TicTacToeEnv, self).__init__()
 		self.win_size = win_size
 		self.board_size = board_size
 		self.symbols = {
-			-1: "x",
-			1: "o",
-			0.5: "!"
+			symbols[0]: "x",
+			symbols[1]: "o",
+			2: "!"
 			}
 		self.action_space = spaces.Discrete(self.board_size * self.board_size)
 
 		self.state_space = spaces.Box( \
-		 numpy.float32(numpy.array([-1,-1,-1,-1,-1,-1,-1,-1,-1])), \
-		 numpy.float32(numpy.array([+1,+1,+1,+1,+1,+1,+1,+1,+1])) )
+			numpy.float32(numpy.array([-1,-1,-1,-1,-1,-1,-1,-1,-1])), \
+			numpy.float32(numpy.array([+1,+1,+1,+1,+1,+1,+1,+1,+1])) )
 
 		self.rewards = {
 			'still_in_game': 0.0,
 			'draw': 10.0,
 			'win': 20.0,
-			'bad_position': -20.0
+			'bad_position': -30.0
 			}
 
 	def reset(self):
@@ -118,7 +118,7 @@ class TicTacToeEnv(gym.Env):
 			is_position_already_used = True
 
 		if is_position_already_used:
-			self.state_vector[action] = 0.5		# signifies "bad"
+			self.state_vector[action] = 2		# signifies "bad"
 			reward_type = 'bad_position'
 			done = True
 		else:

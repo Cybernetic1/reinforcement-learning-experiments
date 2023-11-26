@@ -40,7 +40,7 @@ elif config == 6:
 	tag = "SAC.full.pyTorch"
 
 DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward > threshold
-RENDER = False  # rendering wastes time
+RENDER = True  # rendering wastes time
 
 import gym_tictactoe
 if config == 1 or config == 3 or config == 5:
@@ -48,7 +48,7 @@ if config == 1 or config == 3 or config == 5:
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
-env_seed = 666 # reproducible, general Policy gradient has high variance
+env_seed = 555 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
 if config == 6:
@@ -177,7 +177,7 @@ max_steps    = 150	# Pendulum needs 150 steps per episode to learn well, cannot 
 frame_idx    = 0
 explore_steps = 0
 rewards      = []
-reward_scale = 10.0
+reward_scale = 1.0
 model_path   = './model/sac'
 
 def play_1_game_with_human():
@@ -222,21 +222,18 @@ while True:
 	preplay_moves()
 
 	done = False
-	user = 0
+	user = -1
 	reward1 = reward2 = 0
 
 	while not done:
 
-		if user == 0:
+		if user == -1:		# AI player
 			# action is integer 0...8
 			action1 = RL.policy_net.choose_action(state, deterministic=DETERMINISTIC)
 			state1, reward1, done, _ = env.step(action1, -1)
 			if done:
 				RL.replay_buffer.push(state, action1, reward1, state1, done)
-				# RL.store_transition(state, action1, reward1)
-				state = state1
-				reward1 = reward2 = 0
-		elif user == 1:
+		elif user == 1:		# random player
 			# NOTE: random player never chooses occupied squares
 			action2 = RL.play_random(state1, env.action_space)
 			state2, reward2, done, _ = env.step(action2, 1)
@@ -247,23 +244,29 @@ while True:
 				r_x -= 20.0
 			elif reward2 > 9.0:	# draw: both players +10
 				r_x += 10.0
-			# RL.replay_buffer.push(state1, action2, r_x, state2, done)
-			# RL.store_transition(state, action1, r_x)
+			RL.replay_buffer.push(state, action1, r_x, state2, done)
 			state = state2
-			reward1 = reward2 = 0
 
+		# env.render()
+		
 		# If the game isn't over, change the current player
 		if not done:
-			user = 0 if user == 1 else 1
+			user = -1 if user == 1 else 1
 
 	# **** Game ended:
-	# print(RL.ep_rs)
-	per_game_reward = RL.replay_buffer.sum_R()		# actually only the last reward is non-zero, for gym TicTacToe
+	per_game_reward = RL.replay_buffer.last_reward()		# actually only the last reward is non-zero, for gym TicTacToe
+	# print(per_game_reward)
+	# if input("! to break ==>") == '!':
+		# break
+
+	# The replay buffer seems to record every game and it keeps growing
+	# how to get the reward of the last game only?
+	# the running reward formula below is correct, if per_game_reward is correct
 
 	if 'running_reward' not in globals():
 		running_reward = per_game_reward
 	else:
-		running_reward = running_reward * 0.99 + per_game_reward * 0.01
+		running_reward = running_reward * 0.95 + per_game_reward * 0.05
 	if running_reward > DISPLAY_REWARD_THRESHOLD:
 		RENDER = True     # rendering
 
@@ -280,7 +283,7 @@ while True:
 			command = None
 
 	if i_episode % 100 == 0:
-		rr = round(running_reward,5)
+		rr = round(running_reward, 5)
 		print("\n\t", i_episode, "running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 		# RL.set_learning_rate(i_episode)
 		log_file.write(str(i_episode) + ' ' + str(running_reward) + '\n')

@@ -64,11 +64,8 @@ class ReplayBuffer:
 		self.buffer[self.position] = (state, action, reward, next_state, done)
 		self.position = (self.position + 1) % self.capacity
 
-	def sum_R(self):
-		s = 0
-		for d in self.buffer:
-			s += d[2]
-		return s
+	def last_reward(self):
+		return self.buffer[-1][2]
 
 	def sample(self, batch_size):
 		batch = random.sample(self.buffer, batch_size)
@@ -388,7 +385,8 @@ class SAC(nn.Module):
 		# NOTE: random player never chooses occupied squares
 		while True:
 			action = action_space.sample()
-			if state[action] == 0:
+			occupied = state[action]
+			if occupied > -0.1 and occupied < 0.1:
 				break
 		return action
 
