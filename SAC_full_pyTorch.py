@@ -2,6 +2,8 @@
 TO-DO:
 * Try propositional game encoding
 * Try Transformer or SymNN
+* what is the simplest way to play RL tic tac toe?
+    discrete Q table that does not need deep learning
 
 DONE:
 * Move code from SAC-old.py to here
@@ -219,7 +221,7 @@ class PolicyNetwork(nn.Module):
 		# print("evaluated action=", action)
 		return action, log_prob		# , z, mean, log_std
 
-	def choose_action(self, state, deterministic=True, reparameterize=False):
+	def choose_action(self, state, deterministic=True, reparameterize=True):
 		""" The actor network's output has 2 components:
 		1) either squashed deterministic action a
 		   or sampled action a ~ N(μ(s),σ²(s)).

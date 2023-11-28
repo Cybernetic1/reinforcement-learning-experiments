@@ -175,7 +175,11 @@ class TicTacToeEnv(gym.Env):
 		print(" " + "-" * (self.board_size * 5 + 1))
 
 	def render(self, mode=None, close=False):
-		self.display_grid(self.get_state_vector_to_display())
+		if mode == 'HTML':
+			with connect("ws://localhost:5678") as websocket:
+				websocket.send(json.dumps(self.state_vector))
+		else:
+			self.display_grid(self.get_state_vector_to_display())
 
 	def close(self):
 		return None
