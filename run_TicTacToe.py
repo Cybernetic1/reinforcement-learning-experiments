@@ -10,6 +10,7 @@ With a choice of representations:
 - symmetric NN
 """
 
+print("0. Python\tQ-table")
 print("1. PyTorch\tPG\tsymmetric NN")
 print("2. PyTorch\tPG\tfully-connected NN")
 print("3. TensorFlow\tPG\tsymmetric NN")
@@ -21,6 +22,9 @@ config = int(input("Choose config: ") or '6')
 
 import gym
 
+if config == 0:
+	from RL_Qtable import Qtable
+	tag = "Qtable"
 if config == 1:
 	from RL_symNN_pyTorch import PolicyGradient
 	tag = "symNN.pyTorch"
@@ -44,7 +48,7 @@ elif config == 7:
 	tag = "SAC.Transformer.pyTorch"
 
 import gym_tictactoe
-if config == 1 or config == 3 or config == 5:
+if config in [1, 3, 5]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -52,7 +56,14 @@ else:
 env_seed = 111 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
-if config >= 6:
+if config == 0:
+	RL = Qtable(
+		action_dim = env.action_space.n,
+		state_dim = env.state_space.shape[0],
+		learning_rate = 0.001,
+		gamma = 0.9,	# doesn't matter for gym TicTacToe
+	)
+elif config >= 6:
 	RL = SAC(
 		action_dim = 1, # env.action_space.n,
 		state_dim = env.state_space.shape[0],
@@ -160,10 +171,10 @@ if j:
 		RL.load_net(files[int(j)][15:-5])
 
 def preplay_moves():
-	state, _, _, _ = env.step(0, -1)
-	state, _, _, _ = env.step(3, 1)
-	state, _, _, _ = env.step(6, -1)
-	state, _, _, _ = env.step(4, 1)
+	# state, _, _, _ = env.step(0, -1)
+	# state, _, _, _ = env.step(3, 1)
+	# state, _, _, _ = env.step(6, -1)
+	# state, _, _, _ = env.step(4, 1)
 	# state, _, _, _ = env.step(5, -1)
 	# state, _, _, _ = env.step(1, 1)
 	return
@@ -243,7 +254,7 @@ while True:
 
 		if user == -1:		# AI player
 			# action is integer 0...8
-			action1 = RL.policy_net.choose_action(state, deterministic=DETERMINISTIC)
+			action1 = RL.choose_action(state)
 			state1, reward1, done, _ = env.step(action1, -1)
 			if done:
 				RL.replay_buffer.push(state, action1, reward1, state1, done)

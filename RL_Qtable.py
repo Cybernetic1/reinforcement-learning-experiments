@@ -39,7 +39,7 @@ class ReplayBuffer:
 	def __len__(self):
 		return len(self.buffer)
 
-class Qtable(nn.Module):
+class Qtable():
 
 	def __init__(
 			self,
@@ -47,13 +47,13 @@ class Qtable(nn.Module):
 			state_dim,
 			learning_rate = 3e-4,
 			gamma = 0.9 ):
-		super(SAC, self).__init__()
+		super(Qtable, self).__init__()
 
 		self.action_dim = action_dim
 		self.state_dim = state_dim
 
 		# dim of Q-table = board-size x action_dim
-		self.Qtable = np.zeros(state_dim, action_dim)
+		self.Qtable = np.zeros((3 ** state_dim, action_dim))
 		# self.Qtable = [ [0] * action_dim for i in range(state_dim) ]
 
 		self.lr = learning_rate
@@ -61,9 +61,18 @@ class Qtable(nn.Module):
 
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
+	def state_num(self, state):
+		s = (((((((state[0] *3+3+state[1]) *3+3+state[2]) *3+3+state[3]) *3+3+state[4]) *3+3+state[5]) *3+3+state[6]) *3+3+state[7]) *3+3+state[8]+1
+		return s
+
 	def choose_action(self, state, deterministic=False):
-		Q_a = self.Qtable[state, :]
-		action = np.argmax(Q_a)
+		s = self.state_num(state)
+		logits  = self.Qtable[s, :] 		# = Q(s,a)
+		probs   = np.exp(logits) / np.exp(logits).sum(axis=0)	# softmax
+		# print("logits, probs =", logits, probs)
+		action  = np.random.choice([0,1,2,3,4,5,6,7,8], 1, p=probs)[0]
+		# action = np.argmax(Q_a)
+		# print("chosen action=", action)
 		return action
 
 	def update(self, batch_size, reward_scale, gamma=0.99):
@@ -72,8 +81,11 @@ class Qtable(nn.Module):
 		state, action, reward, next_state, done = self.replay_buffer.sample(batch_size)
 		# print('sample (state, action, reward, next state, done):', state, action, reward, next_state, done)
 
-		# **** Training Policy Function
-
+		s = (((((((state[:,0] *3+3+state[:,1]) *3+3+state[:,2]) *3+3+state[:,3]) *3+3+state[:,4]) *3+3+state[:,5]) *3+3+state[:,6]) *3+3+state[:,7]) *3+3+state[:,8]+1
+		# print("s=", s)
+		# **** Train Policy Function
+		# Q(st,at) += η [ R + γ max_a Q(s_t+1,a) - Q(st,at) ]
+		self.Qtable[s, action] += self.lr *( reward + self.gamma * np.max(self.Qtable[next_state, :]) - self.Qtable[s, action] )
 		return
 
 	def net_info(self):
