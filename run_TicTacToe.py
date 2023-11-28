@@ -16,6 +16,7 @@ print("3. TensorFlow\tPG\tsymmetric NN")
 print("4. TensorFlow\tPG\tfully-connected NN")
 print("5. PyTorch\tPG\tTransformer")
 print("6. PyTorch\tSAC\tfully-connected NN")
+print("7. PyTorch\tSAC\tTransformer")
 config = int(input("Choose config: ") or '6')
 
 import gym
@@ -38,9 +39,9 @@ elif config == 5:
 elif config == 6:
 	from SAC_full_pyTorch import SAC, ReplayBuffer
 	tag = "SAC.full.pyTorch"
-
-DISPLAY_REWARD_THRESHOLD = 19.90  # renders environment if total episode reward > threshold
-RENDER = True  # rendering wastes time
+elif config == 7:
+	from SAC_Transformer_pyTorch import SAC, ReplayBuffer
+	tag = "SAC.Transformer.pyTorch"
 
 import gym_tictactoe
 if config == 1 or config == 3 or config == 5:
@@ -48,10 +49,10 @@ if config == 1 or config == 3 or config == 5:
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
-env_seed = 555 # reproducible, general Policy gradient has high variance
+env_seed = 111 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
-if config == 6:
+if config >= 6:
 	RL = SAC(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
@@ -105,15 +106,17 @@ command = None
 def ctrl_C_handler(sig, frame):
 	# global model_name
 	global command
-	print("\n **** program paused ****")
-	print("Enter your code (! to exit, S to save model, G to play game)")
+	print("\n\x1b[0m **** program paused ****")
+	print("Enter Python code (return to exit, c to continue, s to save model, g to play game)")
 	command = input(">>> ")
-	if command == '!':
+	if command == "":
 		log_file.close()
 		exit(0)
-	elif command == 'G':
+	elif command == 'c':
+		pass
+	elif command == 'g':
 		command = "play_1_game_with_human()"
-	elif command == 'S':
+	elif command == 's':
 		command = "RL.save_net(model_name + '.' + timeStamp)"
 	# Other commands will be executed in the main loop, see below
 	"""
@@ -134,7 +137,7 @@ def ctrl_C_handler(sig, frame):
 signal.signal(signal.SIGINT, ctrl_C_handler)
 
 import glob
-if config >= 3:		# TensorFlow
+if config == 3 or config == 4:		# TensorFlow
 	files = glob.glob("TensorFlow_models/" + model_name + "*.index")
 else:
 	files = glob.glob("PyTorch_models/" + model_name + "*.dict")
@@ -144,14 +147,14 @@ for i, fname in enumerate(files):
 		print(end="\x1b[32m")
 	else:
 		print(end="\x1b[0m")
-	if config >= 3:		# TensorFlow
+	if config == 3 or config == 4:		# TensorFlow
 		print("%2d %s" %(i, fname[24:-6]))
 	else:
 		print("%2d %s" %(i, fname[21:-5]))
 print(end="\x1b[0m")
 j = input("Load model? (Enter number or none): ")
 if j:
-	if config >= 3:		# TensorFlow
+	if config == 3 or config == 4:		# TensorFlow
 		RL.load_net(files[int(j)][18:-11])
 	else:
 		RL.load_net(files[int(j)][15:-5])
@@ -165,20 +168,27 @@ def preplay_moves():
 	# state, _, _, _ = env.step(1, 1)
 	return
 
+import asyncio
 print("Pre-play moves:")
 state = env.reset()
 preplay_moves()
+# asyncio.get_event_loop().run_until_complete(env.render())
+# await env.render()
+# asyncio.run(env.render())
 env.render()
+# env.render()
 
 # hyper-parameters
-batch_size   = 128
-max_episodes = 40
-max_steps    = 150	# Pendulum needs 150 steps per episode to learn well, cannot handle 20
-frame_idx    = 0
-explore_steps = 0
+batch_size   = 512
+# max_episodes = 40
+# max_steps    = 150	# Pendulum needs 150 steps per episode to learn well, cannot handle 20
+# frame_idx    = 0
+# explore_steps = 0
 rewards      = []
-reward_scale = 1.0
+reward_scale = 10.0
 model_path   = './model/sac'
+
+from subprocess import call
 
 def play_1_game_with_human():
 	state = env.reset()
@@ -214,7 +224,11 @@ def play_1_game_with_human():
 
 train_once = False		# you may use Ctrl-C to change this
 DETERMINISTIC = False
+RENDER = 1
 i_episode = 0
+running_reward = 0.0
+
+import websockets
 
 while True:
 	i_episode += 1
@@ -247,15 +261,24 @@ while True:
 			RL.replay_buffer.push(state, action1, r_x, state2, done)
 			state = state2
 
-		# env.render()
-		
 		# If the game isn't over, change the current player
 		if not done:
 			user = -1 if user == 1 else 1
+		elif RENDER > 0:
+			# await asyncio.sleep(0.1)
+			env.render(mode = 'HTML')
+		if RENDER == 2:
+			env.render(mode = 'HTML')
 
 	# **** Game ended:
 	per_game_reward = RL.replay_buffer.last_reward()		# actually only the last reward is non-zero, for gym TicTacToe
-	# print(per_game_reward)
+	if per_game_reward > -0.5:
+		color = '\x1b[32m'			# green
+	if per_game_reward < -19.0:
+		color = '\x1b[33m'			# yellow
+	if per_game_reward < -21.0:
+		color = '\x1b[31m'			# red
+	print(color + str(per_game_reward), end=' ')
 	# if input("! to break ==>") == '!':
 		# break
 
@@ -263,12 +286,7 @@ while True:
 	# how to get the reward of the last game only?
 	# the running reward formula below is correct, if per_game_reward is correct
 
-	if 'running_reward' not in globals():
-		running_reward = per_game_reward
-	else:
-		running_reward = running_reward * 0.95 + per_game_reward * 0.05
-	if running_reward > DISPLAY_REWARD_THRESHOLD:
-		RENDER = True     # rendering
+	running_reward = running_reward * 0.97 + per_game_reward * 0.03
 
 	if len(RL.replay_buffer) > batch_size:
 		_ = RL.update(batch_size, reward_scale)
@@ -283,8 +301,9 @@ while True:
 			command = None
 
 	if i_episode % 100 == 0:
+		call(['play', '-n', '-q', 'synth', '0.05', 'sine', '3000'])
 		rr = round(running_reward, 5)
-		print("\n\t", i_episode, "running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
+		print("\n\t\x1b[0m", i_episode, "Running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 		# RL.set_learning_rate(i_episode)
 		log_file.write(str(i_episode) + ' ' + str(running_reward) + '\n')
 		log_file.flush()

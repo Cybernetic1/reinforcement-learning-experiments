@@ -1,10 +1,15 @@
 # action space = { 0 ... 8 }
+# state space = board vector = {-1, 0, 1} ^ 9
 
 import gym
 import numpy
 from gym import spaces, error
 import xml.etree.ElementTree as ET
 import os
+
+import websockets
+from websockets.sync.client import connect
+import json
 
 class TicTacToeEnv(gym.Env):
 
@@ -24,7 +29,7 @@ class TicTacToeEnv(gym.Env):
 			numpy.float32(numpy.array([+1,+1,+1,+1,+1,+1,+1,+1,+1])) )
 
 		self.rewards = {
-			'still_in_game': 0.0,
+			'still_in_game': 0.3,
 			'draw': 10.0,
 			'win': 20.0,
 			'bad_position': -30.0
@@ -162,8 +167,12 @@ class TicTacToeEnv(gym.Env):
 		print(" " + "-" * (self.board_size * 4 + 1))
 		print()
 
-	def render(self, mode=None, close=False):
-		self.display_grid(self.get_state_vector_to_display())
+	def render(self, mode=None):
+		if mode is None:
+			self.display_grid(self.get_state_vector_to_display())
+		elif mode == 'HTML':
+			with connect("ws://localhost:5678") as websocket:
+				websocket.send(json.dumps(self.state_vector))
 
 	def close(self):
 		return None

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!-- This works with "node ws.mjs" running as Websocket server -->
+<html>
+<head>
+	<title>Tic Tac Toe GUI</title>
+<style>
+table {
+	border: 2px solid black;
+	table-layout: fixed;
+	}
+td {
+    text-align: center; 
+    vertical-align: middle;
+   	border: 2px solid black;
+	width: 50px;
+	height: 50px;
+	overflow: hidden;
+	font-size: 40px;
+	}
+</style>
+</head>
+<body>
+
+<button onclick="sendMyMessages()">test Websocket</button>
+<button onclick="playMove()">test X</button>
+<button onclick="playMove2()">test O</button>
+<br><br>
+
+<table>
+    <tr>
+        <td id='sq0'></td>
+        <td id='sq1'></td>
+        <td id='sq2'></td>
+    </tr>
+    <tr>
+        <td id='sq3'></td>
+        <td id='sq4'></td>
+        <td id='sq5'></td>
+    </tr>
+    <tr>
+        <td id='sq6'></td>
+        <td id='sq7'></td>
+        <td id='sq8'></td>
+    </tr>
+</table>
+
+<!-- p id="gameOver" style="color:red; font-size:40px; display:none">Game Over</p-->
+
+<ul id="messages"></ul>
+
+<script>
+	var ws = new WebSocket("ws://127.0.0.1:5678/");
+	// const messages = document.getElementById('messages');
+	// const gameOver = document.getElementById('gameOver');
+
+	ws.onmessage = function (event) {
+		const state = JSON.parse(event.data);
+		// console.log("state =", state);
+		// gameOver.style.display = 'none';
+		for (let i = 0; i < 9; i++) {
+			const sq = document.getElementById('sq' + i.toString());
+			if (state[i] == 2)
+				sq.style.color = 'red';
+			else
+				sq.style.color = 'black';
+			// sq.style.color = 'red';
+			sq.textContent = state[i] == -1 ? '⨯' :
+				state[i] == 1 ? '⭘' :
+				state[i] == 2 ? '!' : ' ';
+			}
+		/* var message = document.createElement('li'),
+			content = document.createTextNode(event.data);
+		message.appendChild(content);
+		messages.appendChild(message);	*/
+	};
+
+	function sendMyMessages() {
+		ws.send("Hi, from the client");
+		}
+
+	var r = 0;
+
+	function playMove() {
+		sq = document.getElementById('sq' + r.toString());
+		// sq.style.color = 'blue';
+		sq.textContent = '⨯';
+		r += 1;
+		}
+
+	function playMove2() {
+		sq = document.getElementById('sq' + r.toString());
+		// sq.style.color = 'red';
+		sq.textContent = '⭘';  // ⨯
+		r += 1;
+		}
+
+</script>
+</body>
+</html>

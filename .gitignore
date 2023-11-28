@@ -2,3 +2,4 @@
 logs/
 __pycache__/
 gym-LLM/
+node_modules/

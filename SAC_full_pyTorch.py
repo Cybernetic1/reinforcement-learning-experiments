@@ -1,4 +1,13 @@
 """
+TO-DO:
+* Try propositional game encoding
+* Try Transformer or SymNN
+* Add Re-parameterization Trick because it's original SAC
+
+DONE:
+* Move code from SAC.py to here
+* Action space seems different
+
 Questions：
 * SAC 输出是 概率分布 还是 概率本身？ 是前者。
 * 而 reparameterization trick 又是否可以避免？ Doesn't matter.
@@ -15,15 +24,9 @@ Or the NN outputs the state-conditioned distribution directly
 Then the distribution can be sampled
 问题是为什么输出才用 reparameterization trick？
 
-
-TO-DO:
-* transfer functions from SAC.py to here
-* action space seems different
-
 Fully-connected version, where state vector is a 3 x 3 = 9-vector
 
-Refer to net_config() below for the current network topology and # of weights info.
-
+Refer to net_config() below for network topology and # of weights.
 For example: (9 inputs)-16-16-16-16-(9 outputs)
 Total num of weights = 9 * 16 * 2 + 16 * 16 * 3 = 1056
 We want num of weights to be close to that of symNN = 1080
@@ -82,7 +85,6 @@ class ReplayBuffer:
 
 	def __len__(self):
 		return len(self.buffer)
-
 
 class ValueNetwork(nn.Module):
 	def __init__(self, state_dim, hidden_dim, activation=F.relu, init_w=3e-3):
@@ -145,9 +147,9 @@ class PolicyNetwork(nn.Module):
 		self.mean_linear.weight.data.uniform_(-init_w, init_w)
 		self.mean_linear.bias.data.uniform_(-init_w, init_w)
 
-		self.log_std_linear = nn.Linear(hidden_size, num_actions)
-		self.log_std_linear.weight.data.uniform_(-init_w, init_w)
-		self.log_std_linear.bias.data.uniform_(-init_w, init_w)
+		# self.log_std_linear = nn.Linear(hidden_size, num_actions)
+		# self.log_std_linear.weight.data.uniform_(-init_w, init_w)
+		# self.log_std_linear.bias.data.uniform_(-init_w, init_w)
 
 		self.action_range = 2.
 		self.num_actions = num_actions
@@ -158,22 +160,22 @@ class PolicyNetwork(nn.Module):
 		x = self.activation(self.linear1(state))
 		x = self.activation(self.linear2(x))
 		x = self.activation(self.linear3(x))
-		x = self.activation(self.linear4(x))
+		# x = self.activation(self.linear4(x))
 
-		mean    = (self.mean_linear(x))
+		mean    = self.activation(self.mean_linear(x))
 		# mean    = F.leaky_relu(self.mean_linear(x))
-		log_std = self.log_std_linear(x)
-		log_std = torch.clamp(log_std, self.log_std_min, self.log_std_max)
+		# log_std = self.log_std_linear(x)
+		# log_std = torch.clamp(log_std, self.log_std_min, self.log_std_max)
 
-		return mean, log_std
+		return mean  # , log_std
 
 	def evaluate(self, state, epsilon=1e-6):
 		'''
 		generate sampled action with state as input wrt the policy network;
 		deterministic evaluation provides better performance according to the original paper;
 		'''
-		logits, log_std = self.forward(state)
-		std = log_std.exp() # no clip in evaluation, clip affects gradients flow
+		logits = self.forward(state)   # , log_std
+		# std = log_std.exp() # no clip in evaluation, clip affects gradients flow
 
 		probs   = torch.softmax(logits, dim=1)
 		dist    = Categorical(probs)
@@ -217,10 +219,10 @@ class PolicyNetwork(nn.Module):
 		2) log probability that will be needed for calculating H
 		"""
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
-		logits, log_std = self.forward(state)
+		logits = self.forward(state) # , log_std 
 		# print("logits=", logits)
 		# print("log_std=", log_std)
-		std = log_std.exp()
+		# std = log_std.exp()
 
 		probs = torch.softmax(logits, dim=1)
 		dist   = Categorical(probs)
@@ -249,7 +251,7 @@ class SAC(nn.Module):
 			gamma = 0.9 ):
 		super(SAC, self).__init__()
 
-		hidden_dim = 512
+		hidden_dim = 16
 
 		self.value_net        = ValueNetwork(state_dim, hidden_dim, activation=F.relu).to(device)
 		self.target_value_net = ValueNetwork(state_dim, hidden_dim, activation=F.relu).to(device)
@@ -284,9 +286,7 @@ class SAC(nn.Module):
 		self.lr = learning_rate
 		self.gamma = gamma
 
-		replay_buffer_size = int(1e6)
-		self.replay_buffer = ReplayBuffer(replay_buffer_size)
-
+		self.replay_buffer = ReplayBuffer(int(1e6))
 
 	def update(self, batch_size, reward_scale, gamma=0.99, soft_tau=1e-2):
 		alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q)
@@ -307,12 +307,11 @@ class SAC(nn.Module):
 
 		reward = reward_scale*(reward - reward.mean(dim=0)) /reward.std(dim=0) # normalize with batch mean and std
 
-		# **** Training Q Function
+		# **** Train Q Function
 		target_value = self.target_value_net(next_state)
 		target_q_value = reward + (1 - done) * gamma * target_value # if done==1, only reward
 		q_value_loss1 = self.soft_q_criterion1(predicted_q_value1, target_q_value.detach())  # detach: no gradients for the variable
 		q_value_loss2 = self.soft_q_criterion2(predicted_q_value2, target_q_value.detach())
-
 
 		self.soft_q_optimizer1.zero_grad()
 		q_value_loss1.backward()
@@ -321,13 +320,12 @@ class SAC(nn.Module):
 		q_value_loss2.backward()
 		self.soft_q_optimizer2.step()
 
-		# **** Training Value Function
+		# **** Train Value Function
 		predicted_new_q_value = torch.min(
 			self.soft_q_net1(state, new_action),
 			self.soft_q_net2(state, new_action) )
 		target_value_func = predicted_new_q_value - alpha * log_prob # for stochastic training, it equals to expectation over action
 		value_loss = self.value_criterion(predicted_value, target_value_func.detach())
-
 
 		self.value_optimizer.zero_grad()
 		value_loss.backward()
@@ -337,19 +335,17 @@ class SAC(nn.Module):
 		''' implementation 1 '''
 		policy_loss = (alpha * log_prob - predicted_new_q_value).mean()
 		''' implementation 2 '''
-		# policy_loss = (alpha * log_prob - soft_q_net1(state, new_action)).mean()  # Openai Spinning Up implementation
+		# policy_loss = (alpha * log_prob - self.soft_q_net1(state, new_action)).mean()  # Openai Spinning Up implementation
 		''' implementation 3 '''
 		# policy_loss = (alpha * log_prob - (predicted_new_q_value - predicted_value.detach())).mean() # max Advantage instead of Q to prevent the Q-value drifted high
-
 		''' implementation 4 '''  # version of github/higgsfield
-		# log_prob_target=predicted_new_q_value - predicted_value
+		# log_prob_target = predicted_new_q_value - predicted_value
 		# policy_loss = (log_prob * (log_prob - log_prob_target).detach()).mean()
-		# mean_lambda=1e-3
-		# std_lambda=1e-3
+		# mean_lambda = 1e-3
+		# std_lambda = 1e-3
 		# mean_loss = mean_lambda * mean.pow(2).mean()
 		# std_loss = std_lambda * log_std.pow(2).mean()
 		# policy_loss += mean_loss + std_loss
-
 
 		self.policy_optimizer.zero_grad()
 		policy_loss.backward()
@@ -359,7 +355,6 @@ class SAC(nn.Module):
 		# print('q loss: ', q_value_loss1, q_value_loss2)
 		# print('policy loss: ', policy_loss )
 
-
 		# **** Soft update the target value net
 		for target_param, param in zip(self.target_value_net.parameters(), self.value_net.parameters()):
 			target_param.data.copy_(  # copy data value into target parameters
@@ -367,9 +362,9 @@ class SAC(nn.Module):
 			)
 		return predicted_new_q_value.mean()
 
-
+	# **** out-dated
 	def net_info(self):
-		config = "(9)-16-16-16-16-(9)"
+		config = "(9)-32-32-32-32-(9)"
 		neurons = config.split('-')
 		last_n = 9
 		total = 0
@@ -390,17 +385,12 @@ class SAC(nn.Module):
 				break
 		return action
 
-	def clear_data(self):
-		# empty episode data
-		self.ep_actions = Variable(torch.Tensor())
-		self.ep_rewards = []
-
 	def save_net(self, fname):
 		torch.save(self.state_dict(), "PyTorch_models/" + fname + ".dict")
 		print("Model saved.")
 
 	def load_net(self, fname):
-		model = PolicyGradient(9, 9)
+		model = PolicyGradient(9, 9)	# **** out-dated
 		model.load_state_dict(torch.load("PyTorch_models/" + fname + ".dict"))
 		model.eval()
 		print("Model loaded.")

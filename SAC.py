@@ -22,12 +22,12 @@ from IPython.display import clear_output
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from IPython.display import display
-from playsound import playsound
+# from playsound import playsound
 from reacher import Reacher
 
 import argparse
 import time
-
+from subprocess import call
 
 GPU = True
 device_idx = 0
@@ -302,7 +302,7 @@ def plot(rewards):
 DETERMINISTIC=False
 
 # choose env
-ENV = ['Pendulum', 'Reacher'][0]
+ENV = ['Pendulum', 'Reacher'][1]
 if ENV == 'Reacher':
 	# intialization
 	# NUM_JOINTS=4
@@ -366,9 +366,8 @@ frame_idx   = 0
 batch_size  = 128
 explore_steps = 0
 rewards     = []
-reward_scale=10.0
+reward_scale = 10.0
 model_path = './model/sac'
-
 
 if __name__ == '__main__':
 	if args.train:
@@ -412,7 +411,8 @@ if __name__ == '__main__':
 				torch.save(policy_net.state_dict(), model_path)
 
 			print('Episode: ', eps, '| Episode Reward: ', episode_reward)
-			playsound("laser1.wav")
+			call(['play', '-n', '-q', 'synth', '0.05', 'sine', '3000'])
+			# playsound("laser1.wav")
 			rewards.append(episode_reward)
 		torch.save(policy_net.state_dict(), model_path)
 
@@ -429,9 +429,9 @@ if __name__ == '__main__':
 
 			for step in range(max_steps):
 				action = policy_net.get_action(state, deterministic = DETERMINISTIC)
-				if ENV ==  'Reacher':
+				if ENV == 'Reacher':
 					next_state, reward, done, _ = env.step(action, SPARSE_REWARD, SCREEN_SHOT)
-				elif ENV ==  'Pendulum':
+				elif ENV == 'Pendulum':
 					next_state, reward, done, _ = env.step(action)
 					env.render()
 
