@@ -2,11 +2,11 @@
 TO-DO:
 * Try propositional game encoding
 * Try Transformer or SymNN
-* Add Re-parameterization Trick because it's original SAC
 
 DONE:
-* Move code from SAC.py to here
+* Move code from SAC-old.py to here
 * Action space seems different
+* Add Re-parameterization Trick, still fails to converge
 
 Questions：
 * SAC 输出是 概率分布 还是 概率本身？ 是前者。
@@ -123,7 +123,9 @@ class SoftQNetwork(nn.Module):
 	def forward(self, state, action):
 		# print("state, action：", state.shape, action.shape)
 		# print("action =", action)
-		x = torch.cat([state, action[..., None]], dim=-1) # the dim 0 is number of samples
+		# x = torch.cat([state, action[..., None]], dim=-1)
+		# the dim 0 is number of samples
+		x = torch.cat([state, action], dim=-1)
 		# print("x：", x.shape)
 		x = self.activation(self.linear1(x))
 		x = self.activation(self.linear2(x))
@@ -147,11 +149,11 @@ class PolicyNetwork(nn.Module):
 		self.mean_linear.weight.data.uniform_(-init_w, init_w)
 		self.mean_linear.bias.data.uniform_(-init_w, init_w)
 
-		# self.log_std_linear = nn.Linear(hidden_size, num_actions)
-		# self.log_std_linear.weight.data.uniform_(-init_w, init_w)
-		# self.log_std_linear.bias.data.uniform_(-init_w, init_w)
+		self.log_std_linear = nn.Linear(hidden_size, num_actions)
+		self.log_std_linear.weight.data.uniform_(-init_w, init_w)
+		self.log_std_linear.bias.data.uniform_(-init_w, init_w)
 
-		self.action_range = 2.
+		self.action_range = 9.0
 		self.num_actions = num_actions
 		self.activation = activation
 
@@ -160,58 +162,64 @@ class PolicyNetwork(nn.Module):
 		x = self.activation(self.linear1(state))
 		x = self.activation(self.linear2(x))
 		x = self.activation(self.linear3(x))
-		# x = self.activation(self.linear4(x))
+		x = self.activation(self.linear4(x))
 
 		mean    = self.activation(self.mean_linear(x))
 		# mean    = F.leaky_relu(self.mean_linear(x))
-		# log_std = self.log_std_linear(x)
-		# log_std = torch.clamp(log_std, self.log_std_min, self.log_std_max)
+		log_std = self.log_std_linear(x)
+		log_std = torch.clamp(log_std, self.log_std_min, self.log_std_max)
 
-		return mean  # , log_std
+		return mean, log_std
 
-	def evaluate(self, state, epsilon=1e-6):
+	def evaluate(self, state, epsilon=1e-6, reparameterize=True):
 		'''
 		generate sampled action with state as input wrt the policy network;
 		deterministic evaluation provides better performance according to the original paper;
 		'''
-		logits = self.forward(state)   # , log_std
-		# std = log_std.exp() # no clip in evaluation, clip affects gradients flow
 
-		probs   = torch.softmax(logits, dim=1)
-		dist    = Categorical(probs)
-		action  = dist.sample()
-		""" # **** abandon Reparameterization Trick as it seems non-essential
-		normal  = Normal(0, 1)
-		z       = normal.sample(probs.shape)
-		# TanhNormal distribution as actions; reparameterization trick
-		action0 = torch.tanh(probs + std * z.to(device))
-		action  = self.action_range * action0 """
-
-		# https://stackoverflow.com/questions/54635355/what-does-log-prob-do
-		# print(dist.log_prob(action), torch.log(action_probs[action]))
-
-		# dim-of-action 是 1 还是 9？ 应该是 1
+		# **** abandon Reparameterization Trick as it seems non-essential
+		""" # dim-of-action 是 1 还是 9？ 应该是 1
 		# 它的值应该是 probs[action] 的值, 但这经过了采样
 		# 所以，还是需要 re-parameterization trick？
 		# 但 re-param 要求 NN 输出确定的 mean 值，这跟 Transformer 输出的 distro
 		# 非常不同。如果想保留 Transformer 输出 distro 的优势，则无法计算 log-prob.
 		# The "log" arises from the "log-derivative trick".
-		
-		log_prob = dist.log_prob(action)
-		''' stochastic evaluation '''
-		# log_prob = Normal(mean, std).log_prob(mean + std*z.to(device)) - torch.log(1. - action_0.pow(2) + epsilon) -  np.log(self.action_range)
-		''' deterministic evaluation '''
-		# log_prob = Normal(mean, std).log_prob(mean) - torch.log(1. - torch.tanh(mean).pow(2) + epsilon) -  np.log(self.action_range)
-		'''
-		both dims of normal.log_prob and -log(1-a**2) are (N,dim_of_action);
-		the Normal.log_prob outputs the same dim of input features instead of 1 dim probability,
-		needs sum up across the features dim to get 1 dim prob; or else use Multivariate Normal.
-		'''
-		log_prob = log_prob.sum(dim=-1, keepdim=True)
+		# dist.log_prob(action) ≡ torch.log(action_probs[action])
+		https://stackoverflow.com/questions/54635355/what-does-log-prob-do
+		"""
+
+		if reparameterize:
+			mean, log_std = self.forward(state)
+			std = log_std.exp() # no clip in evaluation, clip affects gradients flow
+			normal  = Normal(0, 1)
+			z       = normal.sample(mean.shape)
+			# TanhNormal distribution as actions
+			action0 = self.action_range * torch.tanh(mean + std * z) # z .to(device)
+			''' stochastic evaluation '''
+			log_prob = Normal(mean, std).log_prob(mean + std * z.to(device)) - torch.log(1. - action0.pow(2) + epsilon) - np.log(self.action_range)
+			''' deterministic evaluation '''
+			# log_prob = Normal(mean, std).log_prob(mean) - torch.log(1. - torch.tanh(mean).pow(2) + epsilon) - np.log(self.action_range)
+			'''
+			both dims of normal.log_prob and -log(1-a**2) are (N,dim_of_action);
+			the Normal.log_prob outputs the same dim of input features instead of 1 dim probability,
+			needs sum up across the features dim to get 1 dim prob; or else use Multivariate Normal.
+			'''
+			log_prob = log_prob.sum(dim = -1, keepdim = True)
+
+			boundaries = torch.tensor([1,2,3,4,5,6,7,8,9])
+			action = torch.flatten(torch.bucketize(action0, boundaries))
+		else:
+			logits  = self.forward(state)
+			probs   = torch.softmax(logits, dim=1)
+			dist    = Categorical(probs)
+			action  = dist.sample()
+			log_prob = dist.log_prob(action)
+			log_prob = log_prob.sum(dim = -1, keepdim = True)
+
+		# print("evaluated action=", action)
 		return action, log_prob		# , z, mean, log_std
 
-
-	def choose_action(self, state, deterministic):
+	def choose_action(self, state, deterministic=True, reparameterize=False):
 		""" The actor network's output has 2 components:
 		1) either squashed deterministic action a
 		   or sampled action a ~ N(μ(s),σ²(s)).
@@ -219,19 +227,25 @@ class PolicyNetwork(nn.Module):
 		2) log probability that will be needed for calculating H
 		"""
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
-		logits = self.forward(state) # , log_std 
-		# print("logits=", logits)
-		# print("log_std=", log_std)
-		# std = log_std.exp()
 
-		probs = torch.softmax(logits, dim=1)
-		dist   = Categorical(probs)
-		action = dist.sample().numpy()[0]
-		# *** abandon Reparameterization Trick
-		# normal = Normal(0, 1)
-		# z      = normal.sample(mean.shape).to(device)
-		# action = self.action_range* torch.tanh(mean + std*z)
-		# action = torch.tanh(mean).detach().cpu().numpy()[0] if deterministic else action.detach().cpu().numpy()[0]
+		if reparameterize:
+			mean, log_std = self.forward(state)
+			# print("logits=", logits)
+			# print("log_std=", log_std)
+			std = log_std.exp()
+			normal = Normal(0, 1)
+			z      = normal.sample(mean.shape).to(device)
+			action0 = self.action_range * torch.tanh(mean + std * z)
+			# action0 = torch.tanh(mean).detach().cpu().numpy()[0] if deterministic else action0.detach().cpu().numpy()[0]
+			action0 = torch.tanh(mean).detach() if deterministic else action0.detach()
+			# **** discretize continuous action:
+			boundaries = torch.tensor([1,2,3,4,5,6,7,8,9])
+			action = torch.flatten(torch.bucketize(action0, boundaries))
+		else:
+			logits = self.forward(state)
+			probs  = torch.softmax(logits, dim=1)
+			dist   = Categorical(probs)
+			action = dist.sample().numpy()[0]
 
 		# print("chosen action=", action)
 		return action
@@ -322,8 +336,8 @@ class SAC(nn.Module):
 
 		# **** Train Value Function
 		predicted_new_q_value = torch.min(
-			self.soft_q_net1(state, new_action),
-			self.soft_q_net2(state, new_action) )
+			self.soft_q_net1(state, new_action[..., None]),
+			self.soft_q_net2(state, new_action[..., None]) )
 		target_value_func = predicted_new_q_value - alpha * log_prob # for stochastic training, it equals to expectation over action
 		value_loss = self.value_criterion(predicted_value, target_value_func.detach())
 

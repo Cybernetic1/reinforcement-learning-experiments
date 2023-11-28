@@ -54,7 +54,7 @@ env.seed(env_seed)
 
 if config >= 6:
 	RL = SAC(
-		action_dim = env.action_space.n,
+		action_dim = 1, # env.action_space.n,
 		state_dim = env.state_space.shape[0],
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
@@ -301,7 +301,7 @@ while True:
 			command = None
 
 	if i_episode % 100 == 0:
-		call(['play', '-n', '-q', 'synth', '0.05', 'sine', '3000'])
+		call(['play', '-n', '-q', 'synth', '0.05', 'sine', '2300', 'gain', '-20'])
 		rr = round(running_reward, 5)
 		print("\n\t\x1b[0m", i_episode, "Running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 		# RL.set_learning_rate(i_episode)
