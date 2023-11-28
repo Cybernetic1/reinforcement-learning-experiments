@@ -6,21 +6,30 @@ print("Assume both players perfectly avoid illegal moves.")
 print("Player 'X' always chooses the move with maximum expectation value.")
 print("Player 'O' always plays all available moves with equal probability.")
 print("Scoring: win = +20, draw = +10.")
-print("You may modify the initial board position in the code.")
+print("You may modify the initial board position in the code,")
+print("or specify a string argument like this: '-1 1 0 1 1 -1 -1 0 0'")
+print("where X=-1, O=1, empty=0. Counting from upper left to lower right")
 
 # Empty board
 test_board = 9 * [0]
 
-# Pre-moves, if any are desired:
-# X|O|
-# O|O|X
-# X| |
-# test_board[0] = -1
-# test_board[3] = 1
-# test_board[6] = -1
-# test_board[4] = 1
-# test_board[5] = -1
-# test_board[1] = 1
+import sys
+
+if sys.argv[1]:
+	xs = sys.argv[1].split(' ')
+	for i in range(9):
+		test_board[i] = int(xs[i])
+else:
+	# Pre-moves, if any are desired:
+	# X|O|
+	# O|O|X
+	# X| |
+	test_board[0] = -1
+	test_board[3] = 1
+	test_board[6] = -1
+	test_board[4] = 1
+	test_board[5] = -1
+	test_board[1] = 1
 
 def show_board(board):
 	for i in [0, 3, 6]:
