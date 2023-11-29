@@ -182,6 +182,7 @@ if j:
 		RL.load_net(files[int(j)][15:-5])
 
 def preplay_moves():
+	return
 	state, _, _, _ = env.step(0, -1)
 	state, _, _, _ = env.step(3, 1)
 	state, _, _, _ = env.step(6, -1)
