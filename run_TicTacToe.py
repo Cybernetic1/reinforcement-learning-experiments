@@ -11,14 +11,15 @@ With a choice of representations:
 """
 
 print("0. Python\tQ-table")
-print("1. PyTorch\tPG\tsymmetric NN")
-print("2. PyTorch\tPG\tfully-connected NN")
-print("3. TensorFlow\tPG\tsymmetric NN")
-print("4. TensorFlow\tPG\tfully-connected NN")
-print("5. PyTorch\tPG\tTransformer")
-print("6. PyTorch\tSAC\tfully-connected NN")
-print("7. PyTorch\tSAC\tTransformer")
-config = int(input("Choose config: ") or '6')
+print("1. PyTorch\tDQN")
+print("2. PyTorch\tPG\tsymmetric NN")
+print("3. PyTorch\tPG\tfully-connected NN")
+print("4. TensorFlow\tPG\tsymmetric NN")
+print("5. TensorFlow\tPG\tfully-connected NN")
+print("6. PyTorch\tPG\tTransformer")
+print("7. PyTorch\tSAC\tfully-connected NN")
+print("8. PyTorch\tSAC\tTransformer")
+config = int(input("Choose config: ") or '1')
 
 import gym
 
@@ -26,29 +27,32 @@ if config == 0:
 	from RL_Qtable import Qtable
 	tag = "Qtable"
 if config == 1:
+	from RL_DQN_pyTorch import DQN
+	tag = "DQN"
+if config == 2:
 	from RL_symNN_pyTorch import PolicyGradient
 	tag = "symNN.pyTorch"
-elif config == 2:
+elif config == 3:
 	from RL_full_pyTorch import PolicyGradient
 	tag = "full.pyTorch"
-elif config == 3:
+elif config == 4:
 	from RL_symNN_TensorFlow import PolicyGradient
 	tag = "symNN.TensorFlow"
-elif config == 4:
+elif config == 5:
 	from RL_full_TensorFlow import PolicyGradient
 	tag = "full.TensorFlow"
-elif config == 5:
+elif config == 6:
 	from RL_Transformer_pyTorch import PolicyGradient
 	tag = "Transformer.pyTorch"
-elif config == 6:
+elif config == 7:
 	from SAC_full_pyTorch import SAC, ReplayBuffer
 	tag = "SAC.full.pyTorch"
-elif config == 7:
+elif config == 8:
 	from SAC_Transformer_pyTorch import SAC, ReplayBuffer
 	tag = "SAC.Transformer.pyTorch"
 
 import gym_tictactoe
-if config in [1, 3, 5]:
+if config in [2, 4, 6]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -63,7 +67,14 @@ if config == 0:
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
-elif config >= 6:
+if config == 1:
+	RL = DQN(
+		action_dim = env.action_space.n,
+		state_dim = env.state_space.shape[0],
+		learning_rate = 0.001,
+		gamma = 0.9,	# doesn't matter for gym TicTacToe
+	)
+elif config >= 7:
 	RL = SAC(
 		action_dim = 1, # env.action_space.n,
 		state_dim = env.state_space.shape[0],
@@ -158,23 +169,23 @@ for i, fname in enumerate(files):
 		print(end="\x1b[32m")
 	else:
 		print(end="\x1b[0m")
-	if config == 3 or config == 4:		# TensorFlow
+	if config == 4 or config == 5:		# TensorFlow
 		print("%2d %s" %(i, fname[24:-6]))
 	else:
 		print("%2d %s" %(i, fname[21:-5]))
 print(end="\x1b[0m")
 j = input("Load model? (Enter number or none): ")
 if j:
-	if config == 3 or config == 4:		# TensorFlow
+	if config == 4 or config == 5:		# TensorFlow
 		RL.load_net(files[int(j)][18:-11])
 	else:
 		RL.load_net(files[int(j)][15:-5])
 
 def preplay_moves():
-	# state, _, _, _ = env.step(0, -1)
-	# state, _, _, _ = env.step(3, 1)
-	# state, _, _, _ = env.step(6, -1)
-	# state, _, _, _ = env.step(4, 1)
+	state, _, _, _ = env.step(0, -1)
+	state, _, _, _ = env.step(3, 1)
+	state, _, _, _ = env.step(6, -1)
+	state, _, _, _ = env.step(4, 1)
 	# state, _, _, _ = env.step(5, -1)
 	# state, _, _, _ = env.step(1, 1)
 	return

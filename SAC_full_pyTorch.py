@@ -159,7 +159,6 @@ class PolicyNetwork(nn.Module):
 		self.num_actions = num_actions
 		self.activation = activation
 
-
 	def forward(self, state):
 		x = self.activation(self.linear1(state))
 		x = self.activation(self.linear2(x))

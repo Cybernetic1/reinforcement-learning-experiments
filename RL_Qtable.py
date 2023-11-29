@@ -25,15 +25,16 @@ class ReplayBuffer:
 
 	def sample(self, batch_size):
 		batch = random.sample(self.buffer, batch_size)
-		state, action, reward, next_state, done = map(np.stack, zip(*batch)) # stack for each element
-		# print("sampled state=", state)
-		# print("sampled action=", action)
+		state, action, reward, next_state, done = \
+			map(np.stack, zip(*batch)) # stack for each element
 		'''
 		the * serves as unpack: sum(a,b) <=> batch=(a,b), sum(*batch) ;
 		zip: a=[1,2], b=[2,3], zip(a,b) => [(1, 2), (2, 3)] ;
 		the map serves as mapping the function on each list element: map(square, [2,3]) => [4,9] ;
 		np.stack((1,2)) => array([1, 2])
 		'''
+		# print("sampled state=", state)
+		# print("sampled action=", action)
 		return state, action, reward, next_state, done
 
 	def __len__(self):
@@ -51,18 +52,26 @@ class Qtable():
 
 		self.action_dim = action_dim
 		self.state_dim = state_dim
-
-		# dim of Q-table = board-size x action_dim
-		self.Qtable = np.zeros((3 ** state_dim, action_dim))
-		# self.Qtable = [ [0] * action_dim for i in range(state_dim) ]
-
 		self.lr = learning_rate
 		self.gamma = gamma
 
+		# dim of Q-table = 3^9 x 9
+		self.Qtable = np.zeros((3 ** state_dim, action_dim))
+
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
+	# convert state-vector into a base-3 number
 	def state_num(self, state):
-		s = (((((((state[0] *3+3+state[1]) *3+3+state[2]) *3+3+state[3]) *3+3+state[4]) *3+3+state[5]) *3+3+state[6]) *3+3+state[7]) *3+3+state[8]+1
+		s = (((((((					\
+			state[0] * 3 + 3 +		\
+			state[1]) * 3 + 3 +		\
+			state[2]) * 3 + 3 +		\
+			state[3]) * 3 + 3 +		\
+			state[4]) * 3 + 3 +		\
+			state[5]) * 3 + 3 +		\
+			state[6]) * 3 + 3 +		\
+			state[7]) * 3 + 3 +		\
+			state[8]+1
 		return s
 
 	def choose_action(self, state, deterministic=False):
@@ -71,7 +80,7 @@ class Qtable():
 		probs   = np.exp(logits) / np.exp(logits).sum(axis=0)	# softmax
 		# print("logits, probs =", logits, probs)
 		action  = np.random.choice([0,1,2,3,4,5,6,7,8], 1, p=probs)[0]
-		# action = np.argmax(Q_a)
+		# action = np.argmax(logits)		# deterministic
 		# print("chosen action=", action)
 		return action
 
@@ -81,9 +90,20 @@ class Qtable():
 		state, action, reward, next_state, done = self.replay_buffer.sample(batch_size)
 		# print('sample (state, action, reward, next state, done):', state, action, reward, next_state, done)
 
-		s = (((((((state[:,0] *3+3+state[:,1]) *3+3+state[:,2]) *3+3+state[:,3]) *3+3+state[:,4]) *3+3+state[:,5]) *3+3+state[:,6]) *3+3+state[:,7]) *3+3+state[:,8]+1
+		# convert state-vector to a base-3 number
+		s = (((((((					\
+			state[:,0] * 3 + 3 +	\
+			state[:,1]) * 3 + 3 +	\
+			state[:,2]) * 3 + 3 +	\
+			state[:,3]) * 3 + 3 +	\
+			state[:,4]) * 3 + 3 +	\
+			state[:,5]) * 3 + 3 +	\
+			state[:,6]) * 3 + 3 +	\
+			state[:,7]) * 3 + 3 +	\
+			state[:,8] + 1
 		# print("s=", s)
-		# **** Train Policy Function
+
+		# **** Train Q function, this is just Bellman equation:
 		# Q(st,at) += η [ R + γ max_a Q(s_t+1,a) - Q(st,at) ]
 		self.Qtable[s, action] += self.lr *( reward + self.gamma * np.max(self.Qtable[next_state, :]) - self.Qtable[s, action] )
 		return
