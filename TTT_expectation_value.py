@@ -15,7 +15,7 @@ test_board = 9 * [0]
 
 import sys
 
-if sys.argv[1]:
+if len(sys.argv) > 1:
 	xs = sys.argv[1].split(' ')
 	for i in range(9):
 		test_board[i] = int(xs[i])
@@ -28,8 +28,8 @@ else:
 	test_board[3] = 1
 	test_board[6] = -1
 	test_board[4] = 1
-	test_board[5] = -1
-	test_board[1] = 1
+	# test_board[5] = -1
+	# test_board[1] = 1
 
 def show_board(board):
 	for i in [0, 3, 6]:

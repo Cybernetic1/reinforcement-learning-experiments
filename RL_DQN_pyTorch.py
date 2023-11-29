@@ -74,7 +74,7 @@ class QNetwork(nn.Module):
 		x = self.activation(self.linear3(x))
 		x = self.activation(self.linear4(x))
 
-		logits = self.activation(self.logits_linear(x))
+		logits = self.logits_linear(x)
 		# logits = F.leaky_relu(self.logits_linear(x))
 		return logits
 
@@ -98,6 +98,7 @@ class DQN():
 		hidden_dim = 32
 		self.q_net = QNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
+		self.q_criterion = nn.MSELoss()
 		self.q_optimizer = optim.Adam(self.q_net.parameters(), lr=self.lr)
 
 	def choose_action(self, state, deterministic=True):
@@ -120,8 +121,9 @@ class DQN():
 		state      = torch.FloatTensor(state).to(device)
 		next_state = torch.FloatTensor(next_state).to(device)
 		action     = torch.LongTensor(action).to(device)
-		reward     = torch.FloatTensor(reward).unsqueeze(1) # .to(device)  # reward is single value, unsqueeze() to add one dim to be [reward] at the sample dim;
-		
+		reward     = torch.FloatTensor(reward).to(device) # .to(device)  # reward is single value, unsqueeze() to add one dim to be [reward] at the sample dim;
+		done       = torch.BoolTensor(done).to(device)
+
 		logits = self.q_net(state)
 		next_logits = self.q_net(next_state)
 
@@ -134,8 +136,11 @@ class DQN():
 		# logits[at] += self.lr *( reward + self.gamma * np.max(logits[next_state, next_a]) - logits[at] )
 		q = logits[range(logits.shape[0]), action]
 		m = torch.max(next_logits, 1, keepdim=False).values
+		# print("m:", m.shape)
 		# q = q + self.lr *( reward + self.gamma * m - q )
-		q_loss = ( reward + self.gamma * m - q ).sum()
+		target_q = torch.where(done, reward, reward + self.gamma * m)
+		# print("q, target_q:", q.shape, target_q.shape)
+		q_loss = self.q_criterion(q, target_q.detach())
 
 		self.q_optimizer.zero_grad()
 		q_loss.backward()
