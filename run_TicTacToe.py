@@ -1,26 +1,33 @@
 """
-Tic Tac Toe with Policy Gradient
+Reinforcement Learning, Tic Tac Toe experiments
 
 With a choice of engines:
 - PyTorch: 1.9.0+cpu
 - TensorFlow: 2.0
 
 With a choice of representations:
+- board vector
+- logic propositions
+
+With a choice of algorithms:
 - fully-connected
 - symmetric NN
+- Transformer
 """
 
-print("0. Python\tQ-table\tno NN")
-print("1. PyTorch\tDQN\tfully-connected NN")
+print("0. Python\tQ-table\tno NN\tboard vector")
+print("1. PyTorch\tDQN\tfully-connected\tboard vector")
 print("2. PyTorch\tPG\tsymmetric NN")
-print("3. PyTorch\tPG\tfully-connected NN")
+print("3. PyTorch\tPG\tfully-connected")
 print("4. TensorFlow\tPG\tsymmetric NN")
-print("5. TensorFlow\tPG\tfully-connected NN")
+print("5. TensorFlow\tPG\tfully-connected")
 print("6. PyTorch\tPG\tTransformer")
-print("7. PyTorch\tSAC\tfully-connected NN")
+print("7. PyTorch\tSAC\tfully-connected")
 print("8. PyTorch\tDQN\tTransformer")
-print("9. PyTorch\tDQN\tTransformer\tlogic")
-config = int(input("Choose config: ") or '9')
+print("9. PyTorch\tDQN\tTransformer\tlogic, dim3")
+print("10. PyTorch\tDQN\tTransformer\tlogic, dim1")
+print("11. PyTorch\tDQN\tsymmetric NN\tlogic, dim3")
+config = int(input("Choose config: ") or '10')
 
 import gym
 
@@ -54,10 +61,18 @@ elif config == 8:
 elif config == 9:
 	from DQN_logic_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.logic"
+elif config == 10:
+	from DQN_logic_dim1_pyTorch import DQN, ReplayBuffer
+	tag = "DQN.logic-1D"
+elif config == 11:
+	from DQN_logic_symNN_pyTorch import DQN, ReplayBuffer
+	tag = "DQN.logic.symNN"
 
 import gym_tictactoe
-if config in [2, 4, 6, 8, 9]:
+if config in [2, 4, 6, 8, 9, 11]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
+if config == 10:
+	env = gym.make('TicTacToe-logic-dim1-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
@@ -71,7 +86,7 @@ if config == 0:
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
-elif config in [1,8,9]:
+elif config in [1, 8, 9, 10, 11]:
 	RL = DQN(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
@@ -186,6 +201,7 @@ if j:
 		RL.load_net(files[int(j)][15:-5])
 
 def preplay_moves():
+	# return
 	global state
 	state, _, _, _ = env.step(0, -1)
 	state, _, _, _ = env.step(3, 1)
@@ -206,7 +222,7 @@ env.render()
 # env.render()
 
 # hyper-parameters
-batch_size   = 128
+batch_size   = 256
 # max_episodes = 40
 # max_steps    = 150	# Pendulum needs 150 steps per episode to learn well, cannot handle 20
 # frame_idx    = 0
@@ -246,12 +262,12 @@ def play_1_game_with_human():
 		if not done:
 			user = 0 if user == 1 else 1
 	env.render()
-	RL.clear_data()
 	print("*** GAME OVER ***")
 
 train_once = False		# you may use Ctrl-C to change this
 DETERMINISTIC = False
 RENDER = 0
+RENDERMODE = "HTML"
 i_episode = 0
 running_reward = 0.0
 
@@ -262,7 +278,7 @@ while True:
 	state = env.reset()
 	preplay_moves()
 	if RENDER > 0:
-		env.render(mode="HTML")
+		env.render(mode=RENDERMODE)
 
 	done = False
 	user = -1
@@ -294,10 +310,10 @@ while True:
 		if not done:
 			user = -1 if user == 1 else 1
 			if RENDER == 2:
-				env.render(mode = 'HTML')
+				env.render(mode = RENDERMODE)
 		elif RENDER > 0:
 			# await asyncio.sleep(0.1)
-			env.render(mode = 'HTML')
+			env.render(mode = RENDERMODE)
 
 	# **** Game ended:
 	per_game_reward = RL.replay_buffer.last_reward()		# actually only the last reward is non-zero, for gym TicTacToe
