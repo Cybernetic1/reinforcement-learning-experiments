@@ -38,19 +38,19 @@ if config == 1:
 	from RL_DQN_pyTorch import DQN
 	tag = "DQN"
 if config == 2:
-	from RL_symNN_pyTorch import PolicyGradient
+	from PG_symNN_pyTorch import PolicyGradient
 	tag = "symNN.pyTorch"
 elif config == 3:
-	from RL_full_pyTorch import PolicyGradient
+	from PG_full_pyTorch import PolicyGradient
 	tag = "full.pyTorch"
 elif config == 4:
-	from RL_symNN_TensorFlow import PolicyGradient
+	from PG_symNN_TensorFlow import PolicyGradient
 	tag = "symNN.TensorFlow"
 elif config == 5:
-	from RL_full_TensorFlow import PolicyGradient
+	from PG_full_TensorFlow import PolicyGradient
 	tag = "full.TensorFlow"
 elif config == 6:
-	from RL_Transformer_pyTorch import PolicyGradient
+	from PG_Transformer_pyTorch import PolicyGradient
 	tag = "Transformer.pyTorch"
 elif config == 7:
 	from SAC_full_pyTorch import SAC, ReplayBuffer
