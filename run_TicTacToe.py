@@ -19,8 +19,8 @@ print("5. TensorFlow\tPG\tfully-connected NN")
 print("6. PyTorch\tPG\tTransformer")
 print("7. PyTorch\tSAC\tfully-connected NN")
 print("8. PyTorch\tDQN\tTransformer")
-print("9. PyTorch\tDQN\tTransformer")
-config = int(input("Choose config: ") or '8')
+print("9. PyTorch\tDQN\tTransformer\tlogic")
+config = int(input("Choose config: ") or '9')
 
 import gym
 
@@ -51,9 +51,12 @@ elif config == 7:
 elif config == 8:
 	from DQN_Transformer_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.Transformer.pyTorch"
+elif config == 9:
+	from DQN_logic_pyTorch import DQN, ReplayBuffer
+	tag = "DQN.logic"
 
 import gym_tictactoe
-if config in [2, 4, 6, 8]:
+if config in [2, 4, 6, 8, 9]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -68,7 +71,7 @@ if config == 0:
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
-elif config == 1 or config == 8:
+elif config in [1,8,9]:
 	RL = DQN(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
@@ -259,7 +262,7 @@ while True:
 	state = env.reset()
 	preplay_moves()
 	if RENDER > 0:
-		env.render()
+		env.render(mode="HTML")
 
 	done = False
 	user = -1
@@ -291,10 +294,10 @@ while True:
 		if not done:
 			user = -1 if user == 1 else 1
 			if RENDER == 2:
-				env.render(mode = '-HTML')
+				env.render(mode = 'HTML')
 		elif RENDER > 0:
 			# await asyncio.sleep(0.1)
-			env.render(mode = '-HTML')
+			env.render(mode = 'HTML')
 
 	# **** Game ended:
 	per_game_reward = RL.replay_buffer.last_reward()		# actually only the last reward is non-zero, for gym TicTacToe
