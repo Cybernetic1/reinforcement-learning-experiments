@@ -14,7 +14,7 @@ With a choice of algorithms:
 - symmetric NN
 - Transformer
 """
-print("    tool\talgo\tstructure\trepresentation")
+print("    Engine\tAlgo\tStructure\tRepresentation")
 print("========================================================")
 print("0.  Python\tQ-table\tno NN\t\tboard vector")
 print("10. PyTorch\tPG\tsymmetric NN\tlogic, dim3")
@@ -215,15 +215,10 @@ def preplay_moves():
 	# state, _, _, _ = env.step(1, 1)
 	return
 
-import asyncio
 print("Pre-play moves:")
 state = env.reset()
 preplay_moves()
-# asyncio.get_event_loop().run_until_complete(env.render())
-# await env.render()
-# asyncio.run(env.render())
 env.render()
-# env.render()
 
 # hyper-parameters
 batch_size   = 256
@@ -274,8 +269,6 @@ RENDER = 0
 RENDERMODE = "HTML"
 i_episode = 0
 running_reward = 0.0
-
-import websockets
 
 while True:
 	i_episode += 1

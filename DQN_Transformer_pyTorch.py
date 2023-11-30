@@ -77,7 +77,7 @@ class DQN():
 
 	def _build_net(self):
 		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=1)
-		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=4)
+		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=3)
 		# W is a 3x9 matrix, to convert 3-vector to 9-vector probability distribution:
 		self.W = Variable(torch.randn(3, 9), requires_grad=True)
 		self.softmax = nn.Softmax(dim=0)
@@ -174,9 +174,9 @@ class DQN():
 				x = proposition[0]
 				y = proposition[1]
 				j = y * 3 + x
-				empties = empties.remove(j)
+				empties.remove(j)
 		# Select an available square randomly
-		action = empties.sample()
+		action = random.sample(empties, 1)[0]
 		return action
 
 	def save_net(self, fname):
