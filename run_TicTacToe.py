@@ -15,63 +15,67 @@ With a choice of algorithms:
 - Transformer
 """
 
-print("0. Python\tQ-table\tno NN\tboard vector")
-print("1. PyTorch\tDQN\tfully-connected\tboard vector")
-print("2. PyTorch\tPG\tsymmetric NN")
-print("3. PyTorch\tPG\tfully-connected")
-print("4. TensorFlow\tPG\tsymmetric NN")
-print("5. TensorFlow\tPG\tfully-connected")
-print("6. PyTorch\tPG\tTransformer")
-print("7. PyTorch\tSAC\tfully-connected")
-print("8. PyTorch\tDQN\tTransformer")
-print("9. PyTorch\tDQN\tTransformer\tlogic, dim3")
-print("10. PyTorch\tDQN\tTransformer\tlogic, dim1")
-print("11. PyTorch\tDQN\tsymmetric NN\tlogic, dim3")
-config = int(input("Choose config: ") or '11')
+print("0. Python\tQ-table\tno NN\tboard vector\n")
+
+print("10. PyTorch\tPol-Grad\tsymmetric NN")
+print("11. PyTorch\tPol-Grad\tfully-connected")
+print("12. TensorFlow\tPol-Grad\tsymmetric NN")
+print("13. TensorFlow\tPol-Grad\tfully-connected")
+print("14. PyTorch\tPol-Grad\tTransformer")
+print("15. PyTorch\tSAC\tfully-connected\n")
+
+print("20. PyTorch\tDQN\tfully-connected\tboard vector\n")
+print("21. PyTorch\tDQN\tTransformer")
+print("22. PyTorch\tDQN\tfully-connected\tlogic, dim3")
+print("23. PyTorch\tDQN\tfully-connected\tlogic, dim1")
+print("24. PyTorch\tDQN\tsymmetric NN\tlogic, dim3")
+config = int(input("Choose config: ") or '0')
 
 import gym
 
 if config == 0:
 	from RL_Qtable import Qtable
 	tag = "Qtable"
-if config == 1:
-	from RL_DQN_pyTorch import DQN
-	tag = "DQN"
-if config == 2:
+
+elif config == 10:
 	from PG_symNN_pyTorch import PolicyGradient
 	tag = "symNN.pyTorch"
-elif config == 3:
+elif config == 11:
 	from PG_full_pyTorch import PolicyGradient
 	tag = "full.pyTorch"
-elif config == 4:
+elif config == 12:
 	from PG_symNN_TensorFlow import PolicyGradient
 	tag = "symNN.TensorFlow"
-elif config == 5:
+elif config == 13:
 	from PG_full_TensorFlow import PolicyGradient
 	tag = "full.TensorFlow"
-elif config == 6:
+elif config == 14:
 	from PG_Transformer_pyTorch import PolicyGradient
 	tag = "Transformer.pyTorch"
-elif config == 7:
+elif config == 15:
 	from SAC_full_pyTorch import SAC, ReplayBuffer
 	tag = "SAC.full.pyTorch"
-elif config == 8:
+
+elif config == 20:
+	from RL_DQN_pyTorch import DQN
+	tag = "DQN"
+elif config == 21:
 	from DQN_Transformer_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.Transformer.pyTorch"
-elif config == 9:
+elif config == 22:
 	from DQN_logic_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.logic"
-elif config == 10:
+elif config == 23:
 	from DQN_logic_dim1_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.logic-1D"
-elif config == 11:
+elif config == 24:
 	from DQN_logic_symNN_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.logic.symNN"
 
 import gym_tictactoe
-if config in [2, 4, 6, 8, 9, 11]:
+if config in [10, 12, 14, 21, 22, 24]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
-elif config == 10:
+elif config == 23:
 	env = gym.make('TicTacToe-logic-dim1-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -86,14 +90,14 @@ if config == 0:
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
-elif config in [1, 8, 9, 10, 11]:
+elif config in [20, 21, 22, 23, 24]:
 	RL = DQN(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
-elif config == 7:
+elif config == 15:
 	RL = SAC(
 		action_dim = 1, # env.action_space.n,
 		state_dim = env.state_space.shape[0],
