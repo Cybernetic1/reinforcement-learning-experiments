@@ -66,14 +66,14 @@ class PolicyGradient(nn.Module):
 	def net_info(self):
 		# Total number of params:
 		total = 0		# **** TO-DO
-		return ("exponential-select,9D,5L", total)
+		return ("exponential-select,3D,5L", total)
 
 	def _build_net(self):
-		encoder_layer = nn.TransformerEncoderLayer(d_model=9, nhead=3)
+		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=3)
 		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=5)
 		self.softmax = nn.Softmax(dim=0)
 		# W is a 3x9 matrix, to convert 3-vector to 9-vector probability distribution:
-		self.W = Variable(torch.randn(8, 9), requires_grad=True)
+		self.W = Variable(torch.randn(3, 9), requires_grad=True)
 
 	def forward(self, x):
 		# input dim = n_features = 9 x 3 = 27

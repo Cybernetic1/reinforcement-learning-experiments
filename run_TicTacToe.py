@@ -10,16 +10,17 @@ With a choice of representations:
 - symmetric NN
 """
 
-print("0. Python\tQ-table")
-print("1. PyTorch\tDQN")
+print("0. Python\tQ-table\tno NN")
+print("1. PyTorch\tDQN\tfully-connected NN")
 print("2. PyTorch\tPG\tsymmetric NN")
 print("3. PyTorch\tPG\tfully-connected NN")
 print("4. TensorFlow\tPG\tsymmetric NN")
 print("5. TensorFlow\tPG\tfully-connected NN")
 print("6. PyTorch\tPG\tTransformer")
 print("7. PyTorch\tSAC\tfully-connected NN")
-print("8. PyTorch\tSAC\tTransformer")
-config = int(input("Choose config: ") or '1')
+print("8. PyTorch\tDQN\tTransformer")
+print("9. PyTorch\tDQN\tTransformer")
+config = int(input("Choose config: ") or '8')
 
 import gym
 
@@ -48,11 +49,11 @@ elif config == 7:
 	from SAC_full_pyTorch import SAC, ReplayBuffer
 	tag = "SAC.full.pyTorch"
 elif config == 8:
-	from SAC_Transformer_pyTorch import SAC, ReplayBuffer
-	tag = "SAC.Transformer.pyTorch"
+	from DQN_Transformer_pyTorch import DQN, ReplayBuffer
+	tag = "DQN.Transformer.pyTorch"
 
 import gym_tictactoe
-if config in [2, 4, 6]:
+if config in [2, 4, 6, 8]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -67,14 +68,14 @@ if config == 0:
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
-if config == 1:
+elif config == 1 or config == 8:
 	RL = DQN(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
-elif config >= 7:
+elif config == 7:
 	RL = SAC(
 		action_dim = 1, # env.action_space.n,
 		state_dim = env.state_space.shape[0],
@@ -135,7 +136,7 @@ def ctrl_C_handler(sig, frame):
 		log_file.close()
 		exit(0)
 	elif command == 'c':
-		pass
+		command = None
 	elif command == 'g':
 		command = "play_1_game_with_human()"
 	elif command == 's':
@@ -182,7 +183,7 @@ if j:
 		RL.load_net(files[int(j)][15:-5])
 
 def preplay_moves():
-	return
+	global state
 	state, _, _, _ = env.step(0, -1)
 	state, _, _, _ = env.step(3, 1)
 	state, _, _, _ = env.step(6, -1)
@@ -202,7 +203,7 @@ env.render()
 # env.render()
 
 # hyper-parameters
-batch_size   = 512
+batch_size   = 128
 # max_episodes = 40
 # max_steps    = 150	# Pendulum needs 150 steps per episode to learn well, cannot handle 20
 # frame_idx    = 0
@@ -221,7 +222,7 @@ def play_1_game_with_human():
 	while not done:
 		env.render()
 		if user == 0:
-			print("X's move =", end='')			# will be printed by RL.choose_action()
+			print("X's move =", end='')		# will be printed by RL.choose_action()
 			action1 = RL.choose_action(state)
 			state1, reward1, done, _ = env.step(action1, -1)
 			if done:
@@ -247,7 +248,7 @@ def play_1_game_with_human():
 
 train_once = False		# you may use Ctrl-C to change this
 DETERMINISTIC = False
-RENDER = 1
+RENDER = 0
 i_episode = 0
 running_reward = 0.0
 
@@ -257,6 +258,8 @@ while True:
 	i_episode += 1
 	state = env.reset()
 	preplay_moves()
+	if RENDER > 0:
+		env.render()
 
 	done = False
 	user = -1
@@ -287,11 +290,11 @@ while True:
 		# If the game isn't over, change the current player
 		if not done:
 			user = -1 if user == 1 else 1
+			if RENDER == 2:
+				env.render(mode = '-HTML')
 		elif RENDER > 0:
 			# await asyncio.sleep(0.1)
-			env.render(mode = 'HTML')
-		if RENDER == 2:
-			env.render(mode = 'HTML')
+			env.render(mode = '-HTML')
 
 	# **** Game ended:
 	per_game_reward = RL.replay_buffer.last_reward()		# actually only the last reward is non-zero, for gym TicTacToe

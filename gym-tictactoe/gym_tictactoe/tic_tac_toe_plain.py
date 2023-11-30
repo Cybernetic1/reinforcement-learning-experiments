@@ -18,8 +18,8 @@ class TicTacToeEnv(gym.Env):
 		self.win_size = win_size
 		self.board_size = board_size
 		self.symbols = {
-			symbols[0]: "x",
-			symbols[1]: "o",
+			symbols[0]: "X",
+			symbols[1]: "O",
 			2: "!"
 			}
 		self.action_space = spaces.Discrete(self.board_size * self.board_size)

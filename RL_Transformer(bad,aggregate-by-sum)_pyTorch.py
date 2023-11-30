@@ -1,5 +1,6 @@
 """
-This is the Transformer version, where the state vector is 9 propositions = 9 x 3 = 27-vector
+This is the Transformer version, where the state vector is 9 propositions
+ = 9 x 3 = 27-vector
 
 ============================================================
 Policy Gradient, Reinforcement Learning.  Adapted from:
@@ -69,7 +70,7 @@ class PolicyGradient(nn.Module):
 		xs = torch.stack(torch.split(x, 3))
 		# print("xs =", xs)
 
-		ys = self.trm(xs)		# no need to split results, already in 9x3 chunks
+		ys = self.trm(xs) # no need to split results, already in 9x3 chunks
 		zs = []
 		for i in range(9):
 			w = torch.matmul( ys[i], self.W )
@@ -96,7 +97,7 @@ class PolicyGradient(nn.Module):
 		# But then X would be chosen with probability P1 + P2.
 
 	def choose_action(self, state):
-		# Select an action (0-9) by running policy model and choosing based on the probabilities in state
+		# Select an action (0-8) by running policy model and choosing based on the probabilities in state
 		state = torch.from_numpy(state).type(torch.FloatTensor)
 		probs = self(Variable(state))
 		# probs = 9-dim vector
@@ -117,7 +118,7 @@ class PolicyGradient(nn.Module):
 		return action
 
 	def play_random(self, state, action_space):
-		# Select an action (0-9) randomly
+		# Select an action (0-8) randomly
 		# NOTE: random player never chooses occupied squares
 		while True:
 			action = action_space.sample()

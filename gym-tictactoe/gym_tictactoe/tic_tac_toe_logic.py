@@ -7,6 +7,10 @@ from gym import spaces, error
 import xml.etree.ElementTree as ET
 import os
 
+import websockets
+from websockets.sync.client import connect
+import json
+
 class TicTacToeEnv(gym.Env):
 
 	def __init__(self, symbols, board_size=3, win_size=3):
@@ -14,9 +18,9 @@ class TicTacToeEnv(gym.Env):
 		self.win_size = win_size
 		self.board_size = board_size
 		self.symbols = {
-			symbols[0]: "❌",
-			symbols[1]: "⭕",
-			"Bad": "!!"
+			symbols[0]: "X",
+			symbols[1]: "O",
+			2: "!"
 		}
 		self.action_space = spaces.Discrete(self.board_size * self.board_size)
 
@@ -27,7 +31,7 @@ class TicTacToeEnv(gym.Env):
 		numpy.array(numpy.float32( [3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1,  3,3,1] )))
 
 		self.rewards = {
-			'still_in_game': 0.0,
+			'still_in_game': 0.3,
 			'draw': 10.0,
 			'win': 20.0,
 			'bad_position': -30.0
@@ -35,7 +39,7 @@ class TicTacToeEnv(gym.Env):
 
 	def reset(self):
 		self.state_vector = (3 * self.board_size * self.board_size) * [0]
-		self.index = 0			# current state_vector position to write into
+		self.index = 0		# current state_vector position to write into
 		self.board = (self.board_size * self.board_size) * [0]
 		return numpy.array(self.state_vector)
 
@@ -116,16 +120,18 @@ class TicTacToeEnv(gym.Env):
 
 	# --------------------------------------- ACTIONS -------------------------------------
 	def step(self, action, symbol):
+		global board, state_vector
+
 		is_position_already_used = False
 
 		if self.board[action] != 0:
 			is_position_already_used = True
 
 		if is_position_already_used:
-			self.board[action] = "Bad"
+			self.board[action] = 2
 			self.state_vector[self.index] = 0
 			self.state_vector[self.index + 1] = 0
-			self.state_vector[self.index + 2] = "Bad"
+			self.state_vector[self.index + 2] = 2
 			reward_type = 'bad_position'
 			done = True
 		else:
@@ -159,10 +165,10 @@ class TicTacToeEnv(gym.Env):
 		return grid
 
 	def print_grid_line(self, grid, offset=0):
-		print(" " + "-" * (self.board_size * 5 + 1))
+		print(" " + "-" * (self.board_size * 4 + 1))
 		for i in range(self.board_size):
 			if grid[i + offset] == 0:
-				print(" | " + "  ", end='')
+				print(" | " + " ", end='')
 			else:
 				print(" | " + str(grid[i + offset]), end='')
 		print(" |")
@@ -172,12 +178,12 @@ class TicTacToeEnv(gym.Env):
 		for i in range(0, self.board_size * self.board_size, self.board_size):
 			self.print_grid_line(grid, i)
 
-		print(" " + "-" * (self.board_size * 5 + 1))
+		print(" " + "-" * (self.board_size * 4 + 1))
 
 	def render(self, mode=None, close=False):
 		if mode == 'HTML':
 			with connect("ws://localhost:5678") as websocket:
-				websocket.send(json.dumps(self.state_vector))
+				websocket.send(json.dumps(self.board))
 		else:
 			self.display_grid(self.get_state_vector_to_display())
 
