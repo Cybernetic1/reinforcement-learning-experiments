@@ -14,18 +14,18 @@ With a choice of algorithms:
 - symmetric NN
 - Transformer
 """
+print("    tool\talgo\tstructure\trepresentation")
+print("========================================================")
+print("0.  Python\tQ-table\tno NN\t\tboard vector")
+print("10. PyTorch\tPG\tsymmetric NN\tlogic, dim3")
+print("11. PyTorch\tPG\tfully-connected\tboard vector")
+print("12. TensorFlow\tPG\tsymmetric NN\tlogic, dim3")
+print("13. TensorFlow\tPG\tfully-connected\tboard vector")
+print("14. PyTorch\tPG\tTransformer\tlogic, dim3")
+print("15. PyTorch\tSAC\tfully-connected\tboard vector\n")
 
-print("0. Python\tQ-table\tno NN\tboard vector\n")
-
-print("10. PyTorch\tPol-Grad\tsymmetric NN")
-print("11. PyTorch\tPol-Grad\tfully-connected")
-print("12. TensorFlow\tPol-Grad\tsymmetric NN")
-print("13. TensorFlow\tPol-Grad\tfully-connected")
-print("14. PyTorch\tPol-Grad\tTransformer")
-print("15. PyTorch\tSAC\tfully-connected\n")
-
-print("20. PyTorch\tDQN\tfully-connected\tboard vector\n")
-print("21. PyTorch\tDQN\tTransformer")
+print("20. PyTorch\tDQN\tfully-connected\tboard vector")
+print("21. PyTorch\tDQN\tTransformer\tlogic, dim3")
 print("22. PyTorch\tDQN\tfully-connected\tlogic, dim3")
 print("23. PyTorch\tDQN\tfully-connected\tlogic, dim1")
 print("24. PyTorch\tDQN\tsymmetric NN\tlogic, dim3")
