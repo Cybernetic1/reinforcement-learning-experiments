@@ -55,9 +55,9 @@ class ReplayBuffer:
 		return len(self.buffer)
 
 
-class QNetwork(nn.Module):
+class symNN(nn.Module):
 	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
-		super(QNetwork, self).__init__()
+		super(symNN, self).__init__()
 
 		# **** h-network, also referred to as "phi" in the literature
 		# input dim = 3 because each proposition is a 3-vector
@@ -72,14 +72,14 @@ class QNetwork(nn.Module):
 		self.relu3 = nn.Tanh()
 
 		# output dim must be n_actions
-		self.g2 = nn.Linear(9, self.n_actions, bias=True)
-		self.softmax = nn.Softmax(dim=0)
+		self.g2 = nn.Linear(9, action_dim, bias=True)
 
 	def forward(self, x):
 		# input dim = n_features = 9 x 3 = 27
 		# there are 9 h-networks each taking a dim-3 vector input
 		# First we need to split the input into 9 parts:
-		xs = torch.split(x, 3)
+		xs = torch.split(x, 3, dim=1)
+		# print("xs=", xs)
 
 		# h-network:
 		ys = []
@@ -118,15 +118,15 @@ class DQN():
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
 		hidden_dim = 32
-		self.q_net = QNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
+		self.symnet = symNN(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
 		self.q_criterion = nn.MSELoss()
-		self.q_optimizer = optim.Adam(self.q_net.parameters(), lr=self.lr)
+		self.q_optimizer = optim.Adam(self.symnet.parameters(), lr=self.lr)
 
 	def choose_action(self, state, deterministic=True):
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
 
-		logits = self.q_net(state)
+		logits = self.symnet(state)
 		probs  = torch.softmax(logits, dim=1)
 		dist   = Categorical(probs)
 		action = dist.sample().numpy()[0]
@@ -146,8 +146,8 @@ class DQN():
 		reward     = torch.FloatTensor(reward).to(device) # .to(device)  # reward is single value, unsqueeze() to add one dim to be [reward] at the sample dim;
 		done       = torch.BoolTensor(done).to(device)
 
-		logits = self.q_net(state)
-		next_logits = self.q_net(next_state)
+		logits = self.symnet(state)
+		next_logits = self.symnet(next_state)
 
 		q = logits[range(logits.shape[0]), action]
 		m = torch.max(next_logits, 1, keepdim=False).values

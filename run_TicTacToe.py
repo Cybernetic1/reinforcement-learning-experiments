@@ -27,7 +27,7 @@ print("8. PyTorch\tDQN\tTransformer")
 print("9. PyTorch\tDQN\tTransformer\tlogic, dim3")
 print("10. PyTorch\tDQN\tTransformer\tlogic, dim1")
 print("11. PyTorch\tDQN\tsymmetric NN\tlogic, dim3")
-config = int(input("Choose config: ") or '10')
+config = int(input("Choose config: ") or '11')
 
 import gym
 
@@ -71,7 +71,7 @@ elif config == 11:
 import gym_tictactoe
 if config in [2, 4, 6, 8, 9, 11]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
-if config == 10:
+elif config == 10:
 	env = gym.make('TicTacToe-logic-dim1-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
