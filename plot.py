@@ -11,7 +11,7 @@ for i, fname in enumerate(files):
 		print(end="\x1b[32m")
 	else:
 		print(end="\x1b[0m")
-	print("%2d %s" %(i, fname[16:-4]))
+	print("%2d. %s (%d)" %(i, fname[16:-4], os.stat(fname).st_size))
 print(end="\x1b[0m")
 
 s = input("Enter one or two file number (eg. 1,2): ").split(',')
