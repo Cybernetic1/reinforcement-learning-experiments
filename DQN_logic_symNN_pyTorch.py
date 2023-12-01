@@ -61,18 +61,18 @@ class symNN(nn.Module):
 
 		# **** h-network, also referred to as "phi" in the literature
 		# input dim = 3 because each proposition is a 3-vector
-		self.h1 = nn.Linear(3, 9, bias=True)
+		self.h1 = nn.Linear(3, 16, bias=True)
 		self.relu1 = nn.Tanh()
-		self.h2 = nn.Linear(9, 9, bias=True)
+		self.h2 = nn.Linear(16, 9, bias=True)
 		self.relu2 = nn.Tanh()
 
 		# **** g-network, also referred to as "rho" in the literature
 		# input dim can be arbitrary, here chosen to be n_actions
-		self.g1 = nn.Linear(9, 9, bias=True)
+		self.g1 = nn.Linear(9, 16, bias=True)
 		self.relu3 = nn.Tanh()
 
 		# output dim must be n_actions
-		self.g2 = nn.Linear(9, action_dim, bias=True)
+		self.g2 = nn.Linear(16, action_dim, bias=True)
 
 	def forward(self, x):
 		# input dim = n_features = 9 x 3 = 27
