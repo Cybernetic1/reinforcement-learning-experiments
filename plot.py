@@ -72,6 +72,13 @@ if c2 >= 0:
 
 	print("size2=", len(data2))
 
+""" *** chop to about same size, +100
+if len(data) > len(data2):
+	data = data[: len(data2) + 100]
+else:
+	data2 = data2[: len(data) + 100]
+"""
+
 """  *** Old Plot ***
 plt.xlabel('episodes')
 plt.ylabel('reward')
