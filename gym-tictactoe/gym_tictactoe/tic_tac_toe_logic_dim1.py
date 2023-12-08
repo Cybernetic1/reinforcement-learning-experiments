@@ -3,6 +3,7 @@
 
 import gym
 import numpy
+import random	# only needed for 'shuffling' of state vector
 from gym import spaces, error
 import xml.etree.ElementTree as ET
 import os
@@ -148,7 +149,11 @@ class TicTacToeEnv(gym.Env):
 
 		self.index += 1
 
-		return numpy.array(self.state_vector), self.rewards[reward_type], done, {'already_used_position': is_position_already_used}
+		state_vector2 = self.state_vector.copy()
+		random.shuffle(state_vector2)
+		return numpy.array(state_vector2), \
+			self.rewards[reward_type], done, \
+			{'already_used_position': is_position_already_used}
 
 	# ----------------------------- DISPLAY -----------------------------
 	def get_state_vector_to_display(self):

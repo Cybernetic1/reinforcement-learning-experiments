@@ -42,8 +42,9 @@ class TicTacToeEnv(gym.Env):
 		# State space has 9 elements, each element is a vector of dim 3
 		self.state_space = spaces.Box(
 		# The entries indicate the min and max values of the "box":
-			numpy.array(numpy.float32( [2, 9] * 9 )), \
-			numpy.array(numpy.float32( [-1, -9] * 9 ))  )
+			numpy.array(numpy.float32( [2, 9] * 9 * 2)), \
+			numpy.array(numpy.float32( [-2, -9] * 9 * 2))  )
+		# 2 means "bad move", -2 means "intermediate thought"
 
 		self.rewards = {
 			'still_in_game': 0.3,
@@ -54,7 +55,7 @@ class TicTacToeEnv(gym.Env):
 
 	def reset(self):
 		self.board =        (self.board_size * self.board_size) * [0]
-		self.state_vector = (2 * self.board_size * self.board_size) * [0]
+		self.state_vector = (2 * 2 * self.board_size * self.board_size) * [0]
 		self.index = 0	# current state_vector position to write into
 		self.memory =       (self.board_size * self.board_size) * [0]
 		return numpy.array(self.state_vector)
@@ -140,31 +141,33 @@ class TicTacToeEnv(gym.Env):
 
 		if action >= 9:		# action is an intermediate thought
 			self.memory[action - 9] = 1
-			self.state_vector[self.index]
+			self.state_vector[self.index] = -2
+
+		else:				# normal action
 			
-		is_position_already_used = False
+			is_position_already_used = False
 
-		if self.board[action] != 0:
-			is_position_already_used = True
+			if self.board[action] != 0:
+				is_position_already_used = True
 
-		if is_position_already_used:
-			self.board[action] = 2
-			self.state_vector[self.index] = 0	# this seems not matter
-			reward_type = 'bad_position'
-			done = True
-		else:
-			self.board[action] = symbol
-			self.state_vector[self.index] = (action + 1) * symbol
-
-			if self.is_win():
-				reward_type = 'win'
-				done = True
-			elif self.is_draw():
-				reward_type = 'draw'
+			if is_position_already_used:
+				self.board[action] = 2
+				self.state_vector[self.index] = 0	# this seems not matter
+				reward_type = 'bad_position'
 				done = True
 			else:
-				reward_type = 'still_in_game'
-				done = False
+				self.board[action] = symbol
+				self.state_vector[self.index] = (action + 1) * symbol
+
+				if self.is_win():
+					reward_type = 'win'
+					done = True
+				elif self.is_draw():
+					reward_type = 'draw'
+					done = True
+				else:
+					reward_type = 'still_in_game'
+					done = False
 
 		self.index += 1
 
