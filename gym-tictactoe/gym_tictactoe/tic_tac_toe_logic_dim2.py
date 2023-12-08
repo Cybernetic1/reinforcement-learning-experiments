@@ -53,10 +53,10 @@ class TicTacToeEnv(gym.Env):
 			}
 
 	def reset(self):
-		self.state_vector = (2 * self.board_size * self.board_size) * [0]
 		self.board =        (self.board_size * self.board_size) * [0]
-		self.memory =       (self.board_size * self.board_size) * [0]
+		self.state_vector = (2 * self.board_size * self.board_size) * [0]
 		self.index = 0	# current state_vector position to write into
+		self.memory =       (self.board_size * self.board_size) * [0]
 		return numpy.array(self.state_vector)
 
 	# -------------------- GAME STATE CHECK -------------------------
