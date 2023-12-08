@@ -29,6 +29,7 @@ print("21. PyTorch\tDQN\tTransformer\tlogic, dim3")
 print("22. PyTorch\tDQN\tfully-connected\tlogic, dim3")
 print("23. PyTorch\tDQN\tfully-connected\tlogic, dim1")
 print("24. PyTorch\tDQN\tsymmetric NN\tlogic, dim3")
+print("25. PyTorch\tDQN\tmulti-step\tlogic, dim2")
 config = int(input("Choose config: ") or '0')
 
 import gym
