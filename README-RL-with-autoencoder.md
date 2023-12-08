@@ -43,33 +43,54 @@ AE 根据的是 reconstruction error
 <img src="state-with-delta.png" width="400"/>
 
 全状态 也是一个状态，所以应该做的是 状态的 **细致化**。
-全局上，我们关心的是 状态 x 的价值，那么 V(x + δx) 能否表达成~~
-V(x) 的推导？
-1）很明显 x + δx 是 x 的 下一个 reachable 状态。 
-2）x + δx 的价值是外在定义的，但它跟 x + δx 的形式无关
-3）它是 action δx 导致的，这似乎跟动力学方程有关
-4）这是一种 状态 algebra 结构，原来的 RL 推演中没
-5）algebra of states 是如何影响 RL 的 formulation？
+
+全局上，我们关心的是 状态 x 的价值，那么 V(x + δx) 能否表达成 V(x) 的推导？
+
+1. 很明显 x + δx 是 x 的 下一个 reachable 状态。 
+2. x + δx 的价值是外在定义的，但它跟 x + δx 的形式无关
+3. 它是 action δx 导致的，这似乎跟动力学方程有关
+4. 这是一种 状态 algebra 结构，原来的 RL 推演中没
+5. algebra of states 是如何影响 RL 的 formulation？
 似乎最简单的答案就是 定义 R(δx), 即每个 **命题** 的奖励。
 而 x 的奖励是 根据 δx 决定的。 甚至反而更直观、更易处理。
 
 余下问题：RL 跟 AE 的互相干涉
-1）RL 干涉 AE
+
+1. RL 干涉 AE
 AE 的中部突然出现外来的 tokens 会否影响其收敛？
 RL 导致出现的是：a）关于事实的思考，b）关于行动的思考
 然后用这些来预测世界，合适吗？ (a) 还可以，但 (b) 似乎有些牵强？
 （例如期待某人被暗杀、所以关注军队有否叛变等各种蛛丝马迹）
 
-2）AE 干涉 RL
+2. AE 干涉 RL
 RL 的状态中突然出现外来的 δx 会否影响 RL 的收敛？
 应该不会，因为状态从来是随着世界改变的。
 
 我说明了可以收敛，但没有说明 有没有帮助？
+
 AE → RL 肯定是有帮助的
+
 RL → AE 或许可以用 special marker 标记
+
 后者或许可以帮助 AE 涌现更多智慧
 
 <img src="state-with-intermediates.png" width="600"/>
 
 为方便起见 设 N=9
 
+Other than the board vector, we need an auxiliary store of propositions.
+
+But it may be different from the board vector.
+
+Each proposition is a discrete value from { 0...8 },
+so 9 propositions has 9<sup>9</sup> combinations but with redundancy.
+
+If not counting repeats, it is <sub>9</sub>C<sub>1</sub> + <sub>9</sub>C<sub>2</sub> +... + <sub>9</sub>C<sub>9</sub> = 2<sup>9</sup>.
+
+Two questions:
+
+1. Shall we allow deleting (negating) a proposition?
+
+2. Forgetting.  Perhaps we should use a list to implement this.
+In our simple situation we can actually have "permanent" memory and
+learning would still be OK.

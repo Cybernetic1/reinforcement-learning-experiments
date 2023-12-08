@@ -6,6 +6,16 @@
 #			interpreted as any idea (there could be 9 discrete ideas)
 # Action space = { 0 ... 8 }
 
+# TO-DO:
+# * Other than the board vector, we need an auxiliary store of propositions
+#	But it may be different from the board vector.
+#	Each proposition is a discrete value from { 0...8 }, so 9 propositions
+#	has 9^9 combinations but with redundancy.  If not counting repeats,
+#	it is 9C1 + 9C2 +... + 9C9 = 2^9.
+# * Two questions: 1) shall we allow deleting (negating) a proposition?
+#	2) forgetting.  Perhaps we should use a list to implement this.
+#	In our simple situation we can actually have "permanent" memory and
+#	learning would still be OK.
 import gym
 import numpy
 from gym import spaces, error
@@ -32,8 +42,8 @@ class TicTacToeEnv(gym.Env):
 		# State space has 9 elements, each element is a vector of dim 3
 		self.state_space = spaces.Box(
 		# The entries indicate the min and max values of the "box":
-		numpy.array(numpy.float32( [2, 9, 2, 9, 2, 9, 2, 9, 2, 9, 2, 9, 2, 9, 2, 9, 2, 9] )), \
-		numpy.array(numpy.float32( [-1, -9, -1, -9, -1, -9, -1, -9, -1, -9, -1, -9, -1, -9, -1, -9, -1, -9] )))
+			numpy.array(numpy.float32( [2, 9] * 9 )), \
+			numpy.array(numpy.float32( [-1, -9] * 9 ))  )
 
 		self.rewards = {
 			'still_in_game': 0.3,
@@ -43,9 +53,10 @@ class TicTacToeEnv(gym.Env):
 			}
 
 	def reset(self):
-		self.state_vector = (1 * self.board_size * self.board_size) * [0]
+		self.state_vector = (2 * self.board_size * self.board_size) * [0]
+		self.board =        (self.board_size * self.board_size) * [0]
+		self.memory =       (self.board_size * self.board_size) * [0]
 		self.index = 0	# current state_vector position to write into
-		self.board = (self.board_size * self.board_size) * [0]
 		return numpy.array(self.state_vector)
 
 	# -------------------- GAME STATE CHECK -------------------------
@@ -127,6 +138,10 @@ class TicTacToeEnv(gym.Env):
 	def step(self, action, symbol):
 		global board, state_vector
 
+		if action >= 9:		# action is an intermediate thought
+			self.memory[action - 9] = 1
+			self.state_vector[self.index]
+			
 		is_position_already_used = False
 
 		if self.board[action] != 0:
