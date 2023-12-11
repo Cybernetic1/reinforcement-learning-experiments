@@ -16,6 +16,9 @@
 #	2) forgetting.  Perhaps we should use a list to implement this.
 #	In our simple situation we can actually have "permanent" memory and
 #	learning would still be OK.
+# * What is format of output state_vector? 9+N propositions, each of dim2,
+#	with board-propositions first, followed by thought-propositions.
+#	N need not be multiple of 9, but let's test N=9 now.
 import gym
 import numpy
 from gym import spaces, error
@@ -37,27 +40,37 @@ class TicTacToeEnv(gym.Env):
 			symbols[1]: "O",
 			2: "!"
 		}
-		self.action_space = spaces.Discrete(self.board_size * self.board_size)
+		self.action_space = spaces.Discrete(
+			self.board_size * self.board_size *2)
 
-		# State space has 9 elements, each element is a vector of dim 3
+		# State space has 9 elements, each element is a vector of dim 2
 		self.state_space = spaces.Box(
 		# The entries indicate the min and max values of the "box":
-			numpy.array(numpy.float32( [2, 9] * 9 * 2)), \
-			numpy.array(numpy.float32( [-2, -9] * 9 * 2))  )
+			numpy.array(numpy.float32( [2, 4] * 9 * 2)), \
+			numpy.array(numpy.float32( [-2, -4] * 9 * 2))  )
 		# 2 means "bad move", -2 means "intermediate thought"
 
 		self.rewards = {
 			'still_in_game': 0.3,
+			'thinking': 0.0,
+			'over-think': -10.0,
 			'draw': 10.0,
 			'win': 20.0,
 			'bad_position': -30.0
 			}
 
 	def reset(self):
-		self.board =        (self.board_size * self.board_size) * [0]
-		self.state_vector = (2 * 2 * self.board_size * self.board_size) * [0]
-		self.index = 0	# current state_vector position to write into
-		self.memory =       (self.board_size * self.board_size) * [0]
+		self.thinking_steps = 0
+		self.board = (self.board_size * self.board_size) * [0]
+		# fill state vector with 9 empty squares and 9 null propositions:
+		self.state_vector = []
+		for i in range(0, self.board_size * self.board_size):
+			self.state_vector += [0,i]
+		for i in range(0, self.board_size * self.board_size):
+			self.state_vector += [-2,0]
+		self.index = 0	  # current state_vector position to write into
+		self.m_index = 18 # beginning of memory propositions
+		self.memory = (self.board_size * self.board_size) * [0]
 		return numpy.array(self.state_vector)
 
 	# -------------------- GAME STATE CHECK -------------------------
@@ -137,27 +150,43 @@ class TicTacToeEnv(gym.Env):
 
 	# ------------------------------ ACTIONS ----------------------------
 	def step(self, action, symbol):
-		global board, state_vector
 
 		if action >= 9:		# action is an intermediate thought
-			self.memory[action - 9] = 1
-			self.state_vector[self.index] = -2
+			
+			if self.memory[action -9] == 0:		# check for repetition
+				self.memory[action -9] = 1
+				# print("action, m_index", action, self.m_index)
+				self.state_vector[self.m_index] = -2
+				# next element is in range [-4,4], represents position:
+				self.state_vector[self.m_index +1] = action -9 -4
+				self.m_index += 2
+				assert self.m_index < 36, "Memory index overflow"
+			else:	# repeated, danger of infinite loop?
+				self.thinking_steps += 1
+
+			if self.thinking_steps > 512:
+				reward_type = 'over-think'
+				done = True
+			else:
+				reward_type = 'thinking'
+				done = False
 
 		else:				# normal action
-			
-			is_position_already_used = False
 
+			is_position_already_used = False
 			if self.board[action] != 0:
 				is_position_already_used = True
 
 			if is_position_already_used:
 				self.board[action] = 2
-				self.state_vector[self.index] = 0	# this seems not matter
+				self.state_vector[self.index] = 2	# this seems not matter
+				self.state_vector[self.index +1] = action -4
 				reward_type = 'bad_position'
 				done = True
 			else:
 				self.board[action] = symbol
-				self.state_vector[self.index] = (action + 1) * symbol
+				self.state_vector[self.index] = symbol
+				self.state_vector[self.index +1] = action -4
 
 				if self.is_win():
 					reward_type = 'win'
@@ -169,9 +198,14 @@ class TicTacToeEnv(gym.Env):
 					reward_type = 'still_in_game'
 					done = False
 
-		self.index += 1
+			if symbol == -1:		# self-move
+				self.m_index = 18		# clear memories
+				for i in range(0, self.board_size * self.board_size):
+					self.state_vector[i *2 + 18] = -2
+					self.state_vector[i *2 + 19] = 0
+			self.index += 2
 
-		return numpy.array(self.state_vector), self.rewards[reward_type], done, {'already_used_position': is_position_already_used}
+		return numpy.array(self.state_vector), self.rewards[reward_type], done	# , {'already_used_position': is_position_already_used}
 
 	# ----------------------------- DISPLAY -----------------------------
 	def get_state_vector_to_display(self):

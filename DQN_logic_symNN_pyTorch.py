@@ -161,8 +161,8 @@ class DQN():
 		return
 
 	def net_info(self):
-		config_h = "(3)-10-8"
-		config_g = "8-(9)"
+		config_h = "(3)-16-9"
+		config_g = "9-16-(9)"
 		total = 0
 		neurons = config_h.split('-')
 		last_n = 3
@@ -178,7 +178,7 @@ class DQN():
 			total += last_n * n
 			last_n = n
 		total += last_n * 9
-		return (config_h + 'x' + config_g, total)
+		return (config_h + ':' + config_g, total)
 
 	def play_random(self, state, action_space):
 		# NOTE: random player never chooses occupied squares

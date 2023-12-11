@@ -72,12 +72,17 @@ elif config == 23:
 elif config == 24:
 	from DQN_logic_symNN_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.logic.symNN"
+elif config == 25:
+	from DQN_multistep_pyTorch import DQN, ReplayBuffer
+	tag = "DQN.multistep"
 
 import gym_tictactoe
 if config in [10, 12, 14, 21, 22, 24]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 elif config == 23:
 	env = gym.make('TicTacToe-logic-dim1-v0', symbols=[-1, 1], board_size=3, win_size=3)
+elif config == 25:
+	env = gym.make('TicTacToe-logic-dim2-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
@@ -95,6 +100,13 @@ elif config in [20, 21, 22, 23, 24]:
 	RL = DQN(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
+		learning_rate = 0.001,
+		gamma = 0.9,	# doesn't matter for gym TicTacToe
+	)
+elif config == 25:
+	RL = DQN(
+		action_dim = env.action_space.n,
+		state_dim = env.state_space.shape[0],	# ignored, using dim=2
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
@@ -243,13 +255,13 @@ def play_1_game_with_human():
 		if user == 0:
 			print("X's move =", end='')		# will be printed by RL.choose_action()
 			action1 = RL.choose_action(state)
-			state1, reward1, done, _ = env.step(action1, -1)
+			state1, reward1, done = env.step(action1, -1)
 			if done:
 				state = state1
 				reward1 = reward2 = 0
 		elif user == 1:			# human player
 			action2 = int(input("Your move (0-8)? "))
-			state2, reward2, done, _ = env.step(action2, 1)
+			state2, reward2, done = env.step(action2, 1)
 			r_x = reward1		# reward w.r.t. player X = AI
 			if reward2 > 19.0:
 				r_x -= 20.0
@@ -266,8 +278,8 @@ def play_1_game_with_human():
 
 train_once = False		# you may use Ctrl-C to change this
 DETERMINISTIC = False
-RENDER = 0
-RENDERMODE = "HTML"
+RENDER = 2
+RENDERMODE = "not-HTML"
 i_episode = 0
 running_reward = 0.0
 
@@ -287,13 +299,13 @@ while True:
 		if user == -1:		# AI player
 			# action is integer 0...8
 			action1 = RL.choose_action(state)
-			state1, reward1, done, _ = env.step(action1, -1)
+			state1, reward1, done = env.step(action1, -1)
 			if done:
 				RL.replay_buffer.push(state, action1, reward1, state1, done)
 		elif user == 1:		# random player
 			# NOTE: random player never chooses occupied squares
 			action2 = RL.play_random(state1, env.action_space)
-			state2, reward2, done, _ = env.step(action2, 1)
+			state2, reward2, done = env.step(action2, 1)
 			r_x = reward1		# reward w.r.t. player X = AI
 			# **** Scoring: AI win > draw > lose > crash
 			#                +20      +10   -20    -30
