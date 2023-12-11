@@ -119,7 +119,7 @@ class DQN():
 
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
-		hidden_dim = 16
+		hidden_dim = 9
 		self.symnet = symNN(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
 		self.q_criterion = nn.MSELoss()
@@ -173,8 +173,8 @@ class DQN():
 		return
 
 	def net_info(self):
-		config_h = "(2)-16-9"
-		config_g = "9-16-(9)"
+		config_h = "(2)-9-9"
+		config_g = "9-9-(9)"
 		total = 0
 		neurons = config_h.split('-')
 		last_n = 3
@@ -195,11 +195,19 @@ class DQN():
 	def play_random(self, state, action_space):
 		# Select an action (0-9) randomly
 		# NOTE: random player never chooses occupied squares
-		while True:
-			action = action_space.sample()
-			occupied = state[action]
-			if occupied > -0.1 and occupied < 0.1:
-				break
+		empties = [0,1,2,3,4,5,6,7,8]
+		# Find and collect all empty squares
+		# scan through all 9 propositions, each proposition is a 2-vector
+		for i in range(0, 18, 2):
+			# 'proposition' is a numpy array[3]
+			proposition = state[i : i + 2]
+			sym = proposition[0]
+			if sym == 1 or sym == -1:
+				x = proposition[1]
+				j = x + 4
+				empties.remove(j)
+		# Select an available square randomly
+		action = random.sample(empties, 1)[0]
 		return action
 
 	def save_net(self, fname):

@@ -255,13 +255,13 @@ def play_1_game_with_human():
 		if user == 0:
 			print("X's move =", end='')		# will be printed by RL.choose_action()
 			action1 = RL.choose_action(state)
-			state1, reward1, done = env.step(action1, -1)
+			state1, reward1, done, rtype = env.step(action1, -1)
 			if done:
 				state = state1
 				reward1 = reward2 = 0
 		elif user == 1:			# human player
 			action2 = int(input("Your move (0-8)? "))
-			state2, reward2, done = env.step(action2, 1)
+			state2, reward2, done, rtype = env.step(action2, 1)
 			r_x = reward1		# reward w.r.t. player X = AI
 			if reward2 > 19.0:
 				r_x -= 20.0
@@ -272,14 +272,15 @@ def play_1_game_with_human():
 
 		# If the game isn't over, change the current player
 		if not done:
-			user = 0 if user == 1 else 1
+			if rtype != 'thinking':
+				user = 0 if user == 1 else 1
 	env.render()
 	print("*** GAME OVER ***")
 
 train_once = False		# you may use Ctrl-C to change this
 DETERMINISTIC = False
-RENDER = 2
-RENDERMODE = "not-HTML"
+RENDER = 0
+RENDERMODE = "HTML"
 i_episode = 0
 running_reward = 0.0
 
@@ -299,13 +300,13 @@ while True:
 		if user == -1:		# AI player
 			# action is integer 0...8
 			action1 = RL.choose_action(state)
-			state1, reward1, done = env.step(action1, -1)
+			state1, reward1, done, rtype = env.step(action1, -1)
 			if done:
 				RL.replay_buffer.push(state, action1, reward1, state1, done)
 		elif user == 1:		# random player
 			# NOTE: random player never chooses occupied squares
 			action2 = RL.play_random(state1, env.action_space)
-			state2, reward2, done = env.step(action2, 1)
+			state2, reward2, done, rtype = env.step(action2, 1)
 			r_x = reward1		# reward w.r.t. player X = AI
 			# **** Scoring: AI win > draw > lose > crash
 			#                +20      +10   -20    -30
@@ -318,7 +319,8 @@ while True:
 
 		# If the game isn't over, change the current player
 		if not done:
-			user = -1 if user == 1 else 1
+			if rtype != 'thinking':
+				user = -1 if user == 1 else 1
 			if RENDER == 2:
 				env.render(mode = RENDERMODE)
 		elif RENDER > 0:
@@ -331,9 +333,10 @@ while True:
 		color = '\x1b[32m'			# green
 	if per_game_reward < -19.0:
 		color = '\x1b[33m'			# yellow
-	if per_game_reward < -21.0:
+	if per_game_reward < -26.0:
 		color = '\x1b[31m'			# red
 	print(color + str(per_game_reward), end=' ')
+	# print("rtype=", rtype)
 	# if input("! to break ==>") == '!':
 		# break
 
