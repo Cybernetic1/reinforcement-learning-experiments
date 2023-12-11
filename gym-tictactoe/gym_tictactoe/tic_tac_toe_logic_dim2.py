@@ -51,13 +51,16 @@ class TicTacToeEnv(gym.Env):
 		# 2 means "bad move", -2 means "intermediate thought"
 
 		self.rewards = {
-			'still_in_game': 0.1,
+			'still_in_game': 0.3,
+			'thinking': 0.0,
+			'over-think': -10.0,
 			'draw': 10.0,
 			'win': 20.0,
 			'bad_position': -30.0
 			}
 
 	def reset(self):
+		self.thinking_steps = 0
 		self.board = (self.board_size * self.board_size) * [0]
 		# fill state vector with 9 empty squares and 9 null propositions:
 		self.state_vector = []
@@ -65,8 +68,8 @@ class TicTacToeEnv(gym.Env):
 			self.state_vector += [0,i]
 		for i in range(0, self.board_size * self.board_size):
 			self.state_vector += [-2,0]
-		self.index = 0	 # current state_vector position to write into
-		self.m_index = 9 # beginning of memory propositions
+		self.index = 0	  # current state_vector position to write into
+		self.m_index = 18 # beginning of memory propositions
 		self.memory = (self.board_size * self.board_size) * [0]
 		return numpy.array(self.state_vector)
 
@@ -147,24 +150,30 @@ class TicTacToeEnv(gym.Env):
 
 	# ------------------------------ ACTIONS ----------------------------
 	def step(self, action, symbol):
-		global board, state_vector
-
-		is_position_already_used = False
 
 		if action >= 9:		# action is an intermediate thought
+			
 			if self.memory[action -9] == 0:		# check for repetition
+				self.memory[action -9] = 1
+				# print("action, m_index", action, self.m_index)
 				self.state_vector[self.m_index] = -2
 				# next element is in range [-4,4], represents position:
 				self.state_vector[self.m_index +1] = action -9 -4
 				self.m_index += 2
-				assert self.m_index <= 18, "Memory index overflow"
-			else:
+				assert self.m_index < 36, "Memory index overflow"
+			else:	# repeated, danger of infinite loop?
+				self.thinking_steps += 1
 
-			reward_type = 'still_in_game'
-			done = False
+			if self.thinking_steps > 512:
+				reward_type = 'over-think'
+				done = True
+			else:
+				reward_type = 'thinking'
+				done = False
 
 		else:				# normal action
 
+			is_position_already_used = False
 			if self.board[action] != 0:
 				is_position_already_used = True
 
@@ -189,11 +198,14 @@ class TicTacToeEnv(gym.Env):
 					reward_type = 'still_in_game'
 					done = False
 
-			self.m_index = 9		# clear memories
-			
+			if symbol == -1:		# self-move
+				self.m_index = 18		# clear memories
+				for i in range(0, self.board_size * self.board_size):
+					self.state_vector[i *2 + 18] = -2
+					self.state_vector[i *2 + 19] = 0
 			self.index += 2
 
-		return numpy.array(self.state_vector), self.rewards[reward_type], done, {'already_used_position': is_position_already_used}
+		return numpy.array(self.state_vector), self.rewards[reward_type], done	# , {'already_used_position': is_position_already_used}
 
 	# ----------------------------- DISPLAY -----------------------------
 	def get_state_vector_to_display(self):

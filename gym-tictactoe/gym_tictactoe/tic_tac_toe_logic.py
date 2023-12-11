@@ -152,7 +152,7 @@ class TicTacToeEnv(gym.Env):
 
 		self.index += 3
 
-		return numpy.array(self.state_vector), self.rewards[reward_type], done, {'already_used_position': is_position_already_used}
+		return numpy.array(self.state_vector), self.rewards[reward_type], done # , {'already_used_position': is_position_already_used}
 
 	# -------------------------------------- DISPLAY ----------------------------------------
 	def get_state_vector_to_display(self):
