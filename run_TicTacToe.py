@@ -368,6 +368,7 @@ while True:
 				i_episode = 0
 				log_name = "results/results." + tag + "." + timeStamp + ".txt"
 				log_file = open(log_name, "w+")
+
 				print("New log file opened:", log_name)
 
 print('\007')	# sound beep
