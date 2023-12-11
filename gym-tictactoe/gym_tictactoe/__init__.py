@@ -20,3 +20,9 @@ register(
     entry_point='gym_tictactoe.tic_tac_toe_logic_dim1:TicTacToeEnv',
     reward_threshold=1000
 )
+
+register(
+    id='TicTacToe-logic-dim2-v0',	# logic dim2, with intermediate memory
+    entry_point='gym_tictactoe.tic_tac_toe_logic_dim2:TicTacToeEnv',
+    reward_threshold=1000
+)

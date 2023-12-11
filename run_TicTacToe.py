@@ -72,12 +72,17 @@ elif config == 23:
 elif config == 24:
 	from DQN_logic_symNN_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.logic.symNN"
+elif config == 25:
+	from DQN_multistep_pyTorch import DQN, ReplayBuffer
+	tag = "DQN.multistep"
 
 import gym_tictactoe
 if config in [10, 12, 14, 21, 22, 24]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 elif config == 23:
 	env = gym.make('TicTacToe-logic-dim1-v0', symbols=[-1, 1], board_size=3, win_size=3)
+elif config == 25:
+	env = gym.make('TicTacToe-logic-dim2-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
@@ -95,6 +100,13 @@ elif config in [20, 21, 22, 23, 24]:
 	RL = DQN(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
+		learning_rate = 0.001,
+		gamma = 0.9,	# doesn't matter for gym TicTacToe
+	)
+elif config == 25:
+	RL = DQN(
+		action_dim = env.action_space.n,
+		state_dim = env.state_space.shape[0],	# ignored, using dim=2
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
