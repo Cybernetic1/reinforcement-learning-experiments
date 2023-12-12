@@ -104,4 +104,9 @@ learning would still be OK.
 在思维空间里 每个状态 映射到 所有 δx 的概率分布  
 状态 x 是包含很多个命题的，但这个 映射不能被分拆  
 （这个映射的复杂性，适宜用深度神经网络处理）  
-现在问题是 next thought
+现在问题是 next thought  
+如果直接输出 action 就行，为什么要 thoughts？  
+thoughts 的奖励机制是很复杂的  
+它涉及到 资讯压缩的 gains  
+现在问题是：漫无目的地产生 thoughts，  
+奖励机制 不明显。
