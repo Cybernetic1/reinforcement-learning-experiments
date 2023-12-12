@@ -50,20 +50,23 @@ AE 根据的是 reconstruction error
 2. x + δx 的价值是外在定义的，但它跟 x + δx 的形式无关
 3. 它是 action δx 导致的，这似乎跟动力学方程有关
 4. 这是一种 状态 algebra 结构，原来的 RL 推演中没有
-5. algebra of states 是如何影响 RL 的 formulation？
-似乎最简单的答案就是 定义 R(δx), 即每个 **命题** 的奖励。
+5. algebra of states 是如何影响 RL 的 formulation？  
+似乎最简单的答案就是 定义 R(δx), 即每个 **命题** 的奖励。  
 而 x 的奖励是 根据 δx 决定的。 甚至反而更直观、更易处理。
 
 余下问题：RL 跟 AE 的互相干涉
 
 1. RL 干涉 AE：  
 AE 的中部突然出现外来的 tokens 会否影响其收敛？
-RL 导致出现的是：a）关于事实的思考，b）关于行动的思考
-然后用这些来预测世界，合适吗？ (a) 还可以，但 (b) 似乎有些牵强？
+RL 导致出现的是：  
+a）关于事实的思考，  
+b）关于行动的思考  
+然后用这些来预测世界，合适吗？  
+ (a) 还可以，但 (b) 似乎有些牵强？  
 （例如期待某人被暗杀、所以关注军队有否叛变等各种蛛丝马迹）
 
 2. AE 干涉 RL：  
-RL 的状态中突然出现外来的 δx 会否影响 RL 的收敛？
+RL 的状态中突然出现外来的 δx 会否影响 RL 的收敛？  
 应该不会，因为状态从来是随着世界改变的。
 
 我说明了可以收敛，但没有说明 有没有帮助？
@@ -94,3 +97,10 @@ Two questions:
 2. Forgetting.  Perhaps we should use a list to implement this.
 In our simple situation we can actually have "permanent" memory and
 learning would still be OK.
+
+究竟 多步逻辑 是不是有需要呢？  
+以下棋作比喻，V 包含了每个思维的价值  
+但思维与下棋是不是完全相似的？  
+在思维空间里 每个状态 映射到 所有 δx 的概率分布  
+状态 x 是包含很多个命题的，但这个 映射不能被分拆  
+（这个映射的复杂性，适宜用深度神经网络处理）  
