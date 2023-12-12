@@ -109,4 +109,5 @@ learning would still be OK.
 thoughts 的奖励机制是很复杂的  
 它涉及到 资讯压缩的 gains  
 现在问题是：漫无目的地产生 thoughts，  
-奖励机制 不明显。
+奖励机制 不明显。  
+压缩的 loss function 似乎就是 world reconstruction loss.  
