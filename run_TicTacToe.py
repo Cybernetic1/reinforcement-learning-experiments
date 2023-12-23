@@ -14,22 +14,23 @@ With a choice of algorithms:
 - symmetric NN
 - Transformer
 """
-print("    Engine\tAlgo\tStructure\tRepresentation")
-print("========================================================")
-print("0.  Python\tQ-table\tno NN\t\tboard vector")
-print("10. PyTorch\tPG\tsymmetric NN\tlogic, dim3")
-print("11. PyTorch\tPG\tfully-connected\tboard vector")
-print("12. TensorFlow\tPG\tsymmetric NN\tlogic, dim3")
-print("13. TensorFlow\tPG\tfully-connected\tboard vector")
-print("14. PyTorch\tPG\tTransformer\tlogic, dim3")
-print("15. PyTorch\tSAC\tfully-connected\tboard vector\n")
+print("    Engine\tAlgo\tStructure\t\tRepresentation")
+print("=" * 70)
+print("0.  Python\tQ-table\tno NN\t\t\tboard vector")
+print("10. PyTorch\tPG\tsymmetric NN\t\tlogic, dim3")
+print("11. PyTorch\tPG\tfully-connected\t\tboard vector")
+print("12. TensorFlow\tPG\tsymmetric NN\t\tlogic, dim3")
+print("13. TensorFlow\tPG\tfully-connected\t\tboard vector")
+print("14. PyTorch\tPG\tTransformer\t\tlogic, dim3")
+print("15. PyTorch\tSAC\tfully-connected\t\tboard vector\n")
 
-print("20. PyTorch\tDQN\tfully-connected\tboard vector")
-print("21. PyTorch\tDQN\tTransformer\tlogic, dim3")
-print("22. PyTorch\tDQN\tfully-connected\tlogic, dim3")
-print("23. PyTorch\tDQN\tfully-connected\tlogic, dim1")
-print("24. PyTorch\tDQN\tsymmetric NN\tlogic, dim3")
-print("25. PyTorch\tDQN\tmulti-step\tlogic, dim2")
+print("20. PyTorch\tDQN\tfully-connected\t\tboard vector")
+print("21. PyTorch\tDQN\tTransformer\t\tlogic, dim3")
+print("22. PyTorch\tDQN\tfully-connected\t\tlogic, dim3")
+print("23. PyTorch\tDQN\tfully-connected\t\tlogic, dim1")
+print("24. PyTorch\tDQN\tsymmetric NN\t\tlogic, dim3")
+print("25. PyTorch\tDQN\tmulti-step\t\tlogic, dim2")
+print("26. PyTorch\tDQN\tshrink until fail\tlogic, dim2")
 config = int(input("Choose config: ") or '0')
 
 import gym
