@@ -21,7 +21,7 @@ class ReplayBuffer:
 		self.position = (self.position + 1) % self.capacity
 
 	def last_reward(self):
-		return self.buffer[self.position -1 ][2]
+		return self.buffer[self.position -1][2]
 
 	def sample(self, batch_size):
 		batch = random.sample(self.buffer, batch_size)
