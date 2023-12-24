@@ -208,6 +208,8 @@ signal.signal(signal.SIGINT, ctrl_C_handler)
 import glob
 if config == 3 or config == 4:		# TensorFlow
 	files = glob.glob("TensorFlow_models/" + model_name + "*.index")
+elif config == 0:
+	files = glob.glob("*.npy")
 else:
 	files = glob.glob("PyTorch_models/" + model_name + "*.dict")
 files.sort()
@@ -218,6 +220,8 @@ for i, fname in enumerate(files):
 		print(end="\x1b[0m")
 	if config == 4 or config == 5:		# TensorFlow
 		print("%2d %s" %(i, fname[24:-6]))
+	elif config == 0:
+		print("%2d %s" %(i, fname))
 	else:
 		print("%2d %s" %(i, fname[21:-5]))
 print(end="\x1b[0m")
@@ -225,6 +229,8 @@ j = input("Load model? (Enter number or none): ")
 if j:
 	if config == 4 or config == 5:		# TensorFlow
 		RL.load_net(files[int(j)][18:-11])
+	elif config == 0:
+		RL.load_net(files[int(j)])
 	else:
 		RL.load_net(files[int(j)][15:-5])
 

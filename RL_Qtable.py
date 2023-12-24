@@ -1,6 +1,11 @@
 """
 Discrete Q table that does not need deep learning
 
+* It converges very fast initially but does not reach perfection
+* After ~2 hours the value of Q(0) is still 0's -- meaning that it will
+	play random moves on an empty board
+* We could write code to examine the Q values visually
+
 Using:
 gym: 0.8.0
 """
@@ -127,7 +132,9 @@ class Qtable():
 		return action
 
 	def save_net(self, fname):
-		print("Model not saved.")
+		np.save(fname, self.Qtable)
+		print("Q-table saved.")
 
 	def load_net(self, fname):
-		print("Model not loaded.")
+		self.Qtable = np.load(fname)
+		print("Q-table loaded.")
