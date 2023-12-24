@@ -4,21 +4,23 @@
 # where: player = 0 means empty squares
 #		player = 2 means intermediate thoughts, and square can be freely
 #			interpreted as any idea (there could be 9 discrete ideas)
-# Action space = { 0 ... 8 }
+# Action space = { 0 ... 8, 9 ... 17 }
+# If no thought-actions are made, it plays as single-step actor.
 
-# TO-DO:
 # * Other than the board vector, we need an auxiliary store of propositions
 #	But it may be different from the board vector.
 #	Each proposition is a discrete value from { 0...8 }, so 9 propositions
 #	has 9^9 combinations but with redundancy.  If not counting repeats,
 #	it is 9C1 + 9C2 +... + 9C9 = 2^9.
+# * What is format of output state_vector? 9+N propositions, each of dim2,
+#	with board-propositions first, followed by thought-propositions.
+#	N need not be multiple of 9, but let's test N=9 now.
+
+# TO-DO:
 # * Two questions: 1) shall we allow deleting (negating) a proposition?
 #	2) forgetting.  Perhaps we should use a list to implement this.
 #	In our simple situation we can actually have "permanent" memory and
 #	learning would still be OK.
-# * What is format of output state_vector? 9+N propositions, each of dim2,
-#	with board-propositions first, followed by thought-propositions.
-#	N need not be multiple of 9, but let's test N=9 now.
 import gym
 import numpy
 from gym import spaces, error

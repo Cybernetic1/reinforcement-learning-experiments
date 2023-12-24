@@ -76,13 +76,16 @@ elif config == 24:
 elif config == 25:
 	from DQN_multistep_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.multistep"
+elif config == 26:
+	from DQN_shrink_pyTorch import DQN, ReplayBuffer
+	tag = "DQN.shrink"
 
 import gym_tictactoe
 if config in [10, 12, 14, 21, 22, 24]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 elif config == 23:
 	env = gym.make('TicTacToe-logic-dim1-v0', symbols=[-1, 1], board_size=3, win_size=3)
-elif config == 25:
+elif config in [25, 26]:
 	env = gym.make('TicTacToe-logic-dim2-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -107,6 +110,13 @@ elif config in [20, 21, 22, 23, 24]:
 elif config == 25:
 	RL = DQN(
 		action_dim = env.action_space.n,
+		state_dim = env.state_space.shape[0],	# ignored, using dim=2
+		learning_rate = 0.001,
+		gamma = 0.9,	# doesn't matter for gym TicTacToe
+	)
+elif config == 26:
+	RL = DQN(
+		action_dim = env.action_space.n // 2,	# use only real actions
 		state_dim = env.state_space.shape[0],	# ignored, using dim=2
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
@@ -360,7 +370,6 @@ while True:
 			command = None
 
 	if i_episode % 100 == 0:
-		call(['play', '-n', '-q', 'synth', '0.05', 'sine', '2300', 'gain', '-20'])
 		rr = round(running_reward, 5)
 		print("\n\t\x1b[0m", i_episode, "Running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
 		# RL.set_learning_rate(i_episode)
@@ -368,11 +377,18 @@ while True:
 		log_file.flush()
 
 		if i_episode % 1000 == 0:
+			if rr < 0.0:
+				s = 'minus ' + str(int(-rr))
+			else:
+				s = str(int(rr))
+			call(['ekho', s, '-v', 'English', '--english-speed', '-50'])
+
 			delta = datetime.now() - startTime
 			print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))
 
 			if i_episode == 200000:		# approx 1 hours' run for pyTorch, half hour for TensorFlow
-				print('\007')	# sound beep
+				# print('\007')	# sound beep
+				call(['ekho', '新档案', '-s=-20'])	# speak "new file"
 				log_file.close()
 				RL.save_net(model_name + "." + timeStamp)
 				if train_once:
@@ -386,5 +402,7 @@ while True:
 				log_file = open(log_name, "w+")
 
 				print("New log file opened:", log_name)
+		else:
+			call(['play', '-n', '-q', 'synth', '0.05', 'sine', '2300', 'gain', '-20'])
 
 print('\007')	# sound beep

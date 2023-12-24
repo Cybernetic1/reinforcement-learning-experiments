@@ -2,6 +2,9 @@
 Shrink NN until it fails to play perfectly.
 The goal is to find the minimal NN size that can solve TicTacToe.
 
+1. use fully-connected, which seems easier to control
+2. make sure action ∈ {0...8} (no intermediate thoughts)
+
 Using:
 PyTorch: 1.9.1+cpu
 gym: 0.8.0
@@ -53,50 +56,30 @@ class ReplayBuffer:
 	def __len__(self):
 		return len(self.buffer)
 
-class symNN(nn.Module):
-	def __init__(self, input_dim, action_dim, hidden_dim, activation=F.relu, init_w=3e-3):
-		super(symNN, self).__init__()
+class QNetwork(nn.Module):
+	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
+		super(QNetwork, self).__init__()
 
-		# **** h-network, also referred to as "phi" in the literature
-		# input dim = 2 because each proposition is a 2-vector
-		self.h1 = nn.Linear(2, hidden_dim, bias=True)
-		self.relu1 = nn.Tanh()
-		self.h2 = nn.Linear(hidden_dim, 9, bias=True)
-		self.relu2 = nn.Tanh()
+		self.linear1 = nn.Linear(input_dim, hidden_size)
+		self.linear2 = nn.Linear(hidden_size, hidden_size)
+		self.linear3 = nn.Linear(hidden_size, hidden_size)
+		self.linear4 = nn.Linear(hidden_size, hidden_size)
 
-		# **** g-network, also referred to as "rho" in the literature
-		# input dim can be arbitrary, here chosen to be n_actions
-		self.g1 = nn.Linear(9, hidden_dim, bias=True)
-		self.relu3 = nn.Tanh()
+		self.logits_linear = nn.Linear(hidden_size, action_dim)
+		self.logits_linear.weight.data.uniform_(-init_w, init_w)
+		self.logits_linear.bias.data.uniform_(-init_w, init_w)
 
-		# output dim must be n_actions
-		self.g2 = nn.Linear(hidden_dim, action_dim, bias=True)
+		self.activation = F.relu
 
-	def forward(self, x):
-		# input dim = n_features = 9 x 3 = 27
-		# there are 9 h-networks each taking a dim-3 vector input
-		# First we need to split the input into 9 parts:
-		xs = torch.split(x, 2, dim=1)
-		# print("xs=", xs)
+	def forward(self, state):
+		x = self.activation(self.linear1(state))
+		x = self.activation(self.linear2(x))
+		x = self.activation(self.linear3(x))
+		x = self.activation(self.linear4(x))
 
-		# h-network:
-		ys = []
-		for i in range(9 *2):					# repeat h1 9 *2 times
-			ys.append( self.relu1( self.h1(xs[i]) ))
-		zs = []
-		for i in range(9 *2):					# repeat h2 9 *2 times
-			zs.append( self.relu2( self.h2(ys[i]) ))
-
-		# add all the z's together:
-		z = torch.stack(zs, dim=1)
-		z = torch.sum(z, dim=1)
-
-		# g-network:
-		z1 = self.g1(z)
-		z1 = self.relu3(z1)
-		z2 = self.g2(z1)
-		# z2 = self.softmax(z2)
-		return z2 # = logits
+		logits = self.logits_linear(x)
+		# logits = F.leaky_relu(self.logits_linear(x))
+		return logits
 
 class DQN():
 
@@ -116,15 +99,15 @@ class DQN():
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
 		hidden_dim = 16
-		self.symnet = symNN(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
+		self.qnet = QNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
 		self.q_criterion = nn.MSELoss()
-		self.q_optimizer = optim.Adam(self.symnet.parameters(), lr=self.lr)
+		self.q_optimizer = optim.Adam(self.qnet.parameters(), lr=self.lr)
 
 	def choose_action(self, state, deterministic=True):
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
 
-		logits = self.symnet(state)
+		logits = self.qnet(state)
 		probs  = torch.softmax(logits, dim=1)
 		dist   = Categorical(probs)
 		action = dist.sample().numpy()[0]
@@ -144,8 +127,8 @@ class DQN():
 		reward     = torch.FloatTensor(reward).to(device) # .to(device)  # reward is single value, unsqueeze() to add one dim to be [reward] at the sample dim;
 		done       = torch.BoolTensor(done).to(device)
 
-		logits = self.symnet(state)
-		next_logits = self.symnet(next_state)
+		logits = self.qnet(state)
+		next_logits = self.qnet(next_state)
 
 		# **** Train deep Q function, this is just Bellman equation:
 		# DQN(st,at) += η [ R + γ max_a DQN(s_t+1,a) - DQN(st,at) ]
@@ -169,24 +152,16 @@ class DQN():
 		return
 
 	def net_info(self):
-		config_h = "(2)-16-9"
-		config_g = "9-16-(9)"
+		config = "(9)-16-16-16-16-16-(9)"
+		neurons = config.split('-')
+		last_n = 9
 		total = 0
-		neurons = config_h.split('-')
-		last_n = 3
-		for n in neurons[1:]:
-			n = int(n)
-			total += last_n * n
-			last_n = n
-		total *= 9
-
-		neurons = config_g.split('-')
 		for n in neurons[1:-1]:
 			n = int(n)
 			total += last_n * n
 			last_n = n
 		total += last_n * 9
-		return (config_h + ':' + config_g, total)
+		return (config, total)
 
 	def play_random(self, state, action_space):
 		# Select an action (0-9) randomly

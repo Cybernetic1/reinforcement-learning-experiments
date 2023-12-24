@@ -21,7 +21,7 @@ class ReplayBuffer:
 		self.position = (self.position + 1) % self.capacity
 
 	def last_reward(self):
-		return self.buffer[-1][2]
+		return self.buffer[self.position -1 ][2]
 
 	def sample(self, batch_size):
 		batch = random.sample(self.buffer, batch_size)
@@ -115,11 +115,15 @@ class Qtable():
 	def play_random(self, state, action_space):
 		# Select an action (0-9) randomly
 		# NOTE: random player never chooses occupied squares
-		while True:
-			action = action_space.sample()
-			occupied = state[action]
-			if occupied > -0.1 and occupied < 0.1:
-				break
+		empties = [0,1,2,3,4,5,6,7,8]
+		# Find and collect all empty squares
+		# scan through board vector
+		for i in range(0, 9):
+			# 'proposition' is a numpy array[3]
+			if state[i] == 1 or state[i] == -1:
+				empties.remove(i)
+		# Select an available square randomly
+		action = random.sample(empties, 1)[0]
 		return action
 
 	def save_net(self, fname):
