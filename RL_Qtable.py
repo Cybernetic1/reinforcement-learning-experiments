@@ -113,6 +113,22 @@ class Qtable():
 		self.Qtable[s, action] += self.lr *( reward + self.gamma * np.max(self.Qtable[next_state, :]) - self.Qtable[s, action] )
 		return
 
+	def visualize_q(self, board):
+		# convert board vector to state vector
+		s = (((((((					\
+			board[0] * 3 + 3 +	\
+			board[1]) * 3 + 3 +	\
+			board[2]) * 3 + 3 +	\
+			board[3]) * 3 + 3 +	\
+			board[4]) * 3 + 3 +	\
+			board[5]) * 3 + 3 +	\
+			board[6]) * 3 + 3 +	\
+			board[7]) * 3 + 3 +	\
+			board[8] + 1
+		logits = self.Qtable[s, :]
+		probs  = np.exp(logits) / np.exp(logits).sum(axis=0)	# softmax
+		return probs
+	
 	def net_info(self):
 		config = "(3^9x9)"
 		return (config, 3 ** 10)

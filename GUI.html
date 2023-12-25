@@ -8,40 +8,96 @@ table {
 	border: 2px solid black;
 	table-layout: fixed;
 	}
-td {
-    text-align: center; 
-    vertical-align: middle;
-   	border: 2px solid black;
+td.sq {
+	text-align: center; 
+	vertical-align: middle;
+	border: 2px solid black;
 	width: 50px;
 	height: 50px;
 	overflow: hidden;
 	font-size: 25px;
 	}
+td.SQ {
+	text-align: center; 
+	vertical-align: middle;
+	border: 2px solid black;
+	border-bottom-style: none;
+	width: 100px;
+	height: 70px;
+	overflow: hidden;
+	font-size: 50px;
+	}
+td.Value {
+	text-align: right;
+	border: 1px solid black;
+	width: 100px;
+	height: 25px;
+	}
 </style>
 </head>
 <body>
 
-<button onclick="sendMyMessages()">test Websocket</button>
-<button onclick="playMove()">test X</button>
-<button onclick="playMove2()">test O</button>
+<h1>TicTacToe GUI</h1>
+
+<button onclick="sendTestMsg()">test Websocket</button>
 <br><br>
 
 <table>
-    <tr>
-        <td id='sq0'></td>
-        <td id='sq1'></td>
-        <td id='sq2'></td>
-    </tr>
-    <tr>
-        <td id='sq3'></td>
-        <td id='sq4'></td>
-        <td id='sq5'></td>
-    </tr>
-    <tr>
-        <td id='sq6'></td>
-        <td id='sq7'></td>
-        <td id='sq8'></td>
-    </tr>
+	<tr>
+		<td class='sq' id='sq0'></td>
+		<td class='sq' id='sq1'></td>
+		<td class='sq' id='sq2'></td>
+	</tr>
+	<tr>
+		<td class='sq' id='sq3'></td>
+		<td class='sq' id='sq4'></td>
+		<td class='sq' id='sq5'></td>
+	</tr>
+	<tr>
+		<td class='sq' id='sq6'></td>
+		<td class='sq' id='sq7'></td>
+		<td class='sq' id='sq8'></td>
+	</tr>
+</table>
+
+<br><br><hr>
+
+<h2>Visualization of Q values</h2>
+
+<p>Click on square to change piece.</p>
+<p><font color="green">Green color</font> indicates probability.</p>
+
+<table id="board2">
+	<tr>
+		<td class='SQ' id='SQ0'></td>
+		<td class='SQ' id='SQ1'></td>
+		<td class='SQ' id='SQ2'></td>
+	</tr>
+	<tr>
+		<td class='Value' id='v0'></td>
+		<td class='Value' id='v1'></td>
+		<td class='Value' id='v2'></td>
+	</tr>
+	<tr>
+		<td class='SQ' id='SQ3'></td>
+		<td class='SQ' id='SQ4'></td>
+		<td class='SQ' id='SQ5'></td>
+	</tr>
+	<tr>
+		<td class='Value' id='v3'></td>
+		<td class='Value' id='v4'></td>
+		<td class='Value' id='v5'></td>
+	</tr>
+	<tr>
+		<td class='SQ' id='SQ6'></td>
+		<td class='SQ' id='SQ7'></td>
+		<td class='SQ' id='SQ8'></td>
+	</tr>
+	<tr>
+		<td class='Value' id='v6'></td>
+		<td class='Value' id='v7'></td>
+		<td class='Value' id='v8'></td>
+	</tr>
 </table>
 
 <!-- p id="gameOver" style="color:red; font-size:40px; display:none">Game Over</p-->
@@ -52,10 +108,22 @@ td {
 	var ws = new WebSocket("ws://127.0.0.1:5678/");
 	// const messages = document.getElementById('messages');
 	// const gameOver = document.getElementById('gameOver');
+	var state = new Array(9).fill(0);
 
 	ws.onmessage = function (event) {
-		const state = JSON.parse(event.data);
-		// console.log("state =", state);
+		const data = JSON.parse(event.data);
+		console.log("data =", data);
+		for (let i = 0; i < 9; i++) {
+			const v = document.getElementById('v' + i.toString());
+			const sq = document.getElementById('SQ' + i.toString());
+			v.innerText = data[i].toFixed(5).toString();
+			var shade = ((100 - data[i] * 100) * .6 + 40).toString();
+			sq.style.backgroundColor = "hsl(128,100%," + shade + "%)";
+			v.style.backgroundColor = "hsl(128,100%," + shade + "%)";
+			}
+
+		return;
+		
 		// gameOver.style.display = 'none';
 		for (let i = 0; i < 9; i++) {
 			const sq = document.getElementById('sq' + i.toString());
@@ -71,27 +139,32 @@ td {
 		/* var message = document.createElement('li'),
 			content = document.createTextNode(event.data);
 		message.appendChild(content);
-		messages.appendChild(message);	*/
+		messages.appendChild(message);  */
 	};
 
-	function sendMyMessages() {
+	function sendTestMsg() {
 		ws.send("Hi, from the client");
 		}
 
-	var r = 0;
-
-	function playMove() {
-		sq = document.getElementById('sq' + r.toString());
-		// sq.style.color = 'blue';
-		sq.textContent = '⨯';
-		r += 1;
-		}
-
-	function playMove2() {
-		sq = document.getElementById('sq' + r.toString());
-		// sq.style.color = 'red';
-		sq.textContent = '⭘';  // ⨯
-		r += 1;
+	for (let i = 0; i < 9; i++) {
+		const sq = document.getElementById('SQ' + i.toString());
+		sq.onclick = function() {
+			if (sq.innerText == '') {
+				state[i] = -1;
+				sq.innerText = '⨯';
+				}
+			else if (sq.innerText == '⨯') {
+				state[i] = 1;
+				sq.innerText = '⭘';
+				}
+			else if (sq.innerText == '⭘') {
+				state[i] = 0;
+				sq.innerText = '';
+				}
+			// send state to RL algorithm:
+			ws.send(JSON.stringify(state));
+			// then RL sends logits to us...
+			}
 		}
 
 </script>
