@@ -29,7 +29,7 @@ print("21. PyTorch\tDQN\tTransformer\t\tlogic, dim3")
 print("22. PyTorch\tDQN\tfully-connected\t\tlogic, dim3")
 print("23. PyTorch\tDQN\tfully-connected\t\tlogic, dim1")
 print("24. PyTorch\tDQN\tsymmetric NN\t\tlogic, dim3")
-print("25. PyTorch\tDQN\tmulti-step\t\tlogic, dim2")
+print("25. PyTorch\tDQN\tloop symNN\t\tlogic, dim2")
 print("26. PyTorch\tDQN\tshrink until fail\tlogic, dim2")
 print("27. PyTorch\tDQN\tshrink symNN\t\tlogic, dim2")
 config = int(input("Choose config: ") or '0')
@@ -75,7 +75,7 @@ elif config == 24:
 	from DQN_logic_symNN_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.logic.symNN"
 elif config == 25:
-	from DQN_multistep_pyTorch import DQN, ReplayBuffer
+	from DQN_loop_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.multistep"
 elif config == 26:
 	from DQN_shrink_pyTorch import DQN, ReplayBuffer
