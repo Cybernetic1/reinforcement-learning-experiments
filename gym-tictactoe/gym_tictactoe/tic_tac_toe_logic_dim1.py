@@ -152,7 +152,7 @@ class TicTacToeEnv(gym.Env):
 		state_vector2 = self.state_vector.copy()
 		random.shuffle(state_vector2)
 		return numpy.array(state_vector2), \
-			self.rewards[reward_type], done
+			self.rewards[reward_type], done, reward_type
 			# , {'already_used_position': is_position_already_used}
 
 	# ----------------------------- DISPLAY -----------------------------

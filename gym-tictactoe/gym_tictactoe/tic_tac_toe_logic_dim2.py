@@ -208,7 +208,10 @@ class TicTacToeEnv(gym.Env):
 					self.state_vector[i *2 + 19] = 0
 			self.index += 2
 
-		return numpy.array(self.state_vector), self.rewards[reward_type], done, reward_type
+		state_vector2 = self.state_vector.copy()
+		random.shuffle(state_vector2)
+		return numpy.array(state_vector2), \
+			self.rewards[reward_type], done, reward_type
 
 	# ----------------------------- DISPLAY -----------------------------
 	def get_state_vector_to_display(self):

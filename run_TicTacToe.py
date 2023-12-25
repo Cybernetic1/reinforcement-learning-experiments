@@ -407,7 +407,7 @@ while True:
 				s = 'minus ' + str(int(-rr))
 			else:
 				s = str(int(rr))
-			call(['ekho', s, '-v', 'English', '--english-speed', '-50'])
+			call(['ekho', s, '-v', 'English', '--english-speed', '-20'])
 
 			delta = datetime.now() - startTime
 			print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))
