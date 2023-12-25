@@ -41,7 +41,7 @@ class ReplayBuffer:
 
 	def sample(self, batch_size):
 		batch = random.sample(self.buffer, batch_size)
-		state, action, reward, next_state, done = \
+		states, actions, rewards, next_states, dones = \
 			map(np.stack, zip(*batch)) # stack for each element
 		'''
 		the * serves as unpack: sum(a,b) <=> batch=(a,b), sum(*batch) ;
@@ -51,7 +51,7 @@ class ReplayBuffer:
 		'''
 		# print("sampled state=", state)
 		# print("sampled action=", action)
-		return state, action, reward, next_state, done
+		return states, actions, rewards, next_states, dones
 
 	def __len__(self):
 		return len(self.buffer)

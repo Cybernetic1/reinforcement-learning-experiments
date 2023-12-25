@@ -31,6 +31,7 @@ print("23. PyTorch\tDQN\tfully-connected\t\tlogic, dim1")
 print("24. PyTorch\tDQN\tsymmetric NN\t\tlogic, dim3")
 print("25. PyTorch\tDQN\tmulti-step\t\tlogic, dim2")
 print("26. PyTorch\tDQN\tshrink until fail\tlogic, dim2")
+print("27. PyTorch\tDQN\tshrink symNN\t\tlogic, dim2")
 config = int(input("Choose config: ") or '0')
 
 import gym
@@ -79,13 +80,16 @@ elif config == 25:
 elif config == 26:
 	from DQN_shrink_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.shrink"
+elif config == 27:
+	from DQN_shrink_SymNN_pyTorch import DQN, ReplayBuffer
+	tag = "DQN.shrink-SymNN"
 
 import gym_tictactoe
 if config in [10, 12, 14, 21, 22, 24]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 elif config == 23:
 	env = gym.make('TicTacToe-logic-dim1-v0', symbols=[-1, 1], board_size=3, win_size=3)
-elif config in [25, 26]:
+elif config in [25, 26, 27]:
 	env = gym.make('TicTacToe-logic-dim2-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -114,7 +118,7 @@ elif config == 25:
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
-elif config == 26:
+elif config in [26, 27]:
 	RL = DQN(
 		action_dim = env.action_space.n // 2,	# use only real actions
 		state_dim = env.state_space.shape[0],	# ignored, using dim=2

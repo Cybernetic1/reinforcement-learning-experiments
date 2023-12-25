@@ -40,8 +40,17 @@ class ReplayBuffer:
 		return self.buffer[self.position-1][2]
 
 	def sample(self, batch_size):
-		batch = random.sample(self.buffer, batch_size)
-		state, action, reward, next_state, done = \
+		# **** Old method: random sample
+		# batch = random.sample(self.buffer, batch_size)
+		# New method uses the latest data, seems to converge a bit faster
+		# initially, but overall performance is similar to old method
+		if self.position >= batch_size:
+			batch = self.buffer[self.position - batch_size : self.position]
+		else:
+			batch = self.buffer[: self.position] + self.buffer[-(batch_size - self.position) :]
+		assert len(batch) == batch_size, "batch size incorrect"
+
+		states, actions, rewards, next_states, dones = \
 			map(np.stack, zip(*batch)) # stack for each element
 		'''
 		the * serves as unpack: sum(a,b) <=> batch=(a,b), sum(*batch) ;
@@ -51,7 +60,7 @@ class ReplayBuffer:
 		'''
 		# print("sampled state=", state)
 		# print("sampled action=", action)
-		return state, action, reward, next_state, done
+		return states, actions, rewards, next_states, dones
 
 	def __len__(self):
 		return len(self.buffer)

@@ -2,6 +2,9 @@
 Discrete Q table that does not need deep learning
 
 * It converges very fast initially but does not reach perfection
+* After ~2 hours the value of Q(0) is still 0's -- meaning that it will
+	play random moves on an empty board
+* We could write code to examine the Q values visually
 
 Using:
 gym: 0.8.0
@@ -13,31 +16,37 @@ import numpy as np
 class ReplayBuffer:
 	def __init__(self, capacity):
 		self.capacity = capacity
-		self.buffer = []
+		self.buffer = np.empty([self.capacity, 5], dtype=object)
 		self.position = 0
 
 	def push(self, state, action, reward, next_state, done):
-		if len(self.buffer) < self.capacity:
-			self.buffer.append(None)
-		self.buffer[self.position] = (state, action, reward, next_state, done)
+		# if len(self.buffer) < self.capacity:
+		#	self.buffer.append(None)
+		self.buffer[self.position] = [state, action, reward, next_state, done]
 		self.position = (self.position + 1) % self.capacity
 
 	def last_reward(self):
-		return self.buffer[self.position -1][2]
+		return self.buffer[self.position -1,2]
 
 	def sample(self, batch_size):
-		# **** Old method: random sample
-		# batch = random.sample(self.buffer, batch_size)
-		# New method uses the latest data, seems to converge a bit faster
-		# initially, but overall performance is similar to old method
+		batch_size = 3
+		print("position, batch_size=", self.position, batch_size)
 		if self.position >= batch_size:
 			batch = self.buffer[self.position - batch_size : self.position]
+			print("batch=", batch)
+			print("batch.shape=", batch.shape)
 		else:
-			batch = self.buffer[: self.position] + self.buffer[-(batch_size - self.position) :]
+			batch = np.array(self.buffer[: self.position] + self.buffer[- (batch_size - self.position)])
 		assert len(batch) == batch_size, "batch size incorrect"
 
-		states, actions, rewards, next_states, dones = \
-			map(np.stack, zip(*batch)) # stack for each element
+		b0 = batch[:,0]
+		print("b0.shape=", b0.shape)
+		s3s = batch[:,3]
+		print("states=", b0)
+		return b0, batch[:,1], batch[:,2], s3s, batch[:,4]
+		# batch = random.sample(self.buffer, batch_size)
+		# state, action, reward, next_state, done = \
+		#	map(np.stack, zip(*batch)) # stack for each element
 		'''
 		the * serves as unpack: sum(a,b) <=> batch=(a,b), sum(*batch) ;
 		zip: a=[1,2], b=[2,3], zip(a,b) => [(1, 2), (2, 3)] ;
@@ -46,7 +55,7 @@ class ReplayBuffer:
 		'''
 		# print("sampled state=", state)
 		# print("sampled action=", action)
-		return states, actions, rewards, next_states, dones
+		return state, action, reward, next_state, done
 
 	def __len__(self):
 		return len(self.buffer)
@@ -69,7 +78,7 @@ class Qtable():
 		# dim of Q-table = 3^9 x 9
 		self.Qtable = np.zeros((3 ** state_dim, action_dim))
 
-		self.replay_buffer = ReplayBuffer(int(1e5))	# originally 1e6
+		self.replay_buffer = ReplayBuffer(int(1e6))
 
 	# convert state-vector into a base-3 number
 	def state_num(self, state):
@@ -98,24 +107,20 @@ class Qtable():
 	def update(self, batch_size, reward_scale, gamma=0.99):
 		alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q)
 
-		states, actions, rewards, next_states, dones = self.replay_buffer.sample(batch_size)
-		# print('sample (state, action, reward, next state, done):', states, actions, rewards, next_states, dones)
+		states, action, reward, next_state, done = self.replay_buffer.sample(batch_size)
+		# print('sample (state, action, reward, next state, done):', states, action, reward, next_state, done)
+		print("states.shape=", states.shape)
+		print("states[0]=", states[0])
 
 		# convert state-vector to a base-3 number
-		s = (((((((					\
-			states[:,0] * 3 + 3 +	\
-			states[:,1]) * 3 + 3 +	\
-			states[:,2]) * 3 + 3 +	\
-			states[:,3]) * 3 + 3 +	\
-			states[:,4]) * 3 + 3 +	\
-			states[:,5]) * 3 + 3 +	\
-			states[:,6]) * 3 + 3 +	\
-			states[:,7]) * 3 + 3 +	\
-			states[:,8] + 1
+		s = [self.state_num(x).item() for x in states]
+		print("s=", s)
+		print(type(s[0]))
+		print(self.Qtable[s, action])
 
 		# **** Train Q function, this is just Bellman equation:
 		# Q(st,at) += η [ R + γ max_a Q(s_t+1,a) - Q(st,at) ]
-		self.Qtable[s, actions] += self.lr *( rewards + self.gamma * np.max(self.Qtable[next_states, :]) - self.Qtable[s, actions] )
+		self.Qtable[s, action] += self.lr *( reward + self.gamma * np.max(self.Qtable[next_state, :]) - self.Qtable[s, action] )
 		return
 
 	def visualize_q(self, board):
