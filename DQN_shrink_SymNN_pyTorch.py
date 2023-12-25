@@ -127,7 +127,7 @@ class DQN():
 
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
-		hidden_dim = 9
+		hidden_dim = 4
 		self.symnet = symNN(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
 		self.q_criterion = nn.MSELoss()
@@ -180,9 +180,20 @@ class DQN():
 
 		return
 
+	def visualize_q(self, board):
+		# convert board vector to state vector
+		vec = []
+		for i in range(9):
+			symbol = board[i]
+			vec += [symbol, i]
+		state = torch.FloatTensor(vec).unsqueeze(0).to(device)
+		logits = self.symnet(state)
+		probs  = torch.softmax(logits, dim=1)
+		return probs.squeeze(0)
+
 	def net_info(self):
-		config_h = "(2)-9-9"
-		config_g = "9-9-(9)"
+		config_h = "(2)-4-9"
+		config_g = "9-4-(9)"
 		total = 0
 		neurons = config_h.split('-')
 		last_n = 3
@@ -218,8 +229,11 @@ class DQN():
 		return action
 
 	def save_net(self, fname):
-		torch.save(self.symnet.state_dict(), "shrink-sym-2.dict")
+		torch.save(self.symnet.state_dict(), \
+			"PyTorch_models/" + fname + ".dict")
 		print("Model saved.")
 
 	def load_net(self, fname):
-		print("Model not loaded.")
+		self.symnet.load_state_dict(torch.load("PyTorch_models/" + fname + ".dict"))
+		self.symnet.eval()
+		print("Model loaded.")
