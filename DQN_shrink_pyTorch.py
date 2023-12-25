@@ -2,6 +2,9 @@
 Shrink NN until it fails to play perfectly.
 The goal is to find the minimal NN size that can solve TicTacToe.
 
+* This fully-connected version is not very meaningful,
+	as it lacks symmetry and would be slower.
+
 1. use fully-connected, which seems easier to control
 2. make sure action ∈ {0...8} (no intermediate thoughts)
 

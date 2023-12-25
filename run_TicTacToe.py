@@ -121,7 +121,7 @@ elif config == 25:
 elif config in [26, 27]:
 	RL = DQN(
 		action_dim = env.action_space.n // 2,	# use only real actions
-		state_dim = env.state_space.shape[0],	# ignored, using dim=2
+		state_dim = env.state_space.shape[0] // 2, # only half the state
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)

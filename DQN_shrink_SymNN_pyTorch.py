@@ -85,18 +85,18 @@ class symNN(nn.Module):
 		self.g2 = nn.Linear(hidden_dim, action_dim, bias=True)
 
 	def forward(self, x):
-		# input dim = n_features = 9 x 3 = 27
-		# there are 9 h-networks each taking a dim-3 vector input
+		# input dim = n_features = 9 x 2 = 18
+		# there are 9 h-networks each taking a dim-2 vector input
 		# First we need to split the input into 9 parts:
 		xs = torch.split(x, 2, dim=1)
 		# print("xs=", xs)
 
 		# h-network:
 		ys = []
-		for i in range(9 *2):					# repeat h1 9 *2 times
+		for i in range(9):					# repeat h1 9 times
 			ys.append( self.relu1( self.h1(xs[i]) ))
 		zs = []
-		for i in range(9 *2):					# repeat h2 9 *2 times
+		for i in range(9):					# repeat h2 9 times
 			zs.append( self.relu2( self.h2(ys[i]) ))
 
 		# add all the z's together:
@@ -127,14 +127,14 @@ class DQN():
 
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
-		hidden_dim = 16
+		hidden_dim = 9
 		self.symnet = symNN(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
 		self.q_criterion = nn.MSELoss()
 		self.q_optimizer = optim.Adam(self.symnet.parameters(), lr=self.lr)
 
 	def choose_action(self, state, deterministic=True):
-		state = torch.FloatTensor(state).unsqueeze(0).to(device)
+		state = torch.FloatTensor(state[0:18]).unsqueeze(0).to(device)
 
 		logits = self.symnet(state)
 		probs  = torch.softmax(logits, dim=1)
@@ -150,8 +150,8 @@ class DQN():
 		state, action, reward, next_state, done = self.replay_buffer.sample(batch_size)
 		# print('sample (state, action, reward, next state, done):', state, action, reward, next_state, done)
 
-		state      = torch.FloatTensor(state).to(device)
-		next_state = torch.FloatTensor(next_state).to(device)
+		state      = torch.FloatTensor(state).to(device)[:,0:18]
+		next_state = torch.FloatTensor(next_state).to(device)[:,0:18]
 		action     = torch.LongTensor(action).to(device)
 		reward     = torch.FloatTensor(reward).to(device) # .to(device)  # reward is single value, unsqueeze() to add one dim to be [reward] at the sample dim;
 		done       = torch.BoolTensor(done).to(device)
@@ -181,8 +181,8 @@ class DQN():
 		return
 
 	def net_info(self):
-		config_h = "(2)-16-9"
-		config_g = "9-16-(9)"
+		config_h = "(2)-9-9"
+		config_g = "9-9-(9)"
 		total = 0
 		neurons = config_h.split('-')
 		last_n = 3
@@ -207,11 +207,10 @@ class DQN():
 		# Find and collect all empty squares
 		# scan through all 9 propositions, each proposition is a 2-vector
 		for i in range(0, 18, 2):
-			# 'proposition' is a numpy array[3]
-			proposition = state[i : i + 2]
-			sym = proposition[0]
+			# 'proposition' is a numpy array[2]
+			sym = state[i]
 			if sym == 1 or sym == -1:
-				x = proposition[1]
+				x = state[i + 1]
 				j = x + 4
 				empties.remove(j)
 		# Select an available square randomly
@@ -219,7 +218,8 @@ class DQN():
 		return action
 
 	def save_net(self, fname):
-		print("Model not saved.")
+		torch.save(self.symnet.state_dict(), "shrink-sym-2.dict")
+		print("Model saved.")
 
 	def load_net(self, fname):
 		print("Model not loaded.")

@@ -17,14 +17,16 @@
 #	N need not be multiple of 9, but let's test N=9 now.
 
 # TO-DO:
-# * Two questions: 1) shall we allow deleting (negating) a proposition?
+# * Two questions:
+#	1) shall we allow deleting (negating) a proposition?
 #	2) forgetting.  Perhaps we should use a list to implement this.
 #	In our simple situation we can actually have "permanent" memory and
 #	learning would still be OK.
+
 import gym
 import numpy
+import random
 from gym import spaces, error
-import xml.etree.ElementTree as ET
 import os
 
 import websockets
@@ -208,9 +210,9 @@ class TicTacToeEnv(gym.Env):
 					self.state_vector[i *2 + 19] = 0
 			self.index += 2
 
-		state_vector2 = self.state_vector.copy()
-		random.shuffle(state_vector2)
-		return numpy.array(state_vector2), \
+		# state_vector2 = self.state_vector.copy()
+		# random.shuffle(state_vector2)
+		return numpy.array(self.state_vector), \
 			self.rewards[reward_type], done, reward_type
 
 	# ----------------------------- DISPLAY -----------------------------
