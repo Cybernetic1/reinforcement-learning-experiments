@@ -63,7 +63,7 @@ class QNetwork(nn.Module):
 		self.linear1 = nn.Linear(input_dim, hidden_size)
 		self.linear2 = nn.Linear(hidden_size, hidden_size)
 		self.linear3 = nn.Linear(hidden_size, hidden_size)
-		self.linear4 = nn.Linear(hidden_size, hidden_size)
+		# self.linear4 = nn.Linear(hidden_size, hidden_size)
 
 		self.logits_linear = nn.Linear(hidden_size, action_dim)
 		self.logits_linear.weight.data.uniform_(-init_w, init_w)
@@ -75,7 +75,7 @@ class QNetwork(nn.Module):
 		x = self.activation(self.linear1(state))
 		x = self.activation(self.linear2(x))
 		x = self.activation(self.linear3(x))
-		x = self.activation(self.linear4(x))
+		# x = self.activation(self.linear4(x))
 
 		logits = self.logits_linear(x)
 		# logits = F.leaky_relu(self.logits_linear(x))
@@ -98,7 +98,7 @@ class DQN():
 
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
-		hidden_dim = 16
+		hidden_dim = 8
 		self.qnet = QNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
 		self.q_criterion = nn.MSELoss()
@@ -152,7 +152,7 @@ class DQN():
 		return
 
 	def net_info(self):
-		config = "(9)-16-16-16-16-16-(9)"
+		config = "(9)-8-8-8-(9)"
 		neurons = config.split('-')
 		last_n = 9
 		total = 0
