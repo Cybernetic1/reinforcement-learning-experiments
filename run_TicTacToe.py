@@ -176,7 +176,7 @@ def ctrl_C_handler(sig, frame):
 	# global model_name
 	global command
 	print("\n\x1b[0m **** program paused ****")
-	print("Enter Python code (return to exit, c to continue, s to save model, g to play game)")
+	print("Enter Python code, or:\n'' to exit\n'c' to continue\n's' to save model\n'g' to play game\n'v' to visualize Q values")
 	command = input(">>> ")
 	if command == "":
 		log_file.close()
@@ -185,6 +185,8 @@ def ctrl_C_handler(sig, frame):
 		command = None
 	elif command == 'g':
 		command = "play_1_game_with_human()"
+	elif command == 'v':
+		command = "visualize_Q()"
 	elif command == 's':
 		command = "RL.save_net(model_name + '.' + timeStamp)"
 	# Other commands will be executed in the main loop, see below
@@ -208,6 +210,8 @@ signal.signal(signal.SIGINT, ctrl_C_handler)
 import glob
 if config == 3 or config == 4:		# TensorFlow
 	files = glob.glob("TensorFlow_models/" + model_name + "*.index")
+elif config == 0:
+	files = glob.glob("*.npy")
 else:
 	files = glob.glob("PyTorch_models/" + model_name + "*.dict")
 files.sort()
@@ -218,6 +222,8 @@ for i, fname in enumerate(files):
 		print(end="\x1b[0m")
 	if config == 4 or config == 5:		# TensorFlow
 		print("%2d %s" %(i, fname[24:-6]))
+	elif config == 0:
+		print("%2d %s" %(i, fname))
 	else:
 		print("%2d %s" %(i, fname[21:-5]))
 print(end="\x1b[0m")
@@ -225,6 +231,8 @@ j = input("Load model? (Enter number or none): ")
 if j:
 	if config == 4 or config == 5:		# TensorFlow
 		RL.load_net(files[int(j)][18:-11])
+	elif config == 0:
+		RL.load_net(files[int(j)])
 	else:
 		RL.load_net(files[int(j)][15:-5])
 
@@ -255,6 +263,20 @@ reward_scale = 10.0
 model_path   = './model/sac'
 
 from subprocess import call
+import websockets
+from websockets.sync.client import connect
+import json
+
+def visualize_Q():
+	with connect("ws://localhost:5678") as websocket:
+		print("Visualizing Q values...")
+		while True:
+		# the state 's' is as entered by web GUI
+			# get board vector from GUI Javascript
+			board = json.loads(websocket.recv())
+			print("board=", board)
+			probs = RL.visualize_q(board).tolist()
+			websocket.send(json.dumps(probs))
 
 def play_1_game_with_human():
 	state = env.reset()
