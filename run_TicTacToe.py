@@ -76,7 +76,7 @@ elif config == 24:
 	tag = "DQN.logic.symNN"
 elif config == 25:
 	from DQN_loop_pyTorch import DQN, ReplayBuffer
-	tag = "DQN.multistep"
+	tag = "DQN.loop"
 elif config == 26:
 	from DQN_shrink_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.shrink"
@@ -317,6 +317,10 @@ def play_1_game_with_human():
 train_once = False		# you may use Ctrl-C to change this
 DETERMINISTIC = False
 RENDER = 0
+# **** RENDER flag:
+# bit 1 (1) = display every real action
+# bit 2 (2) = display only end board state
+# bit 3 (4) = display every action including intermediate thoughts
 RENDERMODE = "HTML"
 i_episode = 0
 running_reward = 0.0
@@ -327,16 +331,19 @@ while True:
 	preplay_moves()
 	if RENDER > 0:
 		env.render(mode=RENDERMODE)
-
 	done = False
 	user = -1
-	reward1 = reward2 = 0
+	reward1 = 0
+	reward2 = 0
 
 	while not done:
 
 		if user == -1:		# AI player
 			# action is integer 0...8
 			action1 = RL.choose_action(state)
+			if RENDER & 4:
+				with connect("ws://localhost:5678") as websocket:
+					websocket.send(json.dumps(action1.item()))
 			state1, reward1, done, rtype = env.step(action1, -1)
 			if done:
 				RL.replay_buffer.push(state, action1, reward1, state1, done)
@@ -358,9 +365,9 @@ while True:
 		if not done:
 			if rtype != 'thinking':
 				user = -1 if user == 1 else 1
-			if RENDER == 2:
+			if RENDER & 1:
 				env.render(mode = RENDERMODE)
-		elif RENDER > 0:
+		elif RENDER & 3:
 			# await asyncio.sleep(0.1)
 			env.render(mode = RENDERMODE)
 

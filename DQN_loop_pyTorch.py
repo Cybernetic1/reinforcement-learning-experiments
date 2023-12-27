@@ -177,7 +177,7 @@ class DQN():
 		vec = []
 		for i in range(9):
 			symbol = board[i]
-			vec += [symbol, i]
+			vec += [symbol, i-4]
 		for i in range(9):
 			vec += [-2, 0]
 		state = torch.FloatTensor(vec).unsqueeze(0).to(device)
