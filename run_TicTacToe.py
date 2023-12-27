@@ -76,7 +76,7 @@ elif config == 24:
 	tag = "DQN.logic.symNN"
 elif config == 25:
 	from DQN_loop_pyTorch import DQN, ReplayBuffer
-	tag = "DQN.multistep"
+	tag = "DQN.loop"
 elif config == 26:
 	from DQN_shrink_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.shrink"
