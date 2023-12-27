@@ -202,7 +202,7 @@ class TicTacToeEnv(gym.Env):
 					reward_type = 'still_in_game'
 					done = False
 
-			if symbol == -1:		# self-move
+			if symbol == -1:			# self-move
 				self.m_index = 18		# clear memories
 				self.thinking_steps = 0
 				for i in range(0, self.board_size * self.board_size):
