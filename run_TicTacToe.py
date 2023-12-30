@@ -282,7 +282,8 @@ def visualize_Q():
 			if board == 0:
 				break
 			probs = RL.visualize_q(board, memory).tolist()
-			print("probs=", probs)
+			print("probs=", end=' ')
+			print(['{:.5f}'.format(p) for p in probs])
 			websocket.send(json.dumps(probs))
 
 def play_1_game_with_human():

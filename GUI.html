@@ -211,7 +211,7 @@ button {
 				sq.style.backgroundColor = 'green';
 				}
 			}
-			
+
 		if (data.length == 9) {
 			for (let i = 0; i < 9; i++) {
 				const sq = document.getElementById('SQ' + i.toString());
@@ -230,7 +230,7 @@ button {
 	};
 
 	function sendTestMsg() {
-		ws.send("Hi, from the client");
+		ws.send(JSON.stringify(0));
 		}
 
 	function clearBoard() {
@@ -242,6 +242,7 @@ button {
 			memory[i] = 0;
 			m.innerText = '0';
 			}
+		ws.send(JSON.stringify([state, memory]));
 		}
 
 	for (let i = 0; i < 9; i++) {
