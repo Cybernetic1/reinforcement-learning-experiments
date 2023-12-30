@@ -127,7 +127,7 @@ class DQN():
 
 	def choose_action(self, state, deterministic=True):
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
-
+		# print("state=", state)
 		logits = self.symnet(state)
 		probs  = torch.softmax(logits, dim=1)
 		dist   = Categorical(probs)
@@ -185,7 +185,7 @@ class DQN():
 			else:
 				vec += [2,0]
 		state = torch.FloatTensor(vec).unsqueeze(0).to(device)
-		print("state=", state)
+		# print("state=", state)
 		logits = self.symnet(state)
 		probs  = torch.softmax(logits, dim=1)
 		return probs.squeeze(0)

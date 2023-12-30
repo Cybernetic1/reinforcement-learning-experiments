@@ -216,7 +216,7 @@ class TicTacToeEnv(gym.Env):
 				self.m_index = 18		# clear memories
 				self.thinking_steps = 0
 				for i in range(0, self.board_size * self.board_size):
-					self.state_vector[i *2 + 18] = -2
+					self.state_vector[i *2 + 18] = 2
 					self.state_vector[i *2 + 19] = 0
 
 		# state_vector2 = self.state_vector.copy()
