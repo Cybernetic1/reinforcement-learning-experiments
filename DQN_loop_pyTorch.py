@@ -173,14 +173,17 @@ class DQN():
 
 		return
 
-	def visualize_q(self, board):
+	def visualize_q(self, board, memory):
 		# convert board vector to state vector
 		vec = []
 		for i in range(9):
 			symbol = board[i]
 			vec += [symbol, i-4]
 		for i in range(9):
-			vec += [-2, 0]
+			if memory[i] == 1:
+				vec += [-2, i-4]
+			else:
+				vec += [2,0]
 		state = torch.FloatTensor(vec).unsqueeze(0).to(device)
 		logits = self.symnet(state)
 		probs  = torch.softmax(logits, dim=1)

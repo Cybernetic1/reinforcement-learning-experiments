@@ -40,62 +40,31 @@ td.mem {
 	height: 30px;
 	}
 td.Mem {
-	text-align: right;
+	text-align: center; 
+	vertical-align: middle;
 	border: 2px solid black;
+	border-bottom-style: none;
 	width: 70px;
-	height: 25px;
+	height: 50px;
 	}
 input[type=radio] {
 	transform: scale(2);
+	}
+button {
+	font-size: 20px;
 	}
 </style>
 </head>
 <body>
 
-<button onclick="sendTestMsg()">test Websocket</button>
+<button onclick="sendTestMsg()">Test Websocket</button>
 <br>
 
-<h1><input type="radio" id="TTT" name="selector">
+<h1><!-- input type="radio" id="TTT" name="selector" -->
 &nbsp; TicTacToe GUI</h1>
 
-<table>
-	<tr>
-		<td class='sq' id='sq0'></td>
-		<td class='sq' id='sq1'></td>
-		<td class='sq' id='sq2'></td>
-	</tr>
-	<tr>
-		<td class='sq' id='sq3'></td>
-		<td class='sq' id='sq4'></td>
-		<td class='sq' id='sq5'></td>
-	</tr>
-	<tr>
-		<td class='sq' id='sq6'></td>
-		<td class='sq' id='sq7'></td>
-		<td class='sq' id='sq8'></td>
-	</tr>
-</table>
-
-<h3>Memory:</h3>
-
-<table id="memory">
-	<tr>
-		<td class='mem' id='m0'></td>
-		<td class='mem' id='m1'></td>
-		<td class='mem' id='m2'></td>
-		<td class='mem' id='m3'></td>
-		<td class='mem' id='m4'></td>
-		<td class='mem' id='m5'></td>
-		<td class='mem' id='m6'></td>
-		<td class='mem' id='m7'></td>
-		<td class='mem' id='m8'></td>
-	</tr>
-</table>
-
-<br><br><hr>
-
-<h1><input type="radio" id="QQQ" name="selector" checked>
-&nbsp; Visualization of Q values</h1>
+<!--h1><input type="radio" id="QQQ" name="selector" checked>
+&nbsp; Visualization of Q values</h1-->
 
 <p>Click on square to change piece.</p>
 <p><font color="green">Green color</font> indicates probability.</p>
@@ -133,21 +102,37 @@ input[type=radio] {
 	</tr>
 </table>
 
-<h3>Memory:</h3>
+<h3>Intermediate thoughts:</h3>
 
 <table id="memory2">
 	<tr>
-		<td class='Mem' id='M0'></td>
-		<td class='Mem' id='M1'></td>
-		<td class='Mem' id='M2'></td>
-		<td class='Mem' id='M3'></td>
-		<td class='Mem' id='M4'></td>
-		<td class='Mem' id='M5'></td>
-		<td class='Mem' id='M6'></td>
-		<td class='Mem' id='M7'></td>
-		<td class='Mem' id='M8'></td>
+		<td class='Mem' id='M0'>0</td>
+		<td class='Mem' id='M1'>0</td>
+		<td class='Mem' id='M2'>0</td>
+		<td class='Mem' id='M3'>0</td>
+		<td class='Mem' id='M4'>0</td>
+		<td class='Mem' id='M5'>0</td>
+		<td class='Mem' id='M6'>0</td>
+		<td class='Mem' id='M7'>0</td>
+		<td class='Mem' id='M8'>0</td>
+	</tr>
+	<tr>
+		<td class='Value' id='mv0'></td>
+		<td class='Value' id='mv1'></td>
+		<td class='Value' id='mv2'></td>
+		<td class='Value' id='mv3'></td>
+		<td class='Value' id='mv4'></td>
+		<td class='Value' id='mv5'></td>
+		<td class='Value' id='mv6'></td>
+		<td class='Value' id='mv7'></td>
+		<td class='Value' id='mv8'></td>
 	</tr>
 </table>
+
+<br>
+<button onclick="clearBoard()">Clear board and memories</button>
+<br>
+<button onclick="exitVisualization()">Exit visualization</button>
 
 <!-- p id="gameOver" style="color:red; font-size:40px; display:none">Game Over</p-->
 
@@ -158,17 +143,14 @@ input[type=radio] {
 	// const messages = document.getElementById('messages');
 	// const gameOver = document.getElementById('gameOver');
 	var state = new Array(9).fill(0);
+	var memory = new Array(9).fill(0);
 
 	ws.onmessage = function (event) {
 		// gameOver.style.display = 'none';
 		const data = JSON.parse(event.data);
 		// console.log("data =", data);
-		if (typeof(data) == 'number')
-			document.getElementById('TTT').checked = true;
-		else if (data.length == 9)
-			document.getElementById('TTT').checked = true;
 
-		if (document.getElementById('QQQ').checked) {
+		if (data.length == 18) {
 			for (let i = 0; i < 9; i++) {
 				const v = document.getElementById('v' + i.toString());
 				const sq = document.getElementById('SQ' + i.toString());
@@ -179,43 +161,44 @@ input[type=radio] {
 				}
 			for (let i = 0; i < 9; i++) {
 				const m = document.getElementById('M' + i.toString());
-				m.innerText = data[9 + i].toFixed(5).toString();
+				const mv = document.getElementById('mv' + i.toString());
+				mv.innerText = data[9 + i].toFixed(5).toString();
 				var shade = ((100 - data[9 + i] * 100) * .6 + 40).toString();
 				m.style.backgroundColor = "hsl(128,100%," + shade + "%)";
+				mv.style.backgroundColor = "hsl(128,100%," + shade + "%)";
 				}
 			}
 
-		if (document.getElementById('TTT').checked) {
-			if (typeof(data) == 'number') {
-				if (data > 8) {
-					const i = data - 9;
-					console.log(i);
-					const m = document.getElementById('m' + i.toString());
-					m.textContent = '⨯';
-					m.style.backgroundColor = 'green';
-					}
-				else {
-					for (let j = 0; j < 9; j++) {
-						const m = document.getElementById('m' + j.toString());
-						m.textContent = '';
-						m.style.backgroundColor = 'white';
-						}
-					const i = data;
-					const sq = document.getElementById('sq' + i.toString());
-					sq.textContent = '⨯';
-					sq.style.backgroundColor = 'green';
-					}
+		if (typeof(data) == 'number') {
+			if (data > 8) {
+				const i = data - 9;
+				// console.log(i);
+				const m = document.getElementById('M' + i.toString());
+				m.textContent = '1';
+				m.style.backgroundColor = 'green';
 				}
 			else {
-				for (let i = 0; i < 9; i++) {
-					const sq = document.getElementById('sq' + i.toString());
-					sq.textContent = data[i] == -1 ? '⨯' :
-						data[i] == 1 ? '⭘' :
-						data[i] == 2 ? '!' : ' ';
-					sq.style.backgroundColor = data[i] == 2 ? 'red' :
-						data[i] == 1 ? 'white' :
-						data[i] == -1 ? 'green' : 'white';
+				for (let j = 0; j < 9; j++) {
+					const m = document.getElementById('M' + j.toString());
+					m.textContent = '0';
+					m.style.backgroundColor = 'white';
 					}
+				const i = data;
+				const sq = document.getElementById('SQ' + i.toString());
+				sq.textContent = '⨯';
+				sq.style.backgroundColor = 'green';
+				}
+			}
+			
+		if (data.length == 9) {
+			for (let i = 0; i < 9; i++) {
+				const sq = document.getElementById('SQ' + i.toString());
+				sq.textContent = data[i] == -1 ? '⨯' :
+					data[i] == 1 ? '⭘' :
+					data[i] == 2 ? '!' : ' ';
+				sq.style.backgroundColor = data[i] == 2 ? 'red' :
+					data[i] == 1 ? 'white' :
+					data[i] == -1 ? 'green' : 'white';
 				}
 			}
 		/* var message = document.createElement('li'),
@@ -228,9 +211,20 @@ input[type=radio] {
 		ws.send("Hi, from the client");
 		}
 
+	function clearBoard() {
+		for (let i = 0; i < 9; i++) {
+			const sq = document.getElementById('SQ' + i.toString());
+			state[i] = 0;
+			sq.innerText = '';
+			const m = document.getElementById('M' + i.toString());
+			memory[i] = 0;
+			m.innerText = '0';
+			}
+		}
+
 	for (let i = 0; i < 9; i++) {
 		const sq = document.getElementById('SQ' + i.toString());
-		sq.onclick = function() {
+		sq.addEventListener("click", function() {
 			if (sq.innerText == '') {
 				state[i] = -1;
 				sq.innerText = '⨯';
@@ -244,9 +238,30 @@ input[type=radio] {
 				sq.innerText = '';
 				}
 			// send state to RL algorithm:
-			ws.send(JSON.stringify(state));
+			ws.send(JSON.stringify([state, memory]));
 			// then RL sends logits to us...
-			}
+			} );
+		}
+
+	for (let i = 0; i < 9; i++) {
+		const m = document.getElementById('M' + i.toString());
+		m.addEventListener("click", function() {
+			if (m.innerText == '1') {
+				memory[i] = 0;
+				m.innerText = '0';
+				}
+			else {
+				memory[i] = 1;
+				m.innerText = '1';
+				}
+			// send state to RL algorithm:
+			ws.send(JSON.stringify([state, memory]));
+			// then RL sends logits to us...
+			} );
+		}
+
+	function exitVisualization() {
+		ws.send(JSON.stringify([0, 0]));
 		}
 
 </script>

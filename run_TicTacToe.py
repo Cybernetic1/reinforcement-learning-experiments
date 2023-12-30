@@ -180,12 +180,12 @@ def ctrl_C_handler(sig, frame):
 	# global model_name
 	global command
 	print("\n\x1b[0m **** program paused ****")
-	print("Enter Python code, or:\n'' to exit\n'c' to continue\n's' to save model\n'g' to play game\n'v' to visualize Q values")
+	print("Enter Python code, or:\n'q' to exit\n'' to continue\n's' to save model\n'g' to play game\n'v' to visualize Q values")
 	command = input(">>> ")
-	if command == "":
+	if command == "q":
 		log_file.close()
 		exit(0)
-	elif command == 'c':
+	elif command == '':
 		command = None
 	elif command == 'g':
 		command = "play_1_game_with_human()"
@@ -277,9 +277,11 @@ def visualize_Q():
 		while True:
 		# the state 's' is as entered by web GUI
 			# get board vector from GUI Javascript
-			board = json.loads(websocket.recv())
-			print("board=", board)
-			probs = RL.visualize_q(board).tolist()
+			board, memory = json.loads(websocket.recv())
+			print("state=", board, '\t', memory)
+			if board == 0:
+				break
+			probs = RL.visualize_q(board, memory).tolist()
 			websocket.send(json.dumps(probs))
 
 def play_1_game_with_human():

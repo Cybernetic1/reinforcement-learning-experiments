@@ -57,7 +57,7 @@ class TicTacToeEnv(gym.Env):
 		self.rewards = {
 			'still_in_game': 0.0,
 			'thinking': 0.0,
-			'over-think': -25.0,
+			'double-think': -25.0,
 			'draw': 10.0,
 			'win': 20.0,
 			'bad_position': -30.0
@@ -169,15 +169,11 @@ class TicTacToeEnv(gym.Env):
 				self.state_vector[self.m_index +1] = action -9 -4
 				self.m_index += 2
 				assert self.m_index <= 36, "Memory index overflow"
-			else:	# repeated, danger of infinite loop?
-				self.thinking_steps += 1
-
-			if self.thinking_steps > 32:
-				reward_type = 'over-think'
-				done = True
-			else:
 				reward_type = 'thinking'
 				done = False
+			else:	# double thoughts, give penalty
+				reward_type = 'double-think'
+				done = True
 
 		else:				# normal action
 
