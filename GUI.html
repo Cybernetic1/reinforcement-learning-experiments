@@ -4,6 +4,9 @@
 <head>
 	<title>Tic Tac Toe GUI</title>
 <style>
+p, label {
+	font-size: 25px;
+	}
 table {
 	border: 2px solid black;
 	table-layout: fixed;
@@ -50,6 +53,9 @@ td.Mem {
 input[type=radio] {
 	transform: scale(2);
 	}
+input[type=checkbox] {
+	transform: scale(2);
+	}
 button {
 	font-size: 20px;
 	}
@@ -66,8 +72,14 @@ button {
 <!--h1><input type="radio" id="QQQ" name="selector" checked>
 &nbsp; Visualization of Q values</h1-->
 
-<p>Click on square to change piece.</p>
-<p><font color="green">Green color</font> indicates probability.</p>
+<p>Render:
+<input type="checkbox" name="render"><label> end states</label>
+<input type="checkbox" name="render"><label> all states</label>
+<input type="checkbox" name="render"><label> actions</label>
+<input type="checkbox" name="render"><label> Q values</label>
+</p>
+
+<p>Click on square to change piece. <font color="green">Green color</font> indicates probability.</p>
 
 <table id="board2">
 	<tr>
@@ -149,6 +161,16 @@ button {
 		// gameOver.style.display = 'none';
 		const data = JSON.parse(event.data);
 		// console.log("data =", data);
+
+		if (data == 'ask') {
+			boxes = document.getElementsByName('render');
+			var flag = (boxes[0].checked ? 1 : 0) +
+				(boxes[1].checked ? 2 : 0) +
+				(boxes[2].checked ? 4 : 0) +
+				(boxes[3].checked ? 8 : 0);
+			ws.send(JSON.stringify(flag));
+			return;
+			}
 
 		if (data.length == 18) {
 			for (let i = 0; i < 9; i++) {
