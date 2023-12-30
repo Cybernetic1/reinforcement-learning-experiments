@@ -55,13 +55,17 @@ class TicTacToeEnv(gym.Env):
 		# 2 means "bad move", -2 means "intermediate thought"
 
 		self.rewards = {
-			'still_in_game': 0.3,
+			'still_in_game': 0.0,
 			'thinking': 0.0,
 			'over-think': -25.0,
 			'draw': 10.0,
 			'win': 20.0,
 			'bad_position': -30.0
 			}
+
+		self.good = 0
+		self.rational = 0
+		self.irrational = 0
 
 	def reset(self):
 		self.thinking_steps = 0
@@ -71,7 +75,7 @@ class TicTacToeEnv(gym.Env):
 		for i in range(0, self.board_size * self.board_size):
 			self.state_vector += [0,i]
 		for i in range(0, self.board_size * self.board_size):
-			self.state_vector += [-2,0]
+			self.state_vector += [2,0]
 		self.index = 0	  # current state_vector position to write into
 		self.m_index = 18 # beginning of memory propositions
 		self.memory = (self.board_size * self.board_size) * [0]
@@ -202,13 +206,22 @@ class TicTacToeEnv(gym.Env):
 					reward_type = 'still_in_game'
 					done = False
 
+			self.index += 2
+
 			if symbol == -1:			# self-move
+				# **** A real move has occurred, ...
+				if self.m_index > 18:
+					self.rational += 1
+					if reward_type == 'win':
+						self.good += 1
+				else:
+					self.irrational += 1
+
 				self.m_index = 18		# clear memories
 				self.thinking_steps = 0
 				for i in range(0, self.board_size * self.board_size):
 					self.state_vector[i *2 + 18] = -2
 					self.state_vector[i *2 + 19] = 0
-			self.index += 2
 
 		# state_vector2 = self.state_vector.copy()
 		# random.shuffle(state_vector2)

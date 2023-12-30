@@ -116,7 +116,7 @@ elif config == 25:
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],	# ignored, using dim=2
 		learning_rate = 0.001,
-		gamma = 0.9,	# doesn't matter for gym TicTacToe
+		gamma = 1.0,	# seems to matter for looping!
 	)
 elif config in [26, 27]:
 	RL = DQN(
@@ -405,6 +405,10 @@ while True:
 	if i_episode % 100 == 0:
 		rr = round(running_reward, 5)
 		print("\n\t\x1b[0m", i_episode, "Running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
+		print("good:rational =", env.good, ":", env.rational, ":", env.irrational)
+		env.good = 0
+		env.rational = 0
+		env.irrational = 0
 		# RL.set_learning_rate(i_episode)
 		log_file.write(str(i_episode) + ' ' + str(running_reward) + '\n')
 		log_file.flush()
@@ -436,6 +440,6 @@ while True:
 
 				print("New log file opened:", log_name)
 		else:
-			call(['play', '-n', '-q', 'synth', '0.05', 'sine', '2300', 'gain', '-20'])
+			call(['play', '-n', '-q', 'synth', '0.05', 'sine', '2300', 'gain', '-25'])
 
 print('\007')	# sound beep

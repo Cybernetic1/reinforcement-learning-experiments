@@ -109,7 +109,7 @@ class DQN():
 			action_dim,
 			state_dim,
 			learning_rate = 3e-4,
-			gamma = 0.9 ):
+			gamma = 1.0 ):
 		super(DQN, self).__init__()
 
 		self.action_dim = action_dim
@@ -136,8 +136,8 @@ class DQN():
 		# print("chosen action=", action)
 		return action
 
-	def update(self, batch_size, reward_scale, gamma=0.99):
-		alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q)
+	def update(self, batch_size, reward_scale, gamma=1.0):
+		# alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q);  not used now
 
 		state, action, reward, next_state, done = self.replay_buffer.sample(batch_size)
 		# print('sample (state, action, reward, next state, done):', state, action, reward, next_state, done)
@@ -159,10 +159,11 @@ class DQN():
 		# This implies that Q = logits.
 		# logits[at] += self.lr *( reward + self.gamma * np.max(logits[next_state, next_a]) - logits[at] )
 		q = logits[range(logits.shape[0]), action]
-		m = torch.max(next_logits, 1, keepdim=False).values
+		maxq = torch.max(next_logits, 1, keepdim=False).values
 		# print("m:", m.shape)
 		# q = q + self.lr *( reward + self.gamma * m - q )
-		target_q = torch.where(done, reward, reward + self.gamma * m)
+		# torch.where: if condition then arg2 else arg3
+		target_q = torch.where(done, reward, reward + self.gamma * maxq)
 		# print("q, target_q:", q.shape, target_q.shape)
 		q_loss = self.q_criterion(q, target_q.detach())
 
