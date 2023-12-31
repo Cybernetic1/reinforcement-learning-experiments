@@ -183,8 +183,7 @@ def ctrl_C_handler(sig, frame):
 	print("Enter Python code, or:\n'q' to exit\n'' to continue\n's' to save model\n'g' to play game\n'v' to visualize Q values")
 	command = input(">>> ")
 	if command == "q":
-		log_file.close()
-		exit(0)
+		command = "log_file.close(); exit(0)"
 	elif command == '':
 		command = None
 	elif command == 'g':

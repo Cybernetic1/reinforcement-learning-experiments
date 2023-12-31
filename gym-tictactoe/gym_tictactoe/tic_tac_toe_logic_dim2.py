@@ -37,13 +37,14 @@ class TicTacToeEnv(gym.Env):
 
 	def __init__(self, symbols, board_size=3, win_size=3):
 		super(TicTacToeEnv, self).__init__()
+
 		self.win_size = win_size
 		self.board_size = board_size
 		self.symbols = {
 			symbols[0]: "X",
 			symbols[1]: "O",
-			2: "!"
-		}
+			2: "!" }
+
 		self.action_space = spaces.Discrete(
 			self.board_size * self.board_size *2)
 
@@ -68,17 +69,16 @@ class TicTacToeEnv(gym.Env):
 		self.irrational = 0
 
 	def reset(self):
-		self.thinking_steps = 0
 		self.board = (self.board_size * self.board_size) * [0]
+		self.memory = (self.board_size * self.board_size) * [0]
 		# fill state vector with 9 empty squares and 9 null propositions:
 		self.state_vector = []
 		for i in range(0, self.board_size * self.board_size):
-			self.state_vector += [0,i]
+			self.state_vector += [0,i-4]
 		for i in range(0, self.board_size * self.board_size):
 			self.state_vector += [2,0]
 		self.index = 0	  # current state_vector position to write into
 		self.m_index = 18 # beginning of memory propositions
-		self.memory = (self.board_size * self.board_size) * [0]
 		return numpy.array(self.state_vector)
 
 	# -------------------- GAME STATE CHECK -------------------------
@@ -214,7 +214,6 @@ class TicTacToeEnv(gym.Env):
 					self.irrational += 1
 
 				self.m_index = 18		# clear memories
-				self.thinking_steps = 0
 				for i in range(0, self.board_size * self.board_size):
 					self.state_vector[i *2 + 18] = 2
 					self.state_vector[i *2 + 19] = 0

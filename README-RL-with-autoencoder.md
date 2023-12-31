@@ -149,3 +149,32 @@ x2 + δx ↦ y2  (这个可能性有多大?)
 
 然后还有个问题是: 在状态 x 里, 命题的个数 n 增大时, 个别命题的影响力 似乎越来越小.  也就是说, NN 作为 consequence operator map 并不太符合 逻辑 rules 推导的性质 (通常是从少量的前提下推出结论).  但其实也没有理由认为 NN 一定不能学习这种形状的 mapping.
 
+完全不明白 thoughts 被淘汰的原因....  
+根据 RL 的理论, 它会遍历所有的状态空间  
+多出的输入 为什么没有用?  
+因为根据前半部 NN 的分析, 它的资讯已经 **不足够**  
+所以 thoughts 只能反映那些不足够的资讯?  
+(这似乎是最合理的解释)
+
+另一个想法是:  thoughts 和 inputs 的语义不是 **同质** 的?  
+其实这好像不太重要  
+重要的是 NN 有没有能力模拟 logic rules 特别是 "少量前提特性"
+
+### Sym NN 试验到此为止
+
+效果不太好, 估计是因为 Sym NN 的结构 不太像 逻辑 rules.  
+Transformer 应该更接近 逻辑 rules 的结构.  
+
+## Transformer
+
+在这场景下 Transformer 是否有用?  
+Transformer 对应的 recurrence 是什么?  
+它比 RNN 好, 意思是 RNN per token recurse  
+但我现在是 Transformer 的 action recurse  
+但我现在考虑的是 states 的重复....  
+似乎后者并不需要 多一重的 Transformer,  
+因为 state 与 next state 之间是有 δ 的关系
+
+
+
+<script> window.scrollTo(0,500000) </script>

@@ -151,7 +151,7 @@ button {
 <ul id="messages"></ul>
 
 <script>
-	var ws = new WebSocket("ws://127.0.0.1:5678/");
+	const ws = new WebSocket("ws://127.0.0.1:5678/");
 	// const messages = document.getElementById('messages');
 	// const gameOver = document.getElementById('gameOver');
 	var state = new Array(9).fill(0);

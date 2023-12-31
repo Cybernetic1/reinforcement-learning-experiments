@@ -127,7 +127,6 @@ class DQN():
 
 	def choose_action(self, state, deterministic=True):
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
-		# print("state=", state)
 		logits = self.symnet(state)
 		probs  = torch.softmax(logits, dim=1)
 		dist   = Categorical(probs)
@@ -159,11 +158,12 @@ class DQN():
 		# This implies that Q = logits.
 		# logits[at] += self.lr *( reward + self.gamma * np.max(logits[next_state, next_a]) - logits[at] )
 		q = logits[range(logits.shape[0]), action]
-		maxq = torch.max(next_logits, 1, keepdim=False).values
-		# print("m:", m.shape)
+		# maxq = torch.softmax(next_logits, 1, keepdim=False).values
+		softmaxQ = torch.log(torch.sum(torch.exp(next_logits), 1))
+		# print("softmaxQ:", softmaxQ.shape)
 		# q = q + self.lr *( reward + self.gamma * m - q )
 		# torch.where: if condition then arg2 else arg3
-		target_q = torch.where(done, reward, reward + self.gamma * maxq)
+		target_q = torch.where(done, reward, reward + self.gamma * softmaxQ)
 		# print("q, target_q:", q.shape, target_q.shape)
 		q_loss = self.q_criterion(q, target_q.detach())
 
@@ -185,7 +185,6 @@ class DQN():
 			else:
 				vec += [2,0]
 		state = torch.FloatTensor(vec).unsqueeze(0).to(device)
-		# print("state=", state)
 		logits = self.symnet(state)
 		probs  = torch.softmax(logits, dim=1)
 		return probs.squeeze(0)
