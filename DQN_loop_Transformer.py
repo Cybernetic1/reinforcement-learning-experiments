@@ -6,6 +6,9 @@ actions 9-17 = intermediate thoughts
 These will be put into a special area of the "state".
 For more explanations see: README-RL-with-autoencoder.md
 
+Primitive Transformer code is taken from:
+https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial6/Transformers_and_MHAttention.html
+
 Using:
 PyTorch: 1.9.1+cpu
 gym: 0.8.0
