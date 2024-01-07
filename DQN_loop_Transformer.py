@@ -201,8 +201,9 @@ class DQN():
 		self.q_optimizer = optim.Adam(self.trm.parameters(), lr=self.lr)
 
 	def _build_net(self):
-		encoder_layer = nn.TransformerEncoderLayer(d_model=3, nhead=1)
-		self.trm = nn.TransformerEncoder(encoder_layer, num_layers=1)
+
+		self.trm = TransformerEncoder(num_layers=1, input_dim=2,dim_feedforward=2*model_dim, num_heads=1, dropout=0.1)
+
 		# W is a 3x9 matrix, to convert 3-vector to 9-vector probability distribution:
 		self.W = Variable(torch.randn(2, 9), requires_grad=True)
 		self.softmax = nn.Softmax(dim=0)
