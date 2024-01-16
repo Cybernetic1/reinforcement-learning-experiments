@@ -1,5 +1,7 @@
 # RL with Auto-Encoder
 
+The following are my personal notes, may seem disorganized and incomprehensible.
+
 <img src="minimal-RL.png" width="150"/>
 
 <img src="RL-with-autoencoder.png" width="170"/>
@@ -54,7 +56,7 @@ AE 根据的是 reconstruction error
 似乎最简单的答案就是 定义 R(δx), 即每个 **命题** 的奖励。  
 而 x 的奖励是 根据 δx 决定的。 甚至反而更直观、更易处理。
 
-余下问题：RL 跟 AE 的 **互相干涉** :
+## RL 跟 AE 的 互相干涉
 
 1. RL 干涉 AE：  
 AE 的中部突然出现外来的 tokens 会否影响其收敛？
@@ -67,7 +69,7 @@ b）关于行动的思考
 
 2. AE 干涉 RL：  
 RL 的状态中突然出现外来的 δx 会否影响 RL 的收敛？  
-应该不会，因为状态从来是随着世界改变的。
+应该不会，因为**状态从来是随着世界改变的**。
 
 我说明了可以收敛，但没有说明 有没有帮助？  
 AE → RL 肯定是有帮助的  
@@ -174,6 +176,22 @@ Transformer 对应的 recurrence 是什么?
 但我现在考虑的是 states 的重复....  
 似乎后者并不需要 多一重的 Transformer,  
 因为 state 与 next state 之间是有 δ 的关系
+
+## RL 与 LLM 「相撞」的问题
+
+这仍然是最重要的问题。 RL 负责「思考」，但 LLM 亦有此功能。  
+为了预测未来，LLM 必需有某种思考能力，但这跟 RL 的功能重叠了。  
+但 RL 的结构是循环的，我们想用它替代 LLM？  
+那么 RL 是否可以完全取代 LLM？  
+或者说： LLM 学习 p，RL 学习 π，为什么 π 和 p 会相撞？  
+RL 的目标是由 价值 / 奖励 决定的，  
+如果 RL 的目标就是 解释世界，则 RL 和 LLM 目标一样 而算法不同  
+但更一般地说，RL 的价值不只是解释世界  
+它有 human interests.
+
+重要的问题是：RL 和 LLM 共享状态  
+承接上面的论述, 问题是 LLM 能不能接受 RL 干扰 它的状态?  
+似乎是可以的, 那么 LLM 的目标仍然是 学习 p  
 
 
 
