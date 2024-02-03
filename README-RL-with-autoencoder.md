@@ -193,6 +193,15 @@ RL 的目标是由 价值 / 奖励 决定的，
 承接上面的论述, 问题是 LLM 能不能接受 RL 干扰 它的状态?  
 似乎是可以的, 那么 LLM 的目标仍然是 学习 p  
 
+## RL 能否高效率地学习？
+
+## 受 Looped Transformer 启发之后
+
+So, what's new?  它似乎提供了一些训练的细节？  
+误差的计算是根据 expected output token 的 squared error  
+从 embedding 假设看来，这似乎还 make sense
+
+这跟我井字棋那边的失败有什么关系？ 
 
 
 <script> window.scrollTo(0,500000) </script>
