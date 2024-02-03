@@ -195,6 +195,8 @@ RL 的目标是由 价值 / 奖励 决定的，
 
 ## RL 能否高效率地学习？
 
+关键是：RL 能否学习到更好的逻辑规则（相对于 LLM 而言）？  
+
 ## 受 Looped Transformer 启发之后
 
 So, what's new?  它似乎提供了一些训练的细节？  
@@ -202,6 +204,5 @@ So, what's new?  它似乎提供了一些训练的细节？
 从 embedding 假设看来，这似乎还 make sense
 
 这跟我井字棋那边的失败有什么关系？ 
-
 
 <script> window.scrollTo(0,500000) </script>
