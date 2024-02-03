@@ -203,6 +203,8 @@ So, what's new?  它似乎提供了一些训练的细节？
 误差的计算是根据 expected output token 的 squared error  
 从 embedding 假设看来，这似乎还 make sense
 
-这跟我井字棋那边的失败有什么关系？ 
+这跟我井字棋那边的失败有什么关系？  
+我的做法是 状态空间中有 intermediate states  
+Looped TRM 的做法是：？
 
 <script> window.scrollTo(0,500000) </script>
