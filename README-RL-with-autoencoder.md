@@ -211,6 +211,7 @@ Loop TRM 的做法是： 必然 loop T 次，
 因为在我的 井字棋 实验里，TRM 是 δx operator  
 因为 Loop TRM 的 loss 是整个 prompt 序列的预测 loss  
 换句话说： 会不会 TRM 其实是特别为了 auto-encoding 的工作而优化的？  
+如果 TRM 可以学习 next x 的分布，为什么它不可以学习 δx 的分布？
 
 
 <script> window.scrollTo(0,500000) </script>
