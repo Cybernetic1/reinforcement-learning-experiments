@@ -205,6 +205,12 @@ So, what's new?  它似乎提供了一些训练的细节？
 
 这跟我井字棋那边的失败有什么关系？  
 我的做法是 状态空间中有 intermediate states  
-Looped TRM 的做法是：？
+Loop TRM 的做法是： 必然 loop T 次，  
+计算 mean( sum of square losses )  
+而且，它是不是作为 auto-encoder 似乎也是关键的？  
+因为在我的 井字棋 实验里，TRM 是 δx operator  
+因为 Loop TRM 的 loss 是整个 prompt 序列的预测 loss  
+换句话说： 会不会 TRM 其实是特别为了 auto-encoding 的工作而优化的？  
+
 
 <script> window.scrollTo(0,500000) </script>
