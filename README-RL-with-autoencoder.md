@@ -213,5 +213,14 @@ Loop TRM 的做法是： 必然 loop T 次，
 换句话说： 会不会 TRM 其实是特别为了 auto-encoding 的工作而优化的？  
 如果 TRM 可以学习 next x 的分布，为什么它不可以学习 δx 的分布？
 
+δx 的输出似乎包含了 logic attention  
+同一个状态 可以输出 不同的 δx，这似乎不仅是概率的差异  
+它似乎需要更多的時間 explore search space？  
+
+## 现在有几个问题
+
+1. 为什么 Looped TicTacToe 拿不到奖励？
+2. Architecture (for TicTacToe) -- RL 的输出究竟是 t 还是 t + 1？ 
+3. Search efficiency when looped. Is there a difference?
 
 <script> window.scrollTo(0,500000) </script>
