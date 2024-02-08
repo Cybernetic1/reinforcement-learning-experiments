@@ -223,4 +223,8 @@ Loop TRM 的做法是： 必然 loop T 次，
 2. Architecture (for TicTacToe) -- RL 的输出究竟是 t 还是 t + 1？ 
 3. Search efficiency when looped. Is there a difference?
 
+**Q2:**  如果 RL 输出的是 t + 1, 则它直接输出到 output？  
+但又好像不是，因为 RL 输出的是隐状态。
+
+
 <script> window.scrollTo(0,500000) </script>
