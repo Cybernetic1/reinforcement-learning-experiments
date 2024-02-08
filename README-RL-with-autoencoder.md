@@ -223,4 +223,6 @@ Loop TRM 的做法是： 必然 loop T 次，
 2. Architecture (for TicTacToe) -- RL 的输出究竟是 t 还是 t + 1？ 
 3. Search efficiency when looped. Is there a difference?
 
+// Remarkable 1.87
+
 <script> window.scrollTo(0,500000) </script>
