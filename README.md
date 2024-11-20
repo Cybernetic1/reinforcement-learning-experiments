@@ -2,6 +2,10 @@
 
 Experimenting with various RL algorithms.
 
+* [To-do list](TO-DO.md) 
+* [notes on Symmetric Neural Networks](README-symmetric-NN.md) 
+* [(disorganized) notes on RL and Autoencoder](README-RL-with-autoencoder.md) 
+
 ## Some RL theory
 
 Reinforcement learning is founded on **Bellman's optimality condition**:
