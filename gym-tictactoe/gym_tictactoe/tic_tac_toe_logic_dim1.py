@@ -38,6 +38,10 @@ class TicTacToeEnv(gym.Env):
 			'bad_position': -30.0
 			}
 
+		self.good = 0
+		self.rational = 0
+		self.irrational = 0
+
 	def reset(self):
 		self.state_vector = (1 * self.board_size * self.board_size) * [0]
 		self.index = 0	# current state_vector position to write into

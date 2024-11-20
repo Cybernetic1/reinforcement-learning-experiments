@@ -66,22 +66,22 @@ elif config == 21:
 	from DQN_Transformer_pyTorch import DQN, ReplayBuffer
 	tag = "DQN.Transformer.pyTorch"
 elif config == 22:
-	from DQN_logic_pyTorch import DQN, ReplayBuffer
+	from DQN_logic import DQN, ReplayBuffer
 	tag = "DQN.logic"
 elif config == 23:
-	from DQN_logic_dim1_pyTorch import DQN, ReplayBuffer
+	from DQN_logic_dim1 import DQN, ReplayBuffer
 	tag = "DQN.logic-1D"
 elif config == 24:
-	from DQN_logic_symNN_pyTorch import DQN, ReplayBuffer
+	from DQN_logic_symNN import DQN, ReplayBuffer
 	tag = "DQN.logic.symNN"
 elif config == 25:
-	from DQN_loop_pyTorch import DQN, ReplayBuffer
+	from DQN_loop import DQN, ReplayBuffer
 	tag = "DQN.loop"
 elif config == 26:
-	from DQN_shrink_pyTorch import DQN, ReplayBuffer
+	from DQN_shrink import DQN, ReplayBuffer
 	tag = "DQN.shrink"
 elif config == 27:
-	from DQN_shrink_SymNN_pyTorch import DQN, ReplayBuffer
+	from DQN_shrink_SymNN import DQN, ReplayBuffer
 	tag = "DQN.shrink-SymNN"
 
 import gym_tictactoe
