@@ -235,9 +235,3 @@ Loop TRM 的做法是： 必然 loop T 次，
 但 verify 仍然是针对 t+1 而言的，理由很简单，因为 t 是**已知**的了。  
 预测 map 和 推理 map 似乎不是同一个 map.
 g
-
-
-
-// Remarkable 1.87
-
-<script> window.scrollTo(0,500000) </script>
