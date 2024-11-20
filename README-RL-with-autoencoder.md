@@ -217,14 +217,26 @@ Loop TRM 的做法是： 必然 loop T 次，
 同一个状态 可以输出 不同的 δx，这似乎不仅是概率的差异  
 它似乎需要更多的時間 explore search space？  
 
-## 现在有几个问题
+## 现在有3个问题
 
 1. 为什么 Looped TicTacToe 拿不到奖励？
 2. Architecture (for TicTacToe) -- RL 的输出究竟是 t 还是 t + 1？ 
 3. Search efficiency when looped. Is there a difference?
 
 **Q2:**  如果 RL 输出的是 t + 1, 则它直接输出到 output？  
-但又好像不是，因为 RL 输出的是隐状态。
+但又好像不是，因为 RL 输出的是隐状态。  
+其实 t 和 t+1 似乎没有良好定义。  
+在大脑中，似乎是有某种天然的节奏吧？  
+问题是：什么才算是 t 的推论，什么算是对 t+1 的预测？  
+会不会是两套不同的 mappings？  
+问题在于它们 verification 的方法。   
+当下状态 产生新的推论，但仍然属于 当下的。  
+然后 状态 t **预测** 状态 t+1.  
+但 verify 仍然是针对 t+1 而言的，理由很简单，因为 t 是**已知**的了。  
+预测 map 和 推理 map 似乎不是同一个 map.
+g
+
+
 
 // Remarkable 1.87
 
