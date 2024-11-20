@@ -1,4 +1,4 @@
-# State space has 9 elements, each element is a vector of dim 3
+# State space has 9 elements, each element is a vector of dim 3 = (x,y,who)
 # Action space = { 0 ... 8 }
 
 import gym

@@ -89,7 +89,9 @@ if config in [10, 12, 14, 21, 22, 24]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
 elif config == 23:
 	env = gym.make('TicTacToe-logic-dim1-v0', symbols=[-1, 1], board_size=3, win_size=3)
-elif config in [25, 26, 27]:
+elif config == 25:
+	env = gym.make('TicTacToe-logic-dim2-intermediate-v0', symbols=[-1, 1], board_size=3, win_size=3)
+elif config in [26, 27]:
 	env = gym.make('TicTacToe-logic-dim2-v0', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -120,8 +122,8 @@ elif config == 25:
 	)
 elif config in [26, 27]:
 	RL = DQN(
-		action_dim = env.action_space.n // 2,	# use only real actions
-		state_dim = env.state_space.shape[0] // 2, # only half the state
+		action_dim = env.action_space.n,
+		state_dim = env.state_space.shape[0],
 		learning_rate = 0.001,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)

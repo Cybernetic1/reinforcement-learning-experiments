@@ -1,6 +1,6 @@
 # State space has 9 elements, each element is a vector of dim 2
 # NOTE: this version allows intermediate thoughts
-# Each state element = { player = -1, 0, 1, 2 } x { square = 0 ... 8 }
+# Each state element = { player = -1, 0, 1, 2 } x { square = -4 ... 4 }
 # where: player = 0 means empty squares
 #		 player = 2 means intermediate thoughts, and square can be freely
 #			interpreted as any idea (there could be 9 discrete ideas)
@@ -206,7 +206,7 @@ class TicTacToeEnv(gym.Env):
 
 			if symbol == -1:			# self-move
 				# **** A real move has occurred, ...
-				if self.m_index > 18:
+				if self.m_index > 18:	# should be 18...36
 					self.rational += 1
 					if reward_type == 'win':
 						self.good += 1

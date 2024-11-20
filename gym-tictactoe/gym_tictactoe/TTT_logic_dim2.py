@@ -1,11 +1,16 @@
-# State space has 9 elements, each element is a vector of dim 1
+# State space has 9 elements, each element is a vector of dim 2
+# (without intermediate states)
+# Each state element = { player = -1, 0, 1 } x { square = -4 ... 4 }
+# where player = 0 means empty square
 # Action space = { 0 ... 8 }
+
+# TO-DO:
+# *
 
 import gym
 import numpy
-import random	# only needed for 'shuffling' of state vector
+import random
 from gym import spaces, error
-import xml.etree.ElementTree as ET
 import os
 
 import websockets
@@ -16,32 +21,44 @@ class TicTacToeEnv(gym.Env):
 
 	def __init__(self, symbols, board_size=3, win_size=3):
 		super(TicTacToeEnv, self).__init__()
+
 		self.win_size = win_size
 		self.board_size = board_size
 		self.symbols = {
 			symbols[0]: "X",
 			symbols[1]: "O",
-			2: "!"
-		}
-		self.action_space = spaces.Discrete(self.board_size * self.board_size)
+			2: "!" }
 
-		# State space has 9 elements, each element is a vector of dim 3
+		self.action_space = spaces.Discrete(
+			self.board_size * self.board_size)
+
+		# State space has 9 elements, each element is a vector of dim 2
 		self.state_space = spaces.Box(
 		# The entries indicate the min and max values of the "box":
-		numpy.array(numpy.float32( [9, 9, 9, 9, 9, 9, 9, 9, 9] )), \
-		numpy.array(numpy.float32( [-9, -9, -9, -9, -9, -9, -9, -9, -9] )))
+			numpy.array(numpy.float32( [1, 4] * 9 * 2)), \
+			numpy.array(numpy.float32( [-1, -4] * 9 * 2))  )
+		# 2 means "bad move", -2 means "intermediate thought"
 
 		self.rewards = {
-			'still_in_game': 0.3,
+			'still_in_game': 0.0,
+			'thinking': 0.0,
+			'double-think': -25.0,
 			'draw': 10.0,
 			'win': 20.0,
 			'bad_position': -30.0
 			}
 
+		self.good = 0
+		self.rational = 0
+		self.irrational = 0
+
 	def reset(self):
-		self.state_vector = (1 * self.board_size * self.board_size) * [0]
-		self.index = 0	# current state_vector position to write into
 		self.board = (self.board_size * self.board_size) * [0]
+		# fill state vector with 9 empty squares:
+		self.state_vector = []
+		for i in range(0, self.board_size * self.board_size):
+			self.state_vector += [0,i-4]
+		self.index = 0	  # current state_vector position to write into
 		return numpy.array(self.state_vector)
 
 	# -------------------- GAME STATE CHECK -------------------------
@@ -121,21 +138,21 @@ class TicTacToeEnv(gym.Env):
 
 	# ------------------------------ ACTIONS ----------------------------
 	def step(self, action, symbol):
-		global board, state_vector
 
 		is_position_already_used = False
-
 		if self.board[action] != 0:
 			is_position_already_used = True
 
 		if is_position_already_used:
 			self.board[action] = 2
-			self.state_vector[self.index] = 0	# this seems not matter
+			self.state_vector[self.index] = 2	# this seems not matter
+			self.state_vector[self.index +1] = action -4
 			reward_type = 'bad_position'
 			done = True
 		else:
 			self.board[action] = symbol
-			self.state_vector[self.index] = (action + 1) * symbol
+			self.state_vector[self.index] = symbol
+			self.state_vector[self.index +1] = action -4
 
 			if self.is_win():
 				reward_type = 'win'
@@ -147,13 +164,12 @@ class TicTacToeEnv(gym.Env):
 				reward_type = 'still_in_game'
 				done = False
 
-		self.index += 1
+		self.index += 2
 
-		state_vector2 = self.state_vector.copy()
-		random.shuffle(state_vector2)
-		return numpy.array(state_vector2), \
+		# state_vector2 = self.state_vector.copy()
+		# random.shuffle(state_vector2)
+		return numpy.array(self.state_vector), \
 			self.rewards[reward_type], done, reward_type
-			# , {'already_used_position': is_position_already_used}
 
 	# ----------------------------- DISPLAY -----------------------------
 	def get_state_vector_to_display(self):
