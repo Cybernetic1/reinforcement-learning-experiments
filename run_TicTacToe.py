@@ -155,7 +155,7 @@ print("Log file opened:", log_name)
 print("action_space =", env.action_space)
 print("n_actions =", env.action_space.n)
 print("state_space =", env.state_space)
-print("n_features =", env.state_space.shape[0])
+print("n_features = state dim =", env.state_space.shape[0])
 print("state_space.high =", env.state_space.high)
 print("state_space.low =", env.state_space.low)
 

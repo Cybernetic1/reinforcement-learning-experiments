@@ -35,8 +35,8 @@ class TicTacToeEnv(gym.Env):
 		# State space has 9 elements, each element is a vector of dim 2
 		self.state_space = spaces.Box(
 		# The entries indicate the min and max values of the "box":
-			numpy.array(numpy.float32( [1, 4] * 9 * 2)), \
-			numpy.array(numpy.float32( [-1, -4] * 9 * 2))  )
+			numpy.array(numpy.float32( [1, 4] * 9)), \
+			numpy.array(numpy.float32( [-1, -4] * 9))  )
 		# 2 means "bad move", -2 means "intermediate thought"
 
 		self.rewards = {
