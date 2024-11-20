@@ -60,10 +60,10 @@ elif config == 15:
 	tag = "SAC.full.pyTorch"
 
 elif config == 20:
-	from RL_DQN_pyTorch import DQN
+	from RL_DQN import DQN
 	tag = "DQN"
 elif config == 21:
-	from DQN_Transformer_pyTorch import DQN, ReplayBuffer
+	from DQN_Transformer import DQN, ReplayBuffer
 	tag = "DQN.Transformer.pyTorch"
 elif config == 22:
 	from DQN_logic import DQN, ReplayBuffer
@@ -319,6 +319,7 @@ def play_1_game_with_human():
 
 train_once = False		# you may use Ctrl-C to change this
 DETERMINISTIC = False
+INTERMEDIATE = False	# whether the state has intermediate thoughts
 RENDER = 0
 # **** RENDER flag:
 # bit 1 (1) = display every real action
@@ -413,10 +414,11 @@ while True:
 
 		rr = round(running_reward, 5)
 		print("\n\t\x1b[0m", i_episode, "Running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
-		print("good:rational =", env.good, ":", env.rational, ":", env.irrational)
-		env.good = 0
-		env.rational = 0
-		env.irrational = 0
+		if INTERMEDIATE:
+			print("good:rational =", env.good, ":", env.rational, ":", env.irrational)
+			env.good = 0
+			env.rational = 0
+			env.irrational = 0
 		# RL.set_learning_rate(i_episode)
 		log_file.write(str(i_episode) + ' ' + str(running_reward) + '\n')
 		log_file.flush()

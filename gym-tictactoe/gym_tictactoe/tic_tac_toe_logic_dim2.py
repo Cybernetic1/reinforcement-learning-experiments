@@ -2,7 +2,7 @@
 # NOTE: this version allows intermediate thoughts
 # Each state element = { player = -1, 0, 1, 2 } x { square = 0 ... 8 }
 # where: player = 0 means empty squares
-#		player = 2 means intermediate thoughts, and square can be freely
+#		 player = 2 means intermediate thoughts, and square can be freely
 #			interpreted as any idea (there could be 9 discrete ideas)
 # Action space = { 0 ... 8, 9 ... 17 }
 # If no thought-actions are made, it plays as single-step actor.

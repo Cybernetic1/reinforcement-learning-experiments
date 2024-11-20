@@ -96,13 +96,13 @@ ax1.set_xlabel('Episode'); ax1.set_ylabel('Reward')
 rolling_mean = pd.Series(data).rolling(window).mean()
 std = pd.Series(data).rolling(window).std()
 ax1.plot(rolling_mean, color='red')
-ax1.fill_between(range(len(data)),rolling_mean - std, rolling_mean + std, color='red', alpha=0.2)
+ax1.fill_between(range(len(data)),rolling_mean - std, rolling_mean + std, color='red', alpha=0.2, label='_nolegend_')
 
 if c2 >=0:
 	rolling_mean2 = pd.Series(data2).rolling(window).mean()
 	std2 = pd.Series(data2).rolling(window).std()
 	ax1.plot(rolling_mean2, color='blue')
-	ax1.fill_between(range(len(data2)),rolling_mean2 - std2, rolling_mean2 + std2, color='blue', alpha=0.2)
+	ax1.fill_between(range(len(data2)),rolling_mean2 - std2, rolling_mean2 + std2, color='blue', alpha=0.2, label='_nolegend_')
 
 	ax1.legend([tag, tag2])
 else:
