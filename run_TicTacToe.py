@@ -457,4 +457,7 @@ while True:
 		else:
 			call(['play', '-n', '-q', 'synth', '0.05', 'sine', '2300', 'gain', '-25'])
 
+endTime = datetime.now()
+timeStamp = endTime.strftime("%d-%m-%Y(%H:%M)")
+log_file.write("# End time: " + timeStamp + '\n')
 print('\007')	# sound beep
