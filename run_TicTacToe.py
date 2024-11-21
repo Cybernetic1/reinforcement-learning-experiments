@@ -85,7 +85,7 @@ elif config == 27:
 	tag = "DQN.shrink-SymNN"
 
 import sys
-sys.path.insert(0, '/home/yky/misc-programs/reinforcement-learning-experiments/gym-tictactoe')
+sys.path.insert(0, './gym-tictactoe')
 import gym_tictactoe
 if config in [10, 12, 14, 21, 22, 24]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
