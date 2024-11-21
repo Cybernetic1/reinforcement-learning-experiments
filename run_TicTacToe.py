@@ -84,6 +84,8 @@ elif config == 27:
 	from DQN_shrink_SymNN import DQN, ReplayBuffer
 	tag = "DQN.shrink-SymNN"
 
+import sys
+sys.path.insert(0, '/home/yky/misc-programs/reinforcement-learning-experiments/gym-tictactoe')
 import gym_tictactoe
 if config in [10, 12, 14, 21, 22, 24]:
 	env = gym.make('TicTacToe-logic-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -92,7 +94,7 @@ elif config == 23:
 elif config == 25:
 	env = gym.make('TicTacToe-logic-dim2-intermediate-v0', symbols=[-1, 1], board_size=3, win_size=3)
 elif config in [26, 27]:
-	env = gym.make('TicTacToe-logic-dim2-v0', symbols=[-1, 1], board_size=3, win_size=3)
+	env = gym.make('TicTacToe-logic-dim2-v1', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 

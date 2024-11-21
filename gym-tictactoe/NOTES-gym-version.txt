@@ -1,3 +1,0 @@
-This gym_tictactoe seems to work with gym version 0.19.0
-run `pip3 install gym==0.19.0`
-check with python:  from gym.version import VERSION; print(VERSION)

@@ -41,16 +41,10 @@ class TicTacToeEnv(gym.Env):
 
 		self.rewards = {
 			'still_in_game': 0.0,
-			'thinking': 0.0,
-			'double-think': -25.0,
 			'draw': 10.0,
 			'win': 20.0,
 			'bad_position': -30.0
 			}
-
-		self.good = 0
-		self.rational = 0
-		self.irrational = 0
 
 	def reset(self):
 		self.board = (self.board_size * self.board_size) * [0]

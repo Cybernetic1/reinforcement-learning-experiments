@@ -22,7 +22,7 @@ register(
 )
 
 register(
-    id='TicTacToe-logic-dim2-v0',	# logic dim2
+    id='TicTacToe-logic-dim2-v1',	# logic dim2
     entry_point='gym_tictactoe.TTT_logic_dim2:TicTacToeEnv',
     reward_threshold=1000
 )

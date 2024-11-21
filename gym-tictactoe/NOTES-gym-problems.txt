@@ -1,0 +1,23 @@
+This gym_tictactoe seems to work with gym version 0.19.0
+run `pip3 install gym==0.19.0`
+check with python:  from gym.version import VERSION; print(VERSION)
+
+****
+
+If some shit happens with OpenCV version >=3.
+you have to edit the file such as:
+    /home/yky/.local/lib/python3.8/site-packages/packaging/requirements.py
+and modify the part:
+    def __init__(self, requirement_string: str) -> None:
+        try:
+            if requirement_string.find('opencv-python')>=0:
+                print("YKY is here:", requirement_string)    # opencv-python>=3.0
+                requirement_string = requirement_string.replace("3.", "3.0")
+            parsed = parse_requirement(requirement_string)
+        except ParserSyntaxError as e:
+            raise InvalidRequirement(str(e)) from e
+
+****
+
+To install the gym, you may try this, go into the dir where setup.py is:
+    pip install -e .

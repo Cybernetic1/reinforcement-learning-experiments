@@ -5,3 +5,5 @@ TO-DO List
 * Compare sym NN with fully-connected to prove that symmetry matters
 * Clean up code on "intermediate thoughts"
 * Add more explanations to GUI
+* Add comments to training results
+* DQN seems to be my new favorite, why?
