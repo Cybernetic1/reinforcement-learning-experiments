@@ -440,6 +440,9 @@ while True:
 
 			if i_episode == 200000:		# approx 1 hours' run for pyTorch, half hour for TensorFlow
 				# print('\007')	# sound beep
+				endTime = datetime.now()
+				endStamp = endTime.strftime("%d-%m-%Y(%H:%M)")
+				log_file.write("# End time: " + endStamp + '\n')
 				call(['ekho', '新档案', '-s=-20'])	# speak "new file"
 				log_file.close()
 				RL.save_net(model_name + "." + timeStamp)
