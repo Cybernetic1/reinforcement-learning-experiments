@@ -257,7 +257,7 @@ def preplay_moves():
 print("Pre-play moves:")
 state = env.reset()
 preplay_moves()
-env.render()
+env.render(mode=None)
 
 # hyper-parameters
 batch_size   = 256
@@ -411,10 +411,11 @@ while True:
 			command = None
 
 	if i_episode % 100 == 0:
-		with connect("ws://localhost:5678") as websocket:
-			websocket.send(json.dumps('ask'))
-			RENDER = json.loads(websocket.recv())
-			# print("RENDER=", RENDER)
+		if RENDER > 0:
+			with connect("ws://localhost:5678") as websocket:
+				websocket.send(json.dumps('ask'))
+				RENDER = json.loads(websocket.recv())
+				# print("RENDER=", RENDER)
 
 		rr = round(running_reward, 5)
 		print("\n\t\x1b[0m", i_episode, "Running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)

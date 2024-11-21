@@ -191,7 +191,7 @@ class TicTacToeEnv(gym.Env):
 
 		print(" " + "-" * (self.board_size * 4 + 1))
 
-	def render(self, mode=None, close=False):
+	def render(self, mode=None):
 		if mode == 'HTML':
 			with connect("ws://localhost:5678") as websocket:
 				websocket.send(json.dumps(self.board))
