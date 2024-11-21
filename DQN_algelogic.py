@@ -1,10 +1,7 @@
 """
-Deep Q Network
-modified from Q-table where the table is replaced by a deep NN.
-
-Using:
-PyTorch: 1.9.1+cpu
-gym: 0.8.0
+DQN (Deep Q Network) using my invention "algebraic logic network" to implement Q.
+Board representation:  logic, dim-2
+Code is adapted from DQN_shrink.py.
 """
 
 import torch
@@ -38,7 +35,7 @@ class ReplayBuffer:
 
 	def sample(self, batch_size):
 		batch = random.sample(self.buffer, batch_size)
-		state, action, reward, next_state, done = \
+		states, actions, rewards, next_states, dones = \
 			map(np.stack, zip(*batch)) # stack for each element
 		'''
 		the * serves as unpack: sum(a,b) <=> batch=(a,b), sum(*batch) ;
@@ -48,19 +45,20 @@ class ReplayBuffer:
 		'''
 		# print("sampled state=", state)
 		# print("sampled action=", action)
-		return state, action, reward, next_state, done
+		return states, actions, rewards, next_states, dones
 
 	def __len__(self):
 		return len(self.buffer)
 
-class QNetwork(nn.Module):
+class AlgelogicNetwork(nn.Module):
 	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
-		super(QNetwork, self).__init__()
+		super(AlgelogicNetwork, self).__init__()
 
-		self.linear1 = nn.Linear(input_dim, hidden_size)
-		self.linear2 = nn.Linear(hidden_size, hidden_size)
-		self.linear3 = nn.Linear(hidden_size, hidden_size)
-		self.linear4 = nn.Linear(hidden_size, hidden_size)
+		# **** Define 20 predicates
+		self.predicate = []
+		for i in range(0,20):
+			self.predicate[i].linear1 = nn.Linear(input_dim, hidden_size)
+			self.predicate[i].linear2 = nn.Linear(hidden_size, hidden_size)
 
 		self.logits_linear = nn.Linear(hidden_size, action_dim)
 		self.logits_linear.weight.data.uniform_(-init_w, init_w)
@@ -71,8 +69,8 @@ class QNetwork(nn.Module):
 	def forward(self, state):
 		x = self.activation(self.linear1(state))
 		x = self.activation(self.linear2(x))
-		x = self.activation(self.linear3(x))
-		x = self.activation(self.linear4(x))
+		# x = self.activation(self.linear3(x))
+		# x = self.activation(self.linear4(x))
 
 		logits = self.logits_linear(x)
 		# logits = F.leaky_relu(self.logits_linear(x))
@@ -95,16 +93,16 @@ class DQN():
 
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
-		hidden_dim = 32
-		self.q_net = QNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
+		hidden_dim = 9
+		self.qnet = QNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
 		self.q_criterion = nn.MSELoss()
-		self.q_optimizer = optim.Adam(self.q_net.parameters(), lr=self.lr)
+		self.q_optimizer = optim.Adam(self.qnet.parameters(), lr=self.lr)
 
 	def choose_action(self, state, deterministic=True):
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
 
-		logits = self.q_net(state)
+		logits = self.qnet(state)
 		probs  = torch.softmax(logits, dim=1)
 		dist   = Categorical(probs)
 		action = dist.sample().numpy()[0]
@@ -124,12 +122,22 @@ class DQN():
 		reward     = torch.FloatTensor(reward).to(device) # .to(device)  # reward is single value, unsqueeze() to add one dim to be [reward] at the sample dim;
 		done       = torch.BoolTensor(done).to(device)
 
-		logits = self.q_net(state)
-		next_logits = self.q_net(next_state)
+		logits = self.qnet(state)
+		next_logits = self.qnet(next_state)
 
+		# **** Train deep Q function, this is just Bellman equation:
+		# DQN(st,at) += η [ R + γ max_a DQN(s_t+1,a) - DQN(st,at) ]
+		# DQN[s, action] += self.lr *( reward + self.gamma * np.max(DQN[next_state, :]) - DQN[s, action] )
+		# max 是做不到的，但似乎也可以做到。 DQN 输出的是 probs.
+		# probs 和 Q 有什么关系？  Q 的 Boltzmann 是 probs (SAC 的做法).
+		# This implies that Q = logits.
+		# logits[at] += self.lr *( reward + self.gamma * np.max(logits[next_state, next_a]) - logits[at] )
 		q = logits[range(logits.shape[0]), action]
 		m = torch.max(next_logits, 1, keepdim=False).values
+		# print("m:", m.shape)
+		# q = q + self.lr *( reward + self.gamma * m - q )
 		target_q = torch.where(done, reward, reward + self.gamma * m)
+		# print("q, target_q:", q.shape, target_q.shape)
 		q_loss = self.q_criterion(q, target_q.detach())
 
 		self.q_optimizer.zero_grad()
@@ -139,7 +147,7 @@ class DQN():
 		return
 
 	def net_info(self):
-		config = "(9)-32-32-32-32-32-(9)"
+		config = "(9)-9-9-(9)"
 		neurons = config.split('-')
 		last_n = 9
 		total = 0
@@ -151,18 +159,18 @@ class DQN():
 		return (config, total)
 
 	def play_random(self, state, action_space):
+		# Select an action (0-9) randomly
 		# NOTE: random player never chooses occupied squares
 		empties = [0,1,2,3,4,5,6,7,8]
 		# Find and collect all empty squares
-		# scan through all 9 propositions, each proposition is a 3-vector
-		for i in range(0, 27, 3):
+		# scan through all 9 propositions, each proposition is a 2-vector
+		for i in range(0, 18, 2):
 			# 'proposition' is a numpy array[3]
-			proposition = state[i : i + 3]
-			sym = proposition[2]
+			proposition = state[i : i + 2]
+			sym = proposition[0]
 			if sym == 1 or sym == -1:
-				x = proposition[0]
-				y = proposition[1]
-				j = y * 3 + x
+				x = proposition[1]
+				j = x + 4
 				empties.remove(j)
 		# Select an available square randomly
 		action = random.sample(empties, 1)[0]

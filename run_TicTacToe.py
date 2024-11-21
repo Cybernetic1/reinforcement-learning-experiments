@@ -61,19 +61,19 @@ elif config == 15:
 
 elif config == 20:
 	from RL_DQN import DQN
-	tag = "DQN"
+	tag = "DQN.BoardVec"
 elif config == 21:
 	from DQN_Transformer import DQN, ReplayBuffer
 	tag = "DQN.Transformer.pyTorch"
 elif config == 22:
-	from DQN_logic import DQN, ReplayBuffer
-	tag = "DQN.logic"
+	from DQN_full import DQN, ReplayBuffer
+	tag = "DQN.full"
 elif config == 23:
-	from DQN_logic_dim1 import DQN, ReplayBuffer
-	tag = "DQN.logic-1D"
+	from DQN_full_dim1 import DQN, ReplayBuffer
+	tag = "DQN.full-1D"
 elif config == 24:
-	from DQN_logic_symNN import DQN, ReplayBuffer
-	tag = "DQN.logic.symNN"
+	from DQN_symNN import DQN, ReplayBuffer
+	tag = "DQN.symNN"
 elif config == 25:
 	from DQN_loop import DQN, ReplayBuffer
 	tag = "DQN.loop"
@@ -163,7 +163,10 @@ print("state_space.low =", env.state_space.low)
 
 import sys
 for f in [log_file, sys.stdout]:
+	f.write("# Config # = " + str(config) + '\n')
 	f.write("# Model = " + tag + '\n')
+	f.write("# Gym = " + env.spec.id + '\n')
+	f.write("# algorithm = " + RL.__module__ + '\n')
 	f.write("# Num weights = " + str(num_weights) + '\n')
 	f.write("# Learning rate = " + str(RL.lr) + '\n')
 	f.write("# Env random seed = " + str(env_seed) + '\n')

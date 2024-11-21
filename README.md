@@ -4,7 +4,8 @@ Experimenting with various RL algorithms.
 
 * [To-do list](TO-DO.md) 
 * [notes on Symmetric Neural Networks](README-symmetric-NN.md) 
-* [(disorganized) notes on RL and Autoencoder](README-RL-with-autoencoder.md) 
+* [notes on Algebraic Logic Networks](README-algebraic-logic.md)
+* The idea to combine RL with auto-regressive learning is interesting and important, but I have not reached a conclusion.  Here are some very disorganized notes (mainly in Chinese): [notes on RL and Autoencoder](README-RL-with-autoencoder.md) 
 
 ## Some RL theory
 
@@ -126,4 +127,3 @@ https://clementromac.github.io/projects/gym-tictactoe/
 
 [3] The DeepSets code is borrowed from the paper's original authors:
 https://github.com/manzilzaheer/DeepSets
-
