@@ -101,7 +101,7 @@ class DQN():
 
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
-		hidden_dim = 8
+		hidden_dim = 9
 		self.qnet = QNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
 		self.q_criterion = nn.MSELoss()
@@ -155,7 +155,7 @@ class DQN():
 		return
 
 	def net_info(self):
-		config = "(9)-8-8-(9)"
+		config = "(9)-9-9-(9)"
 		neurons = config.split('-')
 		last_n = 9
 		total = 0
