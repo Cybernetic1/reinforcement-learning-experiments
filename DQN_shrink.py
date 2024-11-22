@@ -64,7 +64,7 @@ class QNetwork(nn.Module):
 
 		self.linear1 = nn.Linear(input_dim, hidden_size)
 		self.linear2 = nn.Linear(hidden_size, hidden_size)
-		# self.linear3 = nn.Linear(hidden_size, hidden_size)
+		self.linear3 = nn.Linear(hidden_size, hidden_size)
 		# self.linear4 = nn.Linear(hidden_size, hidden_size)
 
 		self.logits_linear = nn.Linear(hidden_size, action_dim)
@@ -76,7 +76,7 @@ class QNetwork(nn.Module):
 	def forward(self, state):
 		x = self.activation(self.linear1(state))
 		x = self.activation(self.linear2(x))
-		# x = self.activation(self.linear3(x))
+		x = self.activation(self.linear3(x))
 		# x = self.activation(self.linear4(x))
 
 		logits = self.logits_linear(x)
@@ -154,7 +154,7 @@ class DQN():
 		return
 
 	def net_info(self):
-		config = "(9)-9-9-(9)"
+		config = "(9)-9-9-9-(9)"
 		neurons = config.split('-')
 		last_n = 9
 		total = 0

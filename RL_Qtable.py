@@ -1,7 +1,10 @@
 """
 Discrete Q table that does not need deep learning
+State = Board vector = {-1,0,1}^9
 
 * It converges very fast initially but does not reach perfection
+* size of Q-table is 3^9 * 9 = 177,147
+* perhaps should exploit symmetry?
 
 Using:
 gym: 0.8.0
@@ -119,7 +122,7 @@ class Qtable():
 		return
 
 	def visualize_q(self, board):
-		# convert board vector to state vector
+		# convert board vector to a base-3 number
 		s = (((((((					\
 			board[0] * 3 + 3 +	\
 			board[1]) * 3 + 3 +	\
