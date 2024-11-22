@@ -17,6 +17,7 @@ With a choice of algorithms:
 print("    Engine\tAlgo\tStructure\t\tRepresentation")
 print("=" * 70)
 print("0.  Python\tQ-table\tno NN\t\t\tboard vector")
+print("1.  Python\tQ-table\tno NN\t\t\tboard vector with symmetry")
 print("10. PyTorch\tPG\tsymmetric NN\t\tlogic, dim3")
 print("11. PyTorch\tPG\tfully-connected\t\tboard vector")
 print("12. TensorFlow\tPG\tsymmetric NN\t\tlogic, dim3")
@@ -39,7 +40,9 @@ import gym
 if config == 0:
 	from RL_Qtable import Qtable
 	tag = "Qtable"
-
+elif config == 1:
+	from RL_Qtable_sym import Qtable
+	tag = "Qtable"
 elif config == 10:
 	from PG_symNN_pyTorch import PolicyGradient
 	tag = "symNN.pyTorch"
@@ -101,7 +104,7 @@ else:
 env_seed = 111 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
-if config == 0:
+if config in [0, 1]:
 	RL = Qtable(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
@@ -296,10 +299,10 @@ def play_1_game_with_human():
 	state = env.reset()
 	preplay_moves()
 	done = False
-	user = 0
+	user = -1
 	while not done:
 		env.render()
-		if user == 0:
+		if user == -1:
 			print("X's move =", end='')		# will be printed by RL.choose_action()
 			action1 = RL.choose_action(state)
 			state1, reward1, done, rtype = env.step(action1, -1)
@@ -320,7 +323,7 @@ def play_1_game_with_human():
 		# If the game isn't over, change the current player
 		if not done:
 			if rtype != 'thinking':
-				user = 0 if user == 1 else 1
+				user = -user
 	env.render()
 	print("*** GAME OVER ***")
 
@@ -356,7 +359,7 @@ while True:
 				with connect("ws://localhost:5678") as websocket:
 					websocket.send(json.dumps(action1.item()))
 			state1, reward1, done, rtype = env.step(action1, -1)
-			if done:
+			if done:		# otherwise wait for random player to react
 				RL.replay_buffer.push(state, action1, reward1, state1, done)
 		elif user == 1:		# random player
 			# NOTE: random player never chooses occupied squares
@@ -436,7 +439,7 @@ while True:
 				s = 'minus ' + str(int(-rr))
 			else:
 				s = str(int(rr))
-			call(['ekho', s, '-v', 'English', '--english-speed', '-20'])
+			call(['ekho', s, '-v', 'English', '--english-speed', '20'])
 
 			delta = datetime.now() - startTime
 			print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))

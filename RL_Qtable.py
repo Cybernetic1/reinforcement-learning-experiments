@@ -56,6 +56,8 @@ class ReplayBuffer:
 
 class Qtable():
 
+	ILLEGAL = 19682
+
 	def __init__(
 			self,
 			action_dim,
@@ -76,6 +78,8 @@ class Qtable():
 
 	# convert state-vector into a base-3 number
 	def state_num(self, state):
+		if 2 in state:
+			return Qtable.ILLEGAL
 		s = (((((((					\
 			state[0] * 3 + 3 +		\
 			state[1]) * 3 + 3 +		\

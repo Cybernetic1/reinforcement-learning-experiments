@@ -1,30 +1,17 @@
-import math     # for math.inf = infinity
+# Find all unique board positions of TicTacToe, quotient symmetry
 
-print("Find all unique board positions of TicTacToe, quotient symmetry")
-print("You may modify the initial board position in the code,")
-print("or specify a string argument like this: '-1 1 0 1 1 -1 -1 0 0'")
-print("where X=-1, O=1, empty=0. Counting from upper left to lower right")
-
-# Empty board
-test_board = 9 * [0]
-
-import sys
-
-if len(sys.argv) > 1:
-	xs = sys.argv[1].split(' ')
-	for i in range(9):
-		test_board[i] = int(xs[i])
-else:
-	# Pre-moves, if any are desired:
-	# X|O|
-	# O|O|X
-	# X| |
-	test_board[0] = -1
-	test_board[3] = 1
-	test_board[6] = -1
-	test_board[4] = 1
-	# test_board[5] = -1
-	# test_board[1] = 1
+def show_vec(board):
+	for i in [0, 3, 6]:
+		for j in range(3):
+			x = board[i + j]
+			if x == -1:
+				c = 'X'
+			elif x == 1:
+				c = 'O'
+			else:
+				c = '-'
+			print(c, end='')
+	print(end='\n')
 
 def show_board(board):
 	for i in [0, 3, 6]:
@@ -39,10 +26,8 @@ def show_board(board):
 			print(c, end='')
 		print(end='\n')
 
-if test_board != 9 * [0]:
-	print("\nInitial board position:")
-	show_board(test_board)
-
+# Symmetry of a square, the dihedral group Dih_4
+# https://en.m.wikipedia.org/wiki/Examples_of_groups#The_symmetry_group_of_a_square_-_dihedral_group_of_order_8
 group = {
 	'e':   [0,1,2,3,4,5,6,7,8],
 	'a':   [6,3,0,7,4,1,8,5,2],
@@ -54,6 +39,7 @@ group = {
 	'a3b': [8,5,2,7,4,1,6,3,0]
 }
 
+# Apply a group action to a board
 def applySym(board, sym):
 	newBoard = []
 	for j in range(0,9):
@@ -61,12 +47,19 @@ def applySym(board, sym):
 		newBoard += [board[group[sym][j]]]
 	return newBoard
 
+# Convert base-3 number to board vector
+def base3toB(s):
+	board = base3toBoard(s)
+	board = (9 - len(board)) * [-1] + board
+	return board
+
 def base3toBoard(s):
 	if s <= 2:
 		return [s - 1]
 	else:
 		return base3toBoard(s // 3) + [(s % 3) - 1]
 
+# Convert board vector to base-3 number
 def base3(board):
 	s = (((((((					\
 		board[0] * 3 + 3 +		\
@@ -80,107 +73,69 @@ def base3(board):
 		board[8]+1
 	return s
 
-# Enumerate all board positions = 3^9 = 19683
-# This includes many impossible boards, such as all X's.
-# But this part is useful for checking correctness of functions.
-eqClasses = []
-for s in range(0,19683):
-	duplicate = False
-	for c in eqClasses:
-		if s in c:
-			duplicate = True
-	if duplicate:
-		continue
+ILLEGAL = 19682
+WIN = 4918
+LOSE = 5029
+DRAW = 19682
+eqClasses = [set([9841]), set([ILLEGAL]), set([WIN]), set([LOSE]), set([DRAW])]
 
-	# convert base-3 number to board vector
-	board = base3toBoard(s)
-	board = (9 - len(board)) * [-1] + board
-	# print(s - base3(board), s, board)
-	# print(board)
-	# show_board(board)
-	print(s)
-
-	# for each board position, find all its symmetric positions
-	# put into list of equivalence classes
-	cls = set()
+def addEqvs(board, cls):
 	for sym in ['a','a2','a3','b','ab','a2b','a3b']:
 		board2 = applySym(board, sym)
 		# convert to base-3 number
 		s2 = base3(board2)
 		cls.add(s2)
-		# print('-------------')
-		# show_board(board2)
 
-	"""duplicate = False		# This seems never true
-	for c in eqClasses:
-		for c2 in cls:
-			if c2 in c:
-				duplicate = True
-	if duplicate:
-		print("*********************")
-		continue"""
+count = 0
 
-	cls.add(s)	
-	eqClasses += [cls]
-	# print('=====================================\n')
-
-print(eqClasses)
-print("Total classes = ", len(eqClasses))
-
-eqClasses = []
-# **** Find all symmetries of TTT
+# **** Find all symmetries of TTT, by recursively playing game
 def allSyms(board, player):
+	global eqClasses
+	global count
+	# **** Find all possible next moves for player 'X' or 'O'
+	moves = possible_moves(board)
 
-	if player == -1:
-		# **** Find all possible next moves for player 'X'
-		moves = possible_moves(board)
+	# For each possible board, find its base-3 number
+	# check for duplicates in equivalence class list
+	# Then find all its equivalent forms, add new equivalence class
+	for m in moves:
+		new_board = board.copy()
+		new_board[m] = player
+		s = base3(new_board)
+		count += 1
 
-		# For each possible board, find its base-3 number
-		# check for duplicates in equivalence class list
-		# Then find all its equivalent forms, add to eqClasses list
-		for m in moves:
-			new_board = board.copy()
-			new_board[m] = -1		# Player 'X'
-			s = base3(new_board)
+		duplicate = False
+		for c in eqClasses:
+			if s in c:
+				duplicate = True
+		if duplicate:
+			continue		# next move
 
-			duplicate = False
-			for c in eqClasses:
-				if s in c:
-					duplicate = True
-			if duplicate:
-				continue		# next board
+		# If this an ending move? If yes, terminate recursion
+		r = game_over(new_board, player)
+		if r is not None:	# game-over'd
+			# add to WIN or LOSE classes, respectively
+			if r == 10:				# DRAW
+				eqClasses[4].add(s)
+				print("first draw=", s)
+				addEqvs(new_board, eqClasses[4])
+			elif player == -1:		# WIN
+				eqClasses[2].add(s)
+				addEqvs(new_board, eqClasses[2])
+			else:					# LOSE
+				eqClasses[3].add(s)
+				addEqvs(new_board, eqClasses[3])
+			continue		# next move, no need to recurse
 
-			# If this an ending move?
-			r = game_over(new_board, -1)
-			if r is not None:
-				continue
-			else:
-				allSyms(new_board, 1)		# next player
-		#show_board(board)
-		print("X's turn.  Expectation w.r.t. Player X =", max_v, end='\r')
-		return max_v
+		# add new class of s and its equivalents
+		cls = set()
+		cls.add(s)
+		addEqvs(new_board, cls)
+		eqClasses += [cls]
 
-	elif player == 1:
-		# **** Find all possible next moves for player 'O'
-		moves = possible_moves(board)
+		allSyms(new_board, -player)		# recurse with next player
 
-		for m in moves:
-			new_board = board.copy()
-			new_board[m] = 1		# Player 'O'
-
-			# If this an ending move?
-			r = game_over(new_board, 1)
-			if r is not None:
-				if r == 10:				# draw is +10 for either player
-					Rx += r * p
-				else:
-					Rx -= r * p			# sign of reward is reversed
-			else:
-				allSyms(new_board, -1)
-		#show_board(board)
-		print("O's turn.  Expectation w.r.t. Player X =", Rx, end='\r')
-		return Rx
-
+# This function is player-independent
 def possible_moves(board):
 	moves = []
 	for i in range(9):
@@ -226,3 +181,58 @@ def game_over(board, player):
 	# For one version of gym TicTacToe, draw = 10 regardless of player;
 	# Another way is to assign draw = 0.
 	return 10
+
+allSyms([0] * 9, -1)
+print(eqClasses)
+print("reachable states =", count)
+print("Restricted total classes =", len(eqClasses))
+
+# *************** This is an older incorrect version ******************
+
+# Enumerates all board positions = 3^9 = 19683
+# This includes many impossible boards, such as all X's.
+# But this part is useful for checking correctness of functions.
+def allSyms_incorrect():
+	eqClasses = []
+	for s in range(0,19683):
+		duplicate = False
+		for c in eqClasses:
+			if s in c:
+				duplicate = True
+		if duplicate:
+			continue
+
+		# convert base-3 number to board vector
+		board = base3toBoard(s)
+		board = (9 - len(board)) * [-1] + board
+		# print(s - base3(board), s, board)
+		# print(board)
+		# show_board(board)
+		print(s, end='\t')
+
+		# for each board position, find all its symmetric positions
+		# put into list of equivalence classes
+		cls = set()
+		for sym in ['a','a2','a3','b','ab','a2b','a3b']:
+			board2 = applySym(board, sym)
+			# convert to base-3 number
+			s2 = base3(board2)
+			cls.add(s2)
+			# print('-------------')
+			# show_board(board2)
+
+		"""duplicate = False		# This seems never true
+		for c in eqClasses:
+			for c2 in cls:
+				if c2 in c:
+					duplicate = True
+		if duplicate:
+			print("*********************")
+			continue"""
+
+		cls.add(s)	
+		eqClasses += [cls]
+		# print('=====================================\n')
+
+	print(eqClasses)
+	print("Total classes = ", len(eqClasses))
