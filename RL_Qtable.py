@@ -3,7 +3,7 @@ Discrete Q table that does not need deep learning
 State = Board vector = {-1,0,1}^9
 
 * It converges very fast initially but does not reach perfection
-* size of Q-table is 3^9 * 9 = 177,147
+* size of Q-table is 3^9 * 9 = 177,147 but some are unused
 * perhaps should exploit symmetry?
 
 Using:
