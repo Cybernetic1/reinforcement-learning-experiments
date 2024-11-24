@@ -42,7 +42,7 @@ if config == 0:
 	tag = "Qtable"
 elif config == 1:
 	from RL_Qtable_sym import Qtable
-	tag = "Qtable"
+	tag = "Qtable.sym"
 elif config == 10:
 	from PG_symNN_pyTorch import PolicyGradient
 	tag = "symNN.pyTorch"

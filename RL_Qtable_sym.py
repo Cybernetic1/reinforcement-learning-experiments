@@ -97,24 +97,24 @@ class Qtable():
 		return s
 
 	# **** Find the pair (s,a) in the list eqPairs, ie Q-table entry
-	def findEntry(pair):
-		print("pair.shape=",pair.shape)
+	def findEntry(s, a):
+		# print("pair.shape=",pair.shape)
 		j = -1
 		for (i, cls) in enumerate(Qtable.eqPairs):
-			if pair in cls:
+			if (s,a) in cls:
 				j = i
 				break
-		assert j != -1, "board state " + str(n) + " not found in equivalence classes"
+		assert j != -1, "board state " + str((s,a)) + " not found in equivalence classes"
 		return j
 
 	# **** Same as above, but find all 8 entries of (s,_)
 	def findEntries(s):
 		entries = []
 		for (i,cls) in enumerate(Qtable.eqPairs):
-			for k in range(0,8):
-				if (s,k) in cls:
+			for pair in cls:
+				if pair[0] == s:
 					entries += [i]
-		assert len(entries) == 8, "board state " + str(s) + " doesn't have 8 actions"
+		assert len(entries) == 9, "state " + str(s) + " has " + str(len(entries)) + " actions instead of 9"
 		return entries
 
 	def choose_action(self, state, deterministic=False):
@@ -166,7 +166,8 @@ class Qtable():
 			states[:,6]) * 3 + 3 +	\
 			states[:,7]) * 3 + 3 +	\
 			states[:,8] + 1
-		j = list(map(Qtable.findEntry, (s, actions)))
+		applyall = np.vectorize(Qtable.findEntry)
+		j = applyall(s, actions)
 
 		# for st in next_states:
 		#	Qtable.show_board(st)
@@ -195,10 +196,10 @@ class Qtable():
 		logits = self.Qtable[j, :]
 		probs  = np.exp(logits) / np.exp(logits).sum(axis=0)	# softmax
 		return probs
-	
+
 	def net_info(self):
-		config = "(627x9)"
-		return (config, 627*9)
+		config = "(5263)"
+		return (config, 5263)
 
 	def play_random(self, state, action_space):
 		# Select an action (0-9) randomly
