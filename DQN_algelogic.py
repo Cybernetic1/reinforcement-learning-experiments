@@ -54,15 +54,23 @@ class AlgelogicNetwork(nn.Module):
 	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
 		super(AlgelogicNetwork, self).__init__()
 
-		# **** Define 20 predicates
+		# **** Define K predicates
+		K = 16
 		self.predicate = []
-		for i in range(0,20):
+		for i in range(0,K):
 			self.predicate[i].linear1 = nn.Linear(input_dim, hidden_size)
 			self.predicate[i].linear2 = nn.Linear(hidden_size, hidden_size)
+			self.predicate[i].logits_linear = nn.Linear(hidden_size, action_dim)
+			self.predicate[i].logits_linear.weight.data.uniform_(-init_w, init_w)
+			self.predicate[i].logits_linear.bias.data.uniform_(-init_w, init_w)
 
-		self.logits_linear = nn.Linear(hidden_size, action_dim)
-		self.logits_linear.weight.data.uniform_(-init_w, init_w)
-		self.logits_linear.bias.data.uniform_(-init_w, init_w)
+		# **** Define M rules
+		M = 16
+		self.ruleHead = []
+		self.ruleTail = []
+		for i in range(0,M):
+			self.ruleHead[i] = torch.rand(K)
+			self.ruleTail[i] = torch.rand(K)
 
 		self.activation = F.relu
 

@@ -1,7 +1,7 @@
 print("Find all unique board positions of TicTacToe, quotient symmetry\n")
 
 # TO-DO:
-# * create (board, action) pairs and find their equivalence classes
+# * why non-equivalent (s,a) pairs are mixed up
 
 def show_vec(board):
 	for i in [0, 3, 6]:
@@ -199,7 +199,7 @@ def allSyms(states):
 	return eqClasses
 
 print("\nWith symmetry...")
-eqStates = allSyms(reachables)print(eqPairs)
+eqStates = allSyms(reachables)
 num_states = len(eqStates)
 print("Total # of non-end states =", num_states)
 eqEndStates = allSyms(ends)
@@ -232,16 +232,16 @@ def allSymPairs(pairs):
 		for sym in ['a','a2','a3','b','ab','a2b','a3b']:
 			board2 = applySym(board, sym)
 			s2 = base3(board2)			# convert to base-3 number
-			a2 = group[sym][a]			# apply transform to action as well
+			a2 = group[sym].index(a)	# apply transform to action as well
 			cls.add((s2,a2))
 		eqClasses += [cls]
 
-	return eqClasses	
+	return eqClasses
 
 eqPairs = allSymPairs(reachablePairs)
 print("Total # of (s,a) pairs (with symmetry) =", len(eqPairs))
 
-ans = input("\nWrite output to eqClasses.py? [y/N]")
+ans = input("\nWrite output to eqPairs.py? [y/N]")
 if ans == 'Y' or ans == 'y':
 	f1 = open("eqPairs.py", 'w')
 	f1.write("eqPairs =")
@@ -354,7 +354,7 @@ def allSyms_incorrect():
 			print("*********************")
 			continue"""
 
-		cls.add(s)	
+		cls.add(s)
 		eqClasses += [cls]
 		# print('=====================================\n')
 
