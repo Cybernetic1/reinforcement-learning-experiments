@@ -108,7 +108,7 @@ if config in [0, 1]:
 	RL = Qtable(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
-		learning_rate = 0.001,
+		learning_rate = 0.01,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
 elif config in [20, 21, 22, 23, 24]:
@@ -360,7 +360,7 @@ while True:
 					websocket.send(json.dumps(action1.item()))
 			state1, reward1, done, rtype = env.step(action1, -1)
 			if done:		# otherwise wait for random player to react
-				RL.replay_buffer.push(state, action1, reward1, state1, done)
+				RL.replay_buffer.push(state, action1, reward1, RL.endState, done)	# state1 = endState
 		elif user == 1:		# random player
 			# NOTE: random player never chooses occupied squares
 			action2 = RL.play_random(state1, env.action_space)
@@ -372,7 +372,10 @@ while True:
 				r_x -= 20.0
 			elif reward2 > 9.0:	# draw: both players +10
 				r_x += 10.0
-			RL.replay_buffer.push(state, action1, r_x, state2, done)
+			if done:
+				RL.replay_buffer.push(state, action1, r_x, RL.endState, done)
+			else:
+				RL.replay_buffer.push(state, action1, r_x, state2, done)
 			state = state2
 
 		# If the game isn't over, change the current player

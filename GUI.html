@@ -63,9 +63,6 @@ button {
 </head>
 <body>
 
-<button onclick="sendTestMsg()">Test Websocket</button>
-<br>
-
 <h1><!-- input type="radio" id="TTT" name="selector" -->
 &nbsp; TicTacToe GUI</h1>
 
@@ -149,6 +146,8 @@ button {
 <!-- p id="gameOver" style="color:red; font-size:40px; display:none">Game Over</p-->
 
 <ul id="messages"></ul>
+
+<p>For debugging web socket: <button onclick="sendTestMsg()">Test Websocket</button></p>
 
 <script>
 	const ws = new WebSocket("ws://127.0.0.1:5678/");

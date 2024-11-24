@@ -57,7 +57,8 @@ class Qtable():
 	from eqPairs import eqPairs
 
 	# The first state {9841} is the "clean board"; following by ILLEGAL, WIN, LOSE, in that order
-	ILLEGAL = 19682
+	endState = [1,1,1,1,1,1,1,1,1]
+	END = 19682		# all 1's, to denote a generic end-state
 	WIN = 4918
 	LOSE = 5029
 	DRAW = 4880
@@ -66,7 +67,7 @@ class Qtable():
 			self,
 			action_dim,
 			state_dim,
-			learning_rate = 3e-4,
+			learning_rate = 3e-2,
 			gamma = 0.9 ):
 		super(Qtable, self).__init__()
 
@@ -76,6 +77,7 @@ class Qtable():
 		self.gamma = gamma
 
 		# dim of Q-table
+		# self.Qtable = np.random.uniform(low=-0.0, high=1.0, size=(5263,))
 		self.Qtable = np.zeros(5263)
 
 		self.replay_buffer = ReplayBuffer(int(1e5))	# originally 1e6
@@ -97,7 +99,7 @@ class Qtable():
 		return s
 
 	# **** Find the pair (s,a) in the list eqPairs, ie Q-table entry
-	def findEntry(s, a):
+	def findEntry(self, s, a):
 		# print("pair.shape=",pair.shape)
 		j = -1
 		for (i, cls) in enumerate(Qtable.eqPairs):
@@ -108,12 +110,14 @@ class Qtable():
 		return j
 
 	# **** Same as above, but find all 8 entries of (s,_)
-	def findEntries(s):
+	def findEntries(self, s):
+		if s == Qtable.END:
+			return [0,0,0,0,0,0,0,0,0]
 		entries = []
 		for (i,cls) in enumerate(Qtable.eqPairs):
 			for pair in cls:
 				if pair[0] == s:
-					entries += [i]
+					entries += [self.Qtable[i]]
 		assert len(entries) == 9, "state " + str(s) + " has " + str(len(entries)) + " actions instead of 9"
 		return entries
 
@@ -125,11 +129,16 @@ class Qtable():
 			for pair in cls:
 				if pair[0] == s:
 					logits += [self.Qtable[j]]
-		assert len(logits) == 9, "State " + str(s) + " has " + str(len(logits)) + " actions instead of 8"
+		assert len(logits) == 9, "State " + str(s) + " has " + str(len(logits)) + " actions instead of 9"
 		logits = np.array(logits)
-		probs   = np.exp(logits) / np.exp(logits).sum(axis=0)	# softmax
+		f = np.exp(logits - np.max(logits))		# shift values (to avoid NaN overflow)
+		probs   = f / f.sum(axis=0)				# softmax
 		# print("logits, probs =", logits, probs)
-		action  = np.random.choice([0,1,2,3,4,5,6,7,8], 1, p=probs)[0]
+		try:
+			action  = np.random.choice([0,1,2,3,4,5,6,7,8], 1, p=probs)[0]
+		except:
+			print("logits=", logits)
+			print("state=", s)
 		# action = np.argmax(logits)		# deterministic
 		# print("chosen action=", action)
 		return action
@@ -149,7 +158,7 @@ class Qtable():
 				print(c, end='')
 			print(end='\n')
 
-	def update(self, batch_size, reward_scale, gamma=0.99):
+	def update(self, batch_size, reward_scale, gamma=0.9):
 		alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q)
 
 		states, actions, rewards, next_states, dones = self.replay_buffer.sample(batch_size)
@@ -166,18 +175,26 @@ class Qtable():
 			states[:,6]) * 3 + 3 +	\
 			states[:,7]) * 3 + 3 +	\
 			states[:,8] + 1
-		applyall = np.vectorize(Qtable.findEntry)
+		applyall = np.vectorize(self.findEntry)
 		j = applyall(s, actions)
 
 		# for st in next_states:
 		#	Qtable.show_board(st)
 		#	print('---------------')
 		# print("next states =", next_states.shape, next_states)
-		k = np.array(list(map(Qtable.findEntries, list(map(Qtable.state_num, next_states)))))
-
+		k = np.array(list(map(self.findEntries, list(map(Qtable.state_num, next_states)))))
+		# print("k.shape=", k.shape)
+		# print("k=", k, end="\n")
+		# print("rewards.shape=", rewards.shape)
+		# print("rewards=", rewards, end="\nQs = ")
+		
 		# **** Train Q function, this is just Bellman equation:
 		# Q(st,at) += η [ R + γ max_a Q(s_t+1,a) - Q(st,at) ]
-		self.Qtable[j] += self.lr *( rewards + self.gamma * np.max(self.Qtable[k, :]) - self.Qtable[j] )
+		self.Qtable[j] += self.lr *( rewards + self.gamma * np.max(k) - self.Qtable[j] )
+		# Ideally, Q approaches the "true" value of R + max_a' Q(s', a').
+		# for q in self.Qtable:
+		#	print(q, end=' ')
+		#	print("%.2f" % q, end=' ')
 		return
 
 	def visualize_q(self, board):
