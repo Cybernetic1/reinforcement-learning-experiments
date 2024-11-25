@@ -41,8 +41,8 @@ class ReplayBuffer:
 			map(np.stack, zip(*batch)) # stack for each element
 		'''
 		the * serves as unpack: sum(a,b) <=> batch=(a,b), sum(*batch) ;
-		zip: a=[1,2], b=[2,3], zip(a,b) => [(1, 2), (2, 3)] ;
-		the map serves as mapping the function on each list element: map(square, [2,3]) => [4,9] ;
+		zip: a=[1,2], b=[4,5,6], zip(a,b) => [(1, 4), (2, 5)] ;  extra items are ignored.
+s		the map serves as mapping the function on each list element: map(square, [2,3]) => [4,9] ;
 		np.stack((1,2)) => array([1, 2])
 		'''
 		# print("sampled state=", state)
@@ -110,7 +110,7 @@ class Qtable():
 			state[5]) * 3 + 3 +		\
 			state[6]) * 3 + 3 +		\
 			state[7]) * 3 + 3 +		\
-			state[8]+1
+			state[8] + 1
 		return s
 
 	# **** Find the pair (s,a) in the list eqPairs, ie Q-table entry
@@ -127,24 +127,18 @@ class Qtable():
 	# **** Same as above, but find all 8 entries of (s,_)
 	def findEntries(self, s):
 		if s == Qtable.END:
-			return [0.0]*9
-		entries = []
-		for (i,cls) in enumerate(Qtable.eqPairs):
+			return [0.0] * 9
+		entries = [float('nan')] * 9
+		for i, cls in enumerate(Qtable.eqPairs):
 			for pair in cls:
 				if pair[0] == s:
-					entries += [self.Qtable[i]]
+					entries[pair[1]] = self.Qtable[i]
 		assert len(entries) == 9, "state " + str(s) + " has " + str(len(entries)) + " actions instead of 9"
 		return entries
 
 	def choose_action(self, state, deterministic=False):
 		s = Qtable.state_num(state)
-		logits = []			# logits = Q(s,a)
-		# collect all 8 Q-table entries that match the state s
-		for j, cls in enumerate(Qtable.eqPairs):
-			for pair in cls:
-				if pair[0] == s:
-					logits += [self.Qtable[j]]
-		assert len(logits) == 9, "State " + str(s) + " has " + str(len(logits)) + " actions instead of 9"
+		logits = self.findEntries(s)
 		logits = np.array(logits)
 		f = np.exp(logits - np.max(logits))		# shift values (to avoid NaN overflow)
 		probs   = f / f.sum(axis=0)				# softmax
@@ -192,27 +186,22 @@ class Qtable():
 		# Q(st,at) += η [ R + γ max_a Q(s_t+1,a) - Q(st,at) ]
 		self.Qtable[j] += self.lr *( rewards + self.gamma * np.max(k) - self.Qtable[j] )
 		# Ideally, Q approaches the "true" value of R + max_a' Q(s', a').
-		# for q in self.Qtable:
-		#	print(q, end=' ')
-		#	print("%.2f" % q, end=' ')
 		return
 
+	def show_Qtable(self):
+		for q in self.Qtable:
+			print(q, end=' ')
+			# print("%.2f" % q, end=' ')
+
 	def visualize_q(self, board):
-		# convert board vector to a base-3 number
-		s = (((((((					\
-			board[0] * 3 + 3 +	\
-			board[1]) * 3 + 3 +	\
-			board[2]) * 3 + 3 +	\
-			board[3]) * 3 + 3 +	\
-			board[4]) * 3 + 3 +	\
-			board[5]) * 3 + 3 +	\
-			board[6]) * 3 + 3 +	\
-			board[7]) * 3 + 3 +	\
-			board[8] + 1
-		j = Qtable.findClass(s)
-		logits = self.Qtable[j, :]
-		probs  = np.exp(logits) / np.exp(logits).sum(axis=0)	# softmax
-		return probs
+		s = Qtable.state_num(board)
+		try:
+			logits = self.findEntries(s)
+		except:
+			return None, None
+		f = np.exp(logits - np.max(logits))		# shift values (to avoid NaN overflow)
+		probs   = f / f.sum(axis=0)				# softmax
+		return logits, probs
 
 	def net_info(self):
 		config = "(5263)"

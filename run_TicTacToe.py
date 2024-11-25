@@ -108,7 +108,7 @@ if config in [0, 1]:
 	RL = Qtable(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
-		learning_rate = 0.01,
+		learning_rate = 0.03,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
 elif config in [20, 21, 22, 23, 24]:
@@ -280,8 +280,10 @@ from subprocess import call
 import websockets
 from websockets.sync.client import connect
 import json
+import TTT_utils
 
 def visualize_Q():
+	global INTERMEDIATE
 	with connect("ws://localhost:5678") as websocket:
 		print("Visualizing Q values...")
 		while True:
@@ -291,10 +293,16 @@ def visualize_Q():
 			print("state=", board, '\t', memory)
 			if board == 0:
 				break
-			probs = RL.visualize_q(board, memory).tolist()
-			print("probs=", end=' ')
-			print(['{:.5f}'.format(p) for p in probs])
-			websocket.send(json.dumps(probs))
+			if INTERMEDIATE:
+				logits, probs = RL.visualize_q(board, memory)
+			else:
+				logits, probs = RL.visualize_q(board)
+			if probs is not None:
+				probs = probs.tolist()
+				print("probs=", end=' ')
+				print(['{:.5f}'.format(p) for p in probs])
+				websocket.send(json.dumps(["probs", probs]))
+				websocket.send(json.dumps(["Q-vals", logits]))
 
 def play_1_game_with_human():
 	state = env.reset()

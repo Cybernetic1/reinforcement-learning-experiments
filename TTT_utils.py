@@ -123,3 +123,24 @@ def applySym(board, sym):
 		# print(group[sym][j])
 		newBoard += [board[group[sym][j]]]
 	return newBoard
+
+# **** Find the pair (s,a) in the list eqPairs, ie Q-table entry
+def findEntry(s, a):
+	# print("pair.shape=",pair.shape)
+	j = -1
+	for (i, cls) in enumerate(eqPairs):
+		if (s,a) in cls:
+			j = i
+			break
+	assert j != -1, "board state " + str((s,a)) + " not found in equivalence classes"
+	return j
+
+# **** Same as above, but find all 8 entries of (s,_)
+def findEntries(s):
+	entries = [float('nan')] * 9
+	for i, cls in enumerate(eqPairs):
+		for pair in cls:
+			if pair[0] == s:
+				entries[pair[1]] = i
+	assert len(entries) == 9, "state " + str(s) + " has " + str(len(entries)) + " actions instead of 9"
+	return entries
