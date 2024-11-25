@@ -180,6 +180,7 @@ for f in [log_file, sys.stdout]:
 # warnings.filterwarnings("error")
 
 import signal
+import readline
 print("Press Ctrl-C to pause and execute your own Python code\n")
 
 model_name = "model." + tag

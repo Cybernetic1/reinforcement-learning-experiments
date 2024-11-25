@@ -82,6 +82,21 @@ class Qtable():
 
 		self.replay_buffer = ReplayBuffer(int(1e5))	# originally 1e6
 
+	def show_board(board):
+		for i in [0, 3, 6]:
+			for j in range(3):
+				x = board[i + j]
+				if x == -1:
+					c = '❌'
+				elif x == 1:
+					c = '⭕'
+				elif x == 2:
+					c = '🟨'
+				else:
+					c = '  '
+				print(c, end='')
+			print(end='\n')
+
 	# convert state-vector into a base-3 number
 	def state_num(state):
 		if 2 in state:
@@ -112,7 +127,7 @@ class Qtable():
 	# **** Same as above, but find all 8 entries of (s,_)
 	def findEntries(self, s):
 		if s == Qtable.END:
-			return [0,0,0,0,0,0,0,0,0]
+			return [0.0]*9
 		entries = []
 		for (i,cls) in enumerate(Qtable.eqPairs):
 			for pair in cls:
@@ -142,21 +157,6 @@ class Qtable():
 		# action = np.argmax(logits)		# deterministic
 		# print("chosen action=", action)
 		return action
-
-	def show_board(board):
-		for i in [0, 3, 6]:
-			for j in range(3):
-				x = board[i + j]
-				if x == -1:
-					c = '❌'
-				elif x == 1:
-					c = '⭕'
-				elif x == 2:
-					c = '🟨'
-				else:
-					c = '  '
-				print(c, end='')
-			print(end='\n')
 
 	def update(self, batch_size, reward_scale, gamma=0.9):
 		alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q)

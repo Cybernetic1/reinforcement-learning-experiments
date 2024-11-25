@@ -29,7 +29,7 @@ class TicTacToeEnv(gym.Env):
 			numpy.float32(numpy.array([+1,+1,+1,+1,+1,+1,+1,+1,+1])) )
 
 		self.rewards = {
-			'still_in_game': 0.3,
+			'still_in_game': 0.0,
 			'draw': 10.0,
 			'win': 20.0,
 			'bad_position': -30.0
