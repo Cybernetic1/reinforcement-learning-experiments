@@ -177,6 +177,14 @@ print("Total # of non-end states =", count)
 print("Total # of end states =", count_end)
 print("Total # of reachable states =", count + count_end)
 
+ans = input("\nWrite all reachable states to reachables.py? [y/N]")
+if ans == 'Y' or ans == 'y':
+	f1 = open("reachables.py", 'w')
+	f1.write("reachables =")
+	f1.write(str(reachables))
+	f1.close()
+exit(0)
+
 def allSyms(states):
 	eqClasses = []
 	for s in states:
@@ -240,6 +248,15 @@ def allSymPairs(pairs):
 
 eqPairs = allSymPairs(reachablePairs)
 print("Total # of (s,a) pairs (with symmetry) =", len(eqPairs))
+
+# New method is to build dictionary (s,a) --> class number
+Qdict = {}
+for i, cls in enumerate(eqPairs):
+	for (q,a) in cls:
+		Qdict[(q,a)] = i
+print("Qdict =", Qdict)
+
+exit(0)
 
 ans = input("\nWrite output to eqPairs.py? [y/N]")
 if ans == 'Y' or ans == 'y':

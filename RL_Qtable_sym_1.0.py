@@ -6,8 +6,6 @@ Thus 4520 x 9 = 40680 (s,a) pairs, without symmetry.
 After finding symmetries, reduces to 5263 equivalence classes.
 Thus 5263 is the size of our Q-table.
 This is perhaps the most efficient Q-table we can hope for, exploiting all symmetries.
-
-New version uses new lookup method for equivalence classes.
 """
 
 import random
@@ -115,21 +113,28 @@ class Qtable():
 			state[8] + 1
 		return s
 
-	import pickle
-	f1 = open("Qdicts.pk", "rb")
-	Qdict = pickle.load(f1)
-	Qdict_s = pickle.load(f1)
-
 	# **** Find the pair (s,a) in the list eqPairs, ie Q-table entry
 	def findEntry(self, s, a):
-		return Qtable.Qdict[(s,a)]
+		# print("pair.shape=",pair.shape)
+		j = -1
+		for (i, cls) in enumerate(Qtable.eqPairs):
+			if (s,a) in cls:
+				j = i
+				break
+		assert j != -1, "board state " + str((s,a)) + " not found in equivalence classes"
+		return j
 
 	# **** Same as above, but find all 8 entries of (s,_)
 	def findEntries(self, s):
 		if s == Qtable.END:
 			return [0.0] * 9
-		entries = Qtable.Qdict_s[s]
-		return [self.Qtable[i] for i in entries]
+		entries = [float('inf')] * 9
+		for i, cls in enumerate(Qtable.eqPairs):
+			for pair in cls:
+				if pair[0] == s:
+					entries[pair[1]] = self.Qtable[i]
+		assert float('inf') not in entries, "Entries=" + str(entries)
+		return entries
 
 	def choose_action(self, state, deterministic=False):
 		s = Qtable.state_num(state)
