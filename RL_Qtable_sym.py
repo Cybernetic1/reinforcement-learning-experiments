@@ -116,9 +116,9 @@ class Qtable():
 		return s
 
 	import pickle
-	f1 = open("Qdicts.pk", "rb")
-	Qdict = pickle.load(f1)
-	Qdict_s = pickle.load(f1)
+	f1 = open("Qdicts.pk", "rb")		# Q-table dictionaries:
+	Qdict = pickle.load(f1)				# allows to look up (s,a)
+	Qdict_s = pickle.load(f1)			# allows to look up s
 
 	# **** Find the pair (s,a) in the list eqPairs, ie Q-table entry
 	def findEntry(self, s, a):
