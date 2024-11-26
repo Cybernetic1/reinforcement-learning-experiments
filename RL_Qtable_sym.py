@@ -100,7 +100,7 @@ class Qtable():
 	# convert state-vector into a base-3 number
 	def state_num(state):
 		if 2 in state:
-			return Qtable.ILLEGAL
+			return Qtable.END
 		s = (((((((					\
 			state[0] * 3 + 3 +		\
 			state[1]) * 3 + 3 +		\
@@ -128,12 +128,12 @@ class Qtable():
 	def findEntries(self, s):
 		if s == Qtable.END:
 			return [0.0] * 9
-		entries = [float('nan')] * 9
+		entries = [float('inf')] * 9
 		for i, cls in enumerate(Qtable.eqPairs):
 			for pair in cls:
 				if pair[0] == s:
 					entries[pair[1]] = self.Qtable[i]
-		assert len(entries) == 9, "state " + str(s) + " has " + str(len(entries)) + " actions instead of 9"
+		assert float('inf') not in entries, "Entries=" + str(entries)
 		return entries
 
 	def choose_action(self, state, deterministic=False):
@@ -201,7 +201,7 @@ class Qtable():
 			return None, None
 		f = np.exp(logits - np.max(logits))		# shift values (to avoid NaN overflow)
 		probs   = f / f.sum(axis=0)				# softmax
-		return logits, probs
+		return logits, probs.tolist()
 
 	def net_info(self):
 		config = "(5263)"

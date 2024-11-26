@@ -108,7 +108,7 @@ if config in [0, 1]:
 	RL = Qtable(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
-		learning_rate = 0.03,
+		learning_rate = 0.1,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
 elif config in [20, 21, 22, 23, 24]:
@@ -290,17 +290,18 @@ def visualize_Q():
 		# the state 's' is as entered by web GUI
 			# get board vector from GUI Javascript
 			board, memory = json.loads(websocket.recv())
-			print("state=", board, '\t', memory)
-			if board == 0:
+			if board == 0:		# exit signal
 				break
 			if INTERMEDIATE:
+				print("state=", board, '\t', memory)
 				logits, probs = RL.visualize_q(board, memory)
 			else:
+				print("state=", board)
 				logits, probs = RL.visualize_q(board)
 			if probs is not None:
-				probs = probs.tolist()
 				print("probs=", end=' ')
-				print(['{:.5f}'.format(p) for p in probs])
+				for p in probs:
+					print('{:.4f}'.format(p), end=' ')
 				websocket.send(json.dumps(["probs", probs]))
 				websocket.send(json.dumps(["Q-vals", logits]))
 

@@ -29,10 +29,10 @@ class TicTacToeEnv(gym.Env):
 			numpy.float32(numpy.array([+1,+1,+1,+1,+1,+1,+1,+1,+1])) )
 
 		self.rewards = {
-			'still_in_game': 0.0,
+			'in_game': 0.0,
 			'draw': 10.0,
 			'win': 20.0,
-			'bad_position': -30.0
+			'bad': -30.0
 			}
 
 	def reset(self):
@@ -124,7 +124,7 @@ class TicTacToeEnv(gym.Env):
 
 		if is_position_already_used:
 			self.state_vector[action] = 2		# signifies "bad"
-			reward_type = 'bad_position'
+			reward_type = 'bad'
 			done = True
 		else:
 			self.state_vector[action] = symbol
@@ -136,7 +136,7 @@ class TicTacToeEnv(gym.Env):
 				reward_type = 'draw'
 				done = True
 			else:
-				reward_type = 'still_in_game'
+				reward_type = 'in_game'
 				done = False
 
 		return numpy.array(self.state_vector), self.rewards[reward_type], done, reward_type # , {'already_used_position': is_position_already_used}
