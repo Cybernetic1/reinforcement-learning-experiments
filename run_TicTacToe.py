@@ -108,7 +108,7 @@ if config in [0, 1]:
 	RL = Qtable(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
-		learning_rate = 0.1,
+		learning_rate = 0.8,
 		gamma = 0.9,	# doesn't matter for gym TicTacToe
 	)
 elif config in [20, 21, 22, 23, 24]:

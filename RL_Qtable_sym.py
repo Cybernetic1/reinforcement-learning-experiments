@@ -178,13 +178,14 @@ class Qtable():
 		# print("next states =", next_states.shape, next_states)
 		k = np.array(list(map(self.findEntries, list(map(Qtable.state_num, next_states)))))
 		# print("k.shape=", k.shape)
-		# print("k=", k, end="\n")
+		# print("k=", k)
+		# print("max k=", np.max(k, axis=1))
 		# print("rewards.shape=", rewards.shape)
 		# print("rewards=", rewards, end="\nQs = ")
-		
+
 		# **** Train Q function, this is just Bellman equation:
 		# Q(st,at) += η [ R + γ max_a Q(s_t+1,a) - Q(st,at) ]
-		self.Qtable[j] += self.lr *( rewards + self.gamma * np.max(k) - self.Qtable[j] )
+		self.Qtable[j] += self.lr *( rewards + self.gamma * np.max(k, axis=1) - self.Qtable[j] )
 		# Ideally, Q approaches the "true" value of R + max_a' Q(s', a').
 		return
 
