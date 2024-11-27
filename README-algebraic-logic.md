@@ -18,3 +18,10 @@ The following diagram summarizes Halmos' algebraic logic in a nutshell:
 In the DQN approach to Reinforcement Learning, the Q network learns the function *Q(s,a)* where *s* = state and *a* = action.  
 
 In our logic approach, *Q(s,a)* is implemented by logic rules of the form *s* &vdash; *a*, where an "action" is regarded as logic deduction.
+
+### Algorithm
+
+Horn formula:  1 + PQR... + PQR...Z = 1  
+or PQR &oplus; PQR...Z = 0  
+where &oplus; means exclusive OR and 0 means False.  
+The satisfaction of this equation means that Z has to be True (if PQR... are True).  This is a solution of the equation.
