@@ -75,7 +75,12 @@ class AlgelogicNetwork(nn.Module):
 		self.activation = F.relu
 
 	# 首先定义什么是 x，及它是如何储存。
-	# 
+	# 它是 (point, predicate) pairs where predicate is just a number from {0...K}
+	# 輸出的格式一樣
+	# 計算方法：
+	# for each rule:
+	#	evaluate predicates on all points in x
+	#	if rule matches, create output predicate
 	def forward(self, state):
 		x = self.activation(self.linear1(state))
 		x = self.activation(self.linear2(x))
