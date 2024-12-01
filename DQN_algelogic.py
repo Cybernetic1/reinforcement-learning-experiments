@@ -76,20 +76,26 @@ class AlgelogicNetwork(nn.Module):
 
 	# 首先定义什么是 x，及它是如何储存。
 	# 它是 (point, predicate) pairs where predicate is just a number from {0...K}
+	# size of state = W pairs.
 	# 輸出的格式一樣
 	# 計算方法：
 	# for each rule:
 	#	evaluate predicates on all points in x
 	#	if rule matches, create output predicate
 	def forward(self, state):
-		x = self.activation(self.linear1(state))
-		x = self.activation(self.linear2(x))
-		# x = self.activation(self.linear3(x))
-		# x = self.activation(self.linear4(x))
-
-		logits = self.logits_linear(x)
-		# logits = F.leaky_relu(self.logits_linear(x))
-		return logits
+		for i in range(0,M)			# for each rule
+			t = 1.0
+			for j in range(0,K)		# for each predicate
+				x = self.activation(self.predicate[j].linear1(state))
+				x = self.activation(self.predicate[j].linear2(x))
+				y = self.activation(self.predicate[j].linear3(x))
+				t = t * y			# truth value of conjunction
+			soft top-k self.ruleHead[i] select k predicates
+			match = multiply truth values of all K predicates
+			self.ruleTail[i] is a distribution over K predicates, multiply by match
+			= output distribution of rule i
+			exp to calculate probability distribution
+		return prob distro for all M rules
 
 class DQN():
 
