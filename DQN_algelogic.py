@@ -83,13 +83,18 @@ class AlgelogicNetwork(nn.Module):
 	#	evaluate predicates on all points in x
 	#	if rule matches, create output predicate
 	def forward(self, state):
+		# For each fact xi in x:
+		for xi in x:
+			# First, evaluate all predicates
+			for j in range(0,K)		# for each predicate
+				y = self.activation(self.predicate[j].linear1(xi))
+				y = self.activation(self.predicate[j].linear2(y))
+				y = self.activation(self.predicate[j].linear3(y))
+				# keep truth values for later
+				# if y ~= 1 the predicate is true, but it is true for P(xi) only
+
 		for i in range(0,M)			# for each rule
 			t = 1.0
-			for j in range(0,K)		# for each predicate
-				x = self.activation(self.predicate[j].linear1(state))
-				x = self.activation(self.predicate[j].linear2(x))
-				y = self.activation(self.predicate[j].linear3(x))
-				t = t * y			# truth value of conjunction
 			soft top-k self.ruleHead[i] select k predicates
 			match = multiply truth values of all K predicates
 			self.ruleTail[i] is a distribution over K predicates, multiply by match
