@@ -92,6 +92,7 @@ class AlgelogicNetwork(nn.Module):
 				y = self.activation(self.predicate[j].linear3(y))
 				# keep truth values for later
 				# if y ~= 1 the predicate is true, but it is true for P(xi) only
+				# so we should record P(xi) instead of just P ...?
 
 		for i in range(0,M)			# for each rule
 			t = 1.0
@@ -100,7 +101,7 @@ class AlgelogicNetwork(nn.Module):
 			self.ruleTail[i] is a distribution over K predicates, multiply by match
 			= output distribution of rule i
 			exp to calculate probability distribution
-		return prob distro for all M rules
+		# return prob distro for all M conclusions
 
 class DQN():
 

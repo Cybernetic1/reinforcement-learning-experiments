@@ -8,6 +8,7 @@ Thus 5263 is the size of our Q-table.
 This is perhaps the most efficient Q-table we can hope for, exploiting all symmetries.
 
 New version uses new lookup method for equivalence classes.
+Results are spectacularly good... convergence to near-top value in 40 seconds!
 """
 
 import random
