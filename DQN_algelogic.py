@@ -78,10 +78,14 @@ class AlgelogicNetwork(nn.Module):
 	# 它是 (point, predicate) pairs where predicate is just a number from {0...K}
 	# size of state = W pairs.
 	# 輸出的格式一樣
-	# 計算方法：
+	# **** Algorithm ****
 	# for each rule:
 	#	evaluate predicates on all points in x
-	#	if rule matches, create output predicate
+	#	if premise satisfied:
+	#		the truth value of the conclusion is equal to that of the premise
+	#		prepare output predicate
+	#		use Self-Attention to get "target point" of output predicate
+	#	else:  conclusion can be disgarded
 	def forward(self, state):
 		# For each fact xi in x:
 		for xi in x:
