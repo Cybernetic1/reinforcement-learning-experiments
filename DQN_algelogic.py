@@ -51,13 +51,14 @@ class ReplayBuffer:
 		return len(self.buffer)
 
 class AlgelogicNetwork(nn.Module):
+	
 	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
 		super(AlgelogicNetwork, self).__init__()
 
 		# **** Define K predicates
-		K = 16
+		self.K = 16
 		self.predicate = []
-		for i in range(0,K):
+		for i in range(0, self.K):
 			self.predicate[i].linear1 = nn.Linear(input_dim, hidden_size)
 			self.predicate[i].linear2 = nn.Linear(hidden_size, hidden_size)
 			self.predicate[i].logits_linear = nn.Linear(hidden_size, action_dim)
@@ -65,46 +66,58 @@ class AlgelogicNetwork(nn.Module):
 			self.predicate[i].logits_linear.bias.data.uniform_(-init_w, init_w)
 
 		# **** Define M rules
-		M = 16
+		self.M = 16
 		self.ruleHead = []
 		self.ruleTail = []
-		for i in range(0,M):
-			self.ruleHead[i] = torch.rand(K)
-			self.ruleTail[i] = torch.rand(K)
+		for i in range(0, self.M):
+			self.ruleHead[i] = torch.rand(self.K)
+			self.ruleTail[i] = torch.rand(self.K)
 
 		self.activation = F.relu
+
+	# **** adjust probability p with weight w,
+	# such that if w = 0 or close to 0, output p = 1
+	#			if w = 1 or close to 1, output p = p
+	# Formula: output = p*t + 1*(1-t)	<-- this is the 'homotopy' trick
+	# where t = sigmoid(w), specifically, t = 1/(1 + exp(-c*(w - 0.5)))
+	# where c = scaling factor to make the sigmoid more steep
+	# and the sigmoid is shifted to where the midpoint occurs at w = 1/2
+	def selector(p, w):
+		t = 1.0/(1.0 + exp(-50*(w - 0.5)))
+		return p*t + 1.0 - t
 
 	# 首先定义什么是 x，及它是如何储存。
 	# 它是 (point, predicate) pairs where predicate is just a number from {0...K}
 	# size of state = W pairs.
 	# 輸出的格式一樣
 	# **** Algorithm ****
+	# evaluate all predicates on all points in the current state X
 	# for each rule:
-	#	evaluate predicates on all points in x
+	#	multiply all predicates in its premise, prepared above
 	#	if premise satisfied:
 	#		the truth value of the conclusion is equal to that of the premise
 	#		prepare output predicate
-	#		use Self-Attention to get "target point" of output predicate
-	#	else:  conclusion can be disgarded
+	#		use softmax dot-product to get "target point" of output predicate
+	#	else:  that conclusion can be disgarded
 	def forward(self, state):
+		P = torch.zeros([self.K], dtype=torch.float)	# truth values of all predicates
 		# For each fact xi in x:
 		for xi in x:
 			# First, evaluate all predicates
-			for j in range(0,K)		# for each predicate
-				y = self.activation(self.predicate[j].linear1(xi))
-				y = self.activation(self.predicate[j].linear2(y))
-				y = self.activation(self.predicate[j].linear3(y))
+			for k in range(0, self.K):		# for each predicate
+				y = self.activation(self.predicate[k].linear1(xi))
+				y = self.activation(self.predicate[k].linear2(y))
+				y = self.activation(self.predicate[k].linear3(y))
 				# keep truth values for later
-				# if y ~= 1 the predicate is true, but it is true for P(xi) only
-				# so we should record P(xi) instead of just P ...?
+				P[k] = y.item()
 
-		for i in range(0,M)			# for each rule
-			t = 1.0
-			soft top-k self.ruleHead[i] select k predicates
-			match = multiply truth values of all K predicates
-			self.ruleTail[i] is a distribution over K predicates, multiply by match
-			= output distribution of rule i
-			exp to calculate probability distribution
+		for i in range(0, self.M)			# for each rule
+			# truth value = multiply truth values of all K predicates weighted by W
+			tv = 1.0
+			for k in range(0, self.K):
+				tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
+			self.ruleTail[i] = tv ???
+		# exp to calculate probability distribution over all M conclusions
 		# return prob distro for all M conclusions
 
 class DQN():
