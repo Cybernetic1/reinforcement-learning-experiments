@@ -112,6 +112,8 @@ class symNN(nn.Module):
 
 class DQN():
 
+	endState = [0,-4,0,-3,0,-2,0,-1,0,0,0,1,0,2,0,3,0,4]
+
 	def __init__(
 			self,
 			action_dim,
