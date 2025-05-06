@@ -18,6 +18,8 @@ np.random.seed(7)
 torch.manual_seed(7)
 device = torch.device("cpu")
 
+import types	# for types.SimpleNamespace
+
 class ReplayBuffer:
 	def __init__(self, capacity):
 		self.capacity = capacity
@@ -51,72 +53,79 @@ class ReplayBuffer:
 		return len(self.buffer)
 
 class AlgelogicNetwork(nn.Module):
-	
+
 	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
 		super(AlgelogicNetwork, self).__init__()
 
 		# **** Define K predicates
 		self.K = 16
-		self.predicate = []
+		self.predicates = nn.ModuleList()
 		for i in range(0, self.K):
-			self.predicate[i].linear1 = nn.Linear(input_dim, hidden_size)
-			self.predicate[i].linear2 = nn.Linear(hidden_size, hidden_size)
-			self.predicate[i].logits_linear = nn.Linear(hidden_size, action_dim)
-			self.predicate[i].logits_linear.weight.data.uniform_(-init_w, init_w)
-			self.predicate[i].logits_linear.bias.data.uniform_(-init_w, init_w)
+			pred = nn.Module()
+			pred.linear1 = nn.Linear(input_dim, hidden_size)
+			pred.linear2 = nn.Linear(hidden_size, hidden_size)
+			pred.linear3 = nn.Linear(hidden_size, hidden_size)
+			pred.logits_linear = nn.Linear(hidden_size, action_dim)
+			pred.logits_linear.weight.data.uniform_(-init_w, init_w)
+			pred.logits_linear.bias.data.uniform_(-init_w, init_w)
+			# pred = nn.ModuleList([linear1, linear2, logits_linear])
+			self.predicates.append(pred)
 
 		# **** Define M rules
+		# Each rule consists of J atoms, with I substitutions
 		self.M = 16
 		self.ruleHead = []
 		self.ruleTail = []
 		for i in range(0, self.M):
-			self.ruleHead[i] = torch.rand(self.K)
-			self.ruleTail[i] = torch.rand(self.K)
+			self.ruleHead.append(torch.rand(self.K))
+			self.ruleTail.append(torch.rand(self.K))
 
 		self.activation = F.relu
 
-	# **** adjust probability p with weight w,
-	# such that if w = 0 or close to 0, output p = 1
-	#			if w = 1 or close to 1, output p = p
+	# **** adjust probability p with weight γ,
+	# such that if γ = 0 or close to 0, output p = 1
+	#			if γ = 1 or close to 1, output p = p
 	# Formula: output = p*t + 1*(1-t)	<-- this is the 'homotopy' trick
-	# where t = sigmoid(w), specifically, t = 1/(1 + exp(-c*(w - 0.5)))
+	# where t = sigmoid(γ), specifically, t = 1/(1 + exp(-c*(γ - 0.5)))
 	# where c = scaling factor to make the sigmoid more steep
-	# and the sigmoid is shifted to where the midpoint occurs at w = 1/2
-	def selector(p, w):
-		t = 1.0/(1.0 + exp(-50*(w - 0.5)))
+	# and the sigmoid is shifted to where the midpoint occurs at γ = 1/2
+	def selector(p, γ):
+		t = 1.0/(1.0 + exp(-50*(γ - 0.5)))
 		return p*t + 1.0 - t
 
-	# 首先定义什么是 x，及它是如何储存。
-	# 它是 (point, predicate) pairs where predicate is just a number from {0...K}
+	# First define what is the state x, and how it is stored.
+	# x is composed of (predicate, point) pairs
+	# where predicate is just a number from {0...K}
 	# size of state = W pairs.
-	# 輸出的格式一樣
+	# output format is the same
+
 	# **** Algorithm ****
 	# evaluate all predicates on all points in the current state X
 	# for each rule:
 	#	multiply all predicates in its premise, prepared above
 	#	if premise satisfied:
-	#		the truth value of the conclusion is equal to that of the premise
+	#		TV of the conclusion is equal to that of the premise
 	#		prepare output predicate
 	#		use softmax dot-product to get "target point" of output predicate
 	#	else:  that conclusion can be disgarded
 	def forward(self, state):
-		P = torch.zeros([self.K], dtype=torch.float)	# truth values of all predicates
+		P = torch.zeros([self.K], dtype=torch.float)	# TVs of all predicates
 		# For each fact xi in x:
-		for xi in x:
+		for xi in state:
 			# First, evaluate all predicates
 			for k in range(0, self.K):		# for each predicate
-				y = self.activation(self.predicate[k].linear1(xi))
-				y = self.activation(self.predicate[k].linear2(y))
-				y = self.activation(self.predicate[k].linear3(y))
+				y = self.activation(self.predicates[k].linear1(xi))
+				y = self.activation(self.predicates[k].linear2(y))
+				y = self.activation(self.predicates[k].linear3(y))
 				# keep truth values for later
 				P[k] = y.item()
 
-		for i in range(0, self.M)			# for each rule
-			# truth value = multiply truth values of all K predicates weighted by W
+		for i in range(0, self.M):			# for each rule
+			# TV = multiply TVs of all K predicates weighted by W
 			tv = 1.0
 			for k in range(0, self.K):
 				tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
-			self.ruleTail[i] = tv ???
+			self.ruleTail[i] = tv # ???
 		# exp to calculate probability distribution over all M conclusions
 		# return prob distro for all M conclusions
 
@@ -138,15 +147,15 @@ class DQN():
 		self.replay_buffer = ReplayBuffer(int(1e6))
 
 		hidden_dim = 9
-		self.qnet = QNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
+		self.anet = AlgelogicNetwork(state_dim, action_dim, hidden_dim, activation=F.relu).to(device)
 
 		self.q_criterion = nn.MSELoss()
-		self.q_optimizer = optim.Adam(self.qnet.parameters(), lr=self.lr)
+		self.q_optimizer = optim.Adam(self.anet.parameters(), lr=self.lr)
 
 	def choose_action(self, state, deterministic=True):
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
 
-		logits = self.qnet(state)
+		logits = self.anet(state)
 		probs  = torch.softmax(logits, dim=1)
 		dist   = Categorical(probs)
 		action = dist.sample().numpy()[0]
@@ -166,8 +175,8 @@ class DQN():
 		reward     = torch.FloatTensor(reward).to(device) # .to(device)  # reward is single value, unsqueeze() to add one dim to be [reward] at the sample dim;
 		done       = torch.BoolTensor(done).to(device)
 
-		logits = self.qnet(state)
-		next_logits = self.qnet(next_state)
+		logits = self.anet(state)
+		next_logits = self.anet(next_state)
 
 		# **** Train deep Q function, this is just Bellman equation:
 		# DQN(st,at) += η [ R + γ max_a DQN(s_t+1,a) - DQN(st,at) ]
