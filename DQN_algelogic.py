@@ -54,6 +54,16 @@ class ReplayBuffer:
 
 class AlgelogicNetwork(nn.Module):
 
+	# First define what is the state x, and how it is stored.
+	# x is composed of (predicate, point) pairs
+	# where predicate is just a number from {0...K}
+	# size of state = W pairs.
+	# output format is the same
+
+	# Each rule is of the form:
+	#	Xx ∧ Xx ∧ Xx → Xx
+	# number of variables = 3
+
 	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
 		super(AlgelogicNetwork, self).__init__()
 
@@ -92,12 +102,6 @@ class AlgelogicNetwork(nn.Module):
 	def selector(p, γ):
 		t = 1.0/(1.0 + exp(-50*(γ - 0.5)))
 		return p*t + 1.0 - t
-
-	# First define what is the state x, and how it is stored.
-	# x is composed of (predicate, point) pairs
-	# where predicate is just a number from {0...K}
-	# size of state = W pairs.
-	# output format is the same
 
 	# **** Algorithm ****
 	# evaluate all predicates on all points in the current state X
