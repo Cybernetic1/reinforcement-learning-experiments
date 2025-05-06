@@ -168,7 +168,7 @@ print("n_features = state dim =", env.state_space.shape[0])
 print("state_space.high =", env.state_space.high)
 print("state_space.low =", env.state_space.low)
 
-import sys
+# import sys
 for f in [log_file, sys.stdout]:
 	f.write("# Config # = " + str(config) + '\n')
 	f.write("# Model = " + tag + '\n')
@@ -285,6 +285,13 @@ import websockets
 from websockets.sync.client import connect
 import json
 import TTT_utils
+
+# Check if text-to-speech software Ekho is installed:
+speech = True
+try:
+	call(['ekho', '--version'])
+except FileNotFoundError:
+	speech = False
 
 def visualize_Q():
 	global INTERMEDIATE
@@ -456,7 +463,8 @@ while True:
 				s = 'minus ' + str(int(-rr))
 			else:
 				s = str(int(rr))
-			call(['ekho', s, '-v', 'English', '--english-speed', '20'])
+			if speech:
+				call(['ekho', s, '-v', 'English', '--english-speed', '20'])
 
 			delta = datetime.now() - startTime
 			print('[ {d}d {h}:{m}:{s} ]'.format(d=delta.days, h=delta.seconds//3600, m=(delta.seconds//60)%60, s=delta.seconds%60))
@@ -466,7 +474,8 @@ while True:
 				endTime = datetime.now()
 				endStamp = endTime.strftime("%d-%m-%Y(%H:%M)")
 				log_file.write("# End time: " + endStamp + '\n')
-				call(['ekho', '新档案', '-s=-20'])	# speak "new file"
+				if speech:
+					call(['ekho', '新档案', '-s=-20'])	# speak "new file"
 				log_file.close()
 				RL.save_net(model_name + "." + timeStamp)
 				if train_once:

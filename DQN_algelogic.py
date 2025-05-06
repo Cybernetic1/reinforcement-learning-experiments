@@ -62,28 +62,25 @@ class AlgelogicNetwork(nn.Module):
 
 	# Each rule is of the form:
 	#	Xx ∧ Xx ∧ Xx → Xx
-	# number of variables = 3
+	# number of variables = I = 3
+
+	self.M = 16		# number of rules
+	self.J = 3		# number of atoms per rule
+	self.I = 3		# number of variables in a rule = length of each rule
+	self.W = 9*2	# number of propositions in Working Memory
 
 	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
 		super(AlgelogicNetwork, self).__init__()
 
-		# **** Define K predicates
-		self.K = 16
-		self.predicates = nn.ModuleList()
-		for i in range(0, self.K):
-			pred = nn.Module()
-			pred.linear1 = nn.Linear(input_dim, hidden_size)
-			pred.linear2 = nn.Linear(hidden_size, hidden_size)
-			pred.linear3 = nn.Linear(hidden_size, hidden_size)
-			pred.logits_linear = nn.Linear(hidden_size, action_dim)
-			pred.logits_linear.weight.data.uniform_(-init_w, init_w)
-			pred.logits_linear.bias.data.uniform_(-init_w, init_w)
-			# pred = nn.ModuleList([linear1, linear2, logits_linear])
-			self.predicates.append(pred)
-
 		# **** Define M rules
 		# Each rule consists of J atoms, with I substitutions
-		self.M = 16
+		self.rules = nn.ModuleList()
+		for i in range(0, self.M):
+			rule = nn.ModuleList()
+			for j in range(0, self.J):
+				rule.append(nn.Linear(self.I, WM_dim))
+			self.rules.append(rule)
+
 		self.ruleHead = []
 		self.ruleTail = []
 		for i in range(0, self.M):
