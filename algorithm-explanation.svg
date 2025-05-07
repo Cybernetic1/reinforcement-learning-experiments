@@ -7,13 +7,13 @@
    viewBox="0 0 210 297"
    version="1.1"
    id="svg5"
-   inkscape:version="1.4 (e7c3feb, 2024-10-09)"
+   inkscape:version="1.4.1 (1:1.4.1+202503302257+93de688d07)"
    sodipodi:docname="algorithm-explanation.svg"
+   xml:space="preserve"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <sodipodi:namedview
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
      id="namedview7"
      pagecolor="#ffffff"
      bordercolor="#cccccc"
@@ -24,58 +24,78 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1"
-     inkscape:cx="396"
-     inkscape:cy="613"
-     inkscape:window-width="1082"
-     inkscape:window-height="1895"
+     inkscape:cx="397"
+     inkscape:cy="695.5"
+     inkscape:window-width="1920"
+     inkscape:window-height="1059"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1"
      inkscape:showpageshadow="0"
-     inkscape:deskcolor="#d1d1d1" />
-  <defs
-     id="defs2">
-    <rect
+     inkscape:deskcolor="#d1d1d1" /><defs
+     id="defs2"><marker
+       style="overflow:visible"
+       id="marker14"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="2"
+       markerHeight="2"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"><path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path14" /></marker><rect
        x="252"
        y="165"
        width="542"
        height="206"
-       id="rect6" />
-    <rect
+       id="rect6" /><rect
        x="317"
        y="226"
        width="85"
        height="64"
-       id="rect5" />
-    <rect
+       id="rect5" /><rect
        x="188"
        y="229"
        width="225"
        height="76"
-       id="rect2" />
-  </defs>
-  <g
+       id="rect2" /><font
+       horiz-adv-x="1000"
+       id="font1"
+       inkscape:label="font 1"><font-face
+         units-per-em="1000"
+         ascent="750"
+         cap-height="600"
+         x-height="400"
+         descent="200"
+         id="font-face1"
+         font-family="SVGFont 1" /><missing-glyph
+         d="M0,0h1000v1000h-1000z"
+         id="missing-glyph1" /><glyph
+         glyph-name=""
+         unicode=" "
+         id="glyph1" /></font></defs><g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
-    <path
-       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 50.031676,99.958077 H 79.306964"
-       id="path72" />
-    <path
-       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 50.031676,110.54142 H 79.306964"
-       id="path72-3" />
-    <path
-       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 59.266669,119.9418 V 90.666522"
-       id="path72-6" />
-    <path
-       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 69.850003,119.9418 V 90.666522"
-       id="path72-6-7" />
-    <text
+     id="layer1"><path
+       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="M 18.281674,99.958077 H 47.556962"
+       id="path72" /><path
+       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="M 18.281674,110.54142 H 47.556962"
+       id="path72-3" /><path
+       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="M 27.516667,119.9418 V 90.666522"
+       id="path72-6" /><path
+       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="M 38.100001,119.9418 V 90.666522"
+       id="path72-6-7" /><text
        xml:space="preserve"
        style="font-weight:300;font-size:4.9389px;line-height:1.25;font-family:'Alibaba PuHuiTi';-inkscape-font-specification:'Alibaba PuHuiTi, Light';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583;fill:#1a1a1a"
        x="84.137497"
@@ -85,13 +105,11 @@
          id="tspan1"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.9389px;font-family:'TexMaths Symbols';-inkscape-font-specification:'TexMaths Symbols, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;fill:#1a1a1a"
          x="84.137497"
-         y="60.060417">❌⭕</tspan></text>
-    <text
+         y="60.060417">❌⭕</tspan></text><text
        xml:space="preserve"
        transform="scale(0.26458333)"
        id="text2"
-       style="font-size:18.6667px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect2);display:inline;fill:#1a1a1a" />
-    <text
+       style="font-size:18.6667px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect2);display:inline;fill:#1a1a1a" /><text
        xml:space="preserve"
        style="font-size:4.9389px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583;fill:#1a1a1a"
        x="39.952084"
@@ -101,8 +119,7 @@
          id="tspan2"
          style="stroke-width:0.264583;fill:#1a1a1a"
          x="39.952084"
-         y="49.741665" /></text>
-    <text
+         y="49.741665" /></text><text
        xml:space="preserve"
        style="font-size:16.9333px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;white-space:pre;inline-size:85.1958;display:inline;fill:#1a1a1a;stroke-width:0.264583"
        x="58.737499"
@@ -110,30 +127,83 @@
        id="text4"><tspan
          x="58.737499"
          y="45.772915"
-         id="tspan4">🍷🍺🍻</tspan></text>
-    <text
+         id="tspan14">🍷🍺🍻</tspan></text><text
        xml:space="preserve"
        transform="scale(0.26458333)"
        id="text5"
        style="font-size:64px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect5);display:inline"><tspan
          x="317"
          y="349.2"
-         id="tspan9"><tspan
+         id="tspan18"><tspan
            dx="0 40.895996 40.895996"
-           id="tspan5">AAA</tspan><tspan
+           id="tspan15">AAA</tspan><tspan
            dx="40.895996 79.6875 79.6875"
-           id="tspan7">🍷🍺🍻</tspan><tspan
+           id="tspan16">🍷🍺🍻</tspan><tspan
            dx="79.6875 40.895996 40.895996"
-           id="tspan8">AAA</tspan></tspan></text>
-    <text
+           id="tspan17">AAA</tspan></tspan></text><text
        xml:space="preserve"
-       style="font-size:18px;line-height:1;text-align:center;text-anchor:middle"
+       style="font-size:12.7px;line-height:1;text-align:center;text-anchor:middle"
        x="102.12917"
-       y="60.060413"
+       y="70.643745"
        id="text6"><tspan
          id="tspan6"
-         style="font-size:18px"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:semi-condensed;font-size:12.7px;font-family:Symbola;-inkscape-font-specification:'Symbola Semi-Condensed'"
          x="102.12917"
-         y="60.060413">AB❌A⭕AB</tspan></text>
-  </g>
-</svg>
+         y="70.643745" /></text><path
+       style="fill:#ff0000;stroke-width:0px"
+       d="m 36.502496,109.33832 c -0.25399,0 -0.76199,0 -1.01599,0 -0.635,-0.62707 -1.905,-1.88119 -2.54001,-2.50826 -0.62705,0.62707 -1.88118,1.88119 -2.50824,2.50826 -0.26193,0 -0.78581,0 -1.04775,0 0,-0.25401 0,-0.762 0,-1.016 0.62706,-0.63501 1.88118,-1.905 2.50825,-2.54 -0.62707,-0.62707 -1.88119,-1.88119 -2.50825,-2.50826 0,-0.26193 0,-0.78581 0,-1.04774 0.26194,0 0.78582,0 1.04775,0 0.62706,0.62705 1.88119,1.88118 2.50824,2.50825 0.63501,-0.62707 1.90501,-1.8812 2.54001,-2.50825 0.254,0 0.762,0 1.01599,0 0,0.26193 0,0.78581 0,1.04774 -0.62705,0.62707 -1.88118,1.88119 -2.50824,2.50826 0.62706,0.62705 1.88119,1.88118 2.50824,2.50825 0,0.26193 0,0.7858 0,1.04775 z"
+       id="path_🗙_0"
+       inkscape:export-filename="cross.svg"
+       inkscape:export-xdpi="192"
+       inkscape:export-ydpi="192" /><path
+       style="fill:#ff0000;stroke-width:0px"
+       d="m 47.06407,119.29534 c -0.25399,0 -0.76199,0 -1.01599,0 -0.635,-0.62707 -1.905,-1.88119 -2.54001,-2.50826 -0.62705,0.62707 -1.88118,1.88119 -2.50824,2.50826 -0.26193,0 -0.78581,0 -1.04775,0 0,-0.25401 0,-0.762 0,-1.016 0.62706,-0.63501 1.88118,-1.905 2.50825,-2.54 -0.62707,-0.62707 -1.88119,-1.88119 -2.50825,-2.50826 0,-0.26193 0,-0.78581 0,-1.04774 0.26194,0 0.78582,0 1.04775,0 0.62706,0.62705 1.88119,1.88118 2.50824,2.50825 0.63501,-0.62707 1.90501,-1.8812 2.54001,-2.50825 0.254,0 0.762,0 1.01599,0 0,0.26193 0,0.78581 0,1.04774 -0.62705,0.62707 -1.88118,1.88119 -2.50824,2.50826 0.62706,0.62705 1.88119,1.88118 2.50824,2.50825 0,0.26193 0,0.7858 0,1.04775 z"
+       id="path_🗙_0-3" /><path
+       id="path_⭕_0"
+       style="fill:#ff0000;stroke-width:0px"
+       d="m 47.413076,94.989857 q 0,1.62984 -1.14089,2.77072 -1.14088,1.14088 -2.77072,1.14088 -1.62982,0 -2.77071,-1.14088 -1.14089,-1.14088 -1.14089,-2.77072 0,-1.62984 1.14089,-2.77072 1.14089,-1.14088 2.77071,-1.14088 1.62984,0 2.77072,1.14088 1.14089,1.14088 1.14089,2.77072 z m -1.45966,0 q 0,-1.02277 -0.71458,-1.73736 -0.71458,-0.71458 -1.73737,-0.71458 -1.02277,0 -1.73735,0.71458 -0.71458,0.71459 -0.71458,1.73736 0,1.02278 0.71458,1.73736 0.71458,0.71459 1.73735,0.71459 1.02279,0 1.73737,-0.71459 0.71458,-0.71458 0.71458,-1.73736 z"
+       inkscape:export-filename="circle.svg"
+       inkscape:export-xdpi="192"
+       inkscape:export-ydpi="192" /><path
+       id="path_⭕_0-1"
+       style="fill:#ff0000;stroke-width:0px"
+       d="m 26.344042,95.19285 q 0,1.62984 -1.14089,2.77072 -1.14088,1.14088 -2.77072,1.14088 -1.62982,0 -2.77071,-1.14088 -1.14089,-1.14088 -1.14089,-2.77072 0,-1.62984 1.14089,-2.77072 1.14089,-1.14088 2.77071,-1.14088 1.62984,0 2.77072,1.14088 1.14089,1.14088 1.14089,2.77072 z m -1.45966,0 q 0,-1.02277 -0.71458,-1.73736 -0.71458,-0.71458 -1.73737,-0.71458 -1.02277,0 -1.73735,0.71458 -0.71458,0.71459 -0.71458,1.73736 0,1.02278 0.71458,1.73736 0.71458,0.71459 1.73735,0.71459 1.02279,0 1.73737,-0.71459 0.71458,-0.71458 0.71458,-1.73736 z" /><text
+       xml:space="preserve"
+       style="font-size:4.9389px;line-height:1.25;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans, Normal';letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="57.150002"
+       y="96.969788"
+       id="text7"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans Medium';stroke-width:0.264583"
+         x="57.150002"
+         y="96.969788">logical state representation:</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.264583"
+         x="57.150002"
+         y="103.14341"
+         id="tspan10">consists of 9 atomic propositions:  (player, square) x 9</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.264583"
+         x="57.150002"
+         y="109.31704"
+         id="tspan11">where player = { -1, 0, 1 } , 0 means empty</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.264583"
+         x="57.150002"
+         y="115.49066"
+         id="tspan12">square = { -4, -3, -2, -1, 0, 1, 2, 3, 4 } for 9 squares</tspan></text><text
+       xml:space="preserve"
+       style="font-size:4.9389px;line-height:1.25;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans, Normal';letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="71.305206"
+       y="124.75104"
+       id="text13"><tspan
+         sodipodi:role="line"
+         id="tspan13"
+         style="stroke-width:0.264583"
+         x="71.305206"
+         y="124.75104">for example, this is (1, 4)</tspan></text><path
+       style="fill:none;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#marker14)"
+       d="m 50.535416,119.45938 c 0,0 9.525,4.6302 18.653124,4.23333"
+       id="path13"
+       sodipodi:nodetypes="cc" /></g></svg>
