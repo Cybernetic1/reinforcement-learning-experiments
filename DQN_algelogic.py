@@ -140,10 +140,10 @@ class AlgelogicNetwork(nn.Module):
 				print("Ys =", Ys)
 
 		# 2. Do matchings
-		# TV = multiply TVs of all K predicates weighted by W
-		# our final result is just a single TV:
+		# TV = multiply TVs of all J matches
+		# final result is just a single TV:
 		tv = 1.0
-		for k in range(0, self.K):
+		for j in range(0, self.J):
 			tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
 		self.ruleTail[i] = tv	# ???
 		# exp to calculate probability distribution over all M conclusions
