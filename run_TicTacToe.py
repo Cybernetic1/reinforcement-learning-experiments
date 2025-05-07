@@ -225,6 +225,15 @@ def ctrl_C_handler(sig, frame):
 
 signal.signal(signal.SIGINT, ctrl_C_handler)
 
+# Check if text-to-speech software Ekho is installed:
+from subprocess import call, DEVNULL
+speech = True
+try:
+	# print("Testing [optional] Ekho version =")
+	call(['ekho', '--version'], stdout=DEVNULL)
+except FileNotFoundError:
+	speech = False
+
 import glob
 if config == 3 or config == 4:		# TensorFlow
 	files = glob.glob("TensorFlow_models/" + model_name + "*.index")
@@ -280,18 +289,10 @@ rewards      = []
 reward_scale = 10.0
 model_path   = './model/sac'
 
-from subprocess import call
 import websockets
 from websockets.sync.client import connect
 import json
 import TTT_utils
-
-# Check if text-to-speech software Ekho is installed:
-speech = True
-try:
-	call(['ekho', '--version'])
-except FileNotFoundError:
-	speech = False
 
 def visualize_Q():
 	global INTERMEDIATE

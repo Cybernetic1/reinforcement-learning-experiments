@@ -1,0 +1,8 @@
+# Config # = 28
+# Model = DQN.algelogic.(9)-9-9-(9)
+# Gym = TicTacToe-logic-dim2-v1
+# algorithm = DQN_algelogic
+# Num weights = 243
+# Learning rate = 0.001
+# Env random seed = 111
+# Start time: 07-05-2025(08:22)

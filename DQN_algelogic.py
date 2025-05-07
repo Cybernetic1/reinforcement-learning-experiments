@@ -64,28 +64,30 @@ class AlgelogicNetwork(nn.Module):
 	#	Xx ∧ Xx ∧ Xx → Xx
 	# number of variables = I = 3
 
-	self.M = 16		# number of rules
-	self.J = 3		# number of atoms per rule
-	self.I = 3		# number of variables in a rule = length of each rule
-	self.W = 9*2	# number of propositions in Working Memory
-
 	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
 		super(AlgelogicNetwork, self).__init__()
 
+		self.M = 16		# number of rules
+		self.J = 3		# number of atoms per rule
+		self.I = 3		# num of variables in an atom = length of an atom
+		self.W = 9*2	# number of propositions in Working Memory
+
 		# **** Define M rules
-		# Each rule consists of J atoms, with I substitutions
+		# Each rule tail consists of 1 atom, with I substitutions
+		# Each rule head consists of J atoms, with I substitutions
+		# Each atom in a rule has I constants 'c'
 		self.rules = nn.ModuleList()
 		for i in range(0, self.M):
 			rule = nn.ModuleList()
+			rule.append(nn.Linear(self.I, 1))			# rule tail
 			for j in range(0, self.J):
-				rule.append(nn.Linear(self.I, WM_dim))
+				rule.append(nn.Linear(self.I, self.W))	# rule head
+			l = (self.J + 1) * self.I		# create l constants
+			c1s = torch.FloatTensor(l).uniform_(-1,1)
+			c2s = torch.FloatTensor(l).uniform_(-4,4)
+			rule.constants = nn.Parameter(
+				torch.stack((c1s, c2s), dim=1).flatten())
 			self.rules.append(rule)
-
-		self.ruleHead = []
-		self.ruleTail = []
-		for i in range(0, self.M):
-			self.ruleHead.append(torch.rand(self.K))
-			self.ruleTail.append(torch.rand(self.K))
 
 		self.activation = F.relu
 
@@ -100,17 +102,54 @@ class AlgelogicNetwork(nn.Module):
 		t = 1.0/(1.0 + exp(-50*(γ - 0.5)))
 		return p*t + 1.0 - t
 
+	def my_softmax(x):
+		β = 5
+		maxes = torch.max(x, 1, keepdim=True)[0]
+		x_exp = torch.exp(β * (x - maxes))
+		x_exp_sum = torch.sum(x_exp, 1, keepdim=True)
+		probs = x_exp / x_exp_sum
+		return probs
+
 	# **** Algorithm ****
-	# evaluate all predicates on all points in the current state X
 	# for each rule:
-	#	multiply all predicates in its premise, prepared above
-	#	if premise satisfied:
-	#		TV of the conclusion is equal to that of the premise
-	#		prepare output predicate
-	#		use softmax dot-product to get "target point" of output predicate
+	#	do substitutions
+	#	do matchings
+	#	TV of the conclusion is equal to that of the premise
+	#	prepare output predicate
+	#	use softmax dot-product to get "target point" of output predicate
 	#	else:  that conclusion can be disgarded
 	def forward(self, state):
-		P = torch.zeros([self.K], dtype=torch.float)	# TVs of all predicates
+		# TVs of all output predicates:
+		P = torch.zeros([self.M], dtype=torch.float)
+
+		# 1. Do substitutions:
+		for i in range(0, self.M):			# for each rule
+			for j in range(0, self.J):		# for each atom in rule
+				# copy from state (Working Memory) into variable slots Xs:
+				weights = self.rules[i][j + 1].weight.T
+				# print("weights=", weights)
+				logits = AlgelogicNetwork.my_softmax(weights)
+				# print("logits=", logits)
+				# print("state=", state)
+				Xs = torch.matmul(logits, state.T)
+				print("Xs =", Xs)
+				# copy from Xs into output proposition:
+				weights = self.rules[i][0].weight.T
+				print("weights=", weights)
+				logits = AlgelogicNetwork.my_softmax(weights)
+				print("logits=", logits)
+				Ys = torch.matmul(logits, Xs.T)
+				print("Ys =", Ys)
+			exit(0)
+				
+			# TV = multiply TVs of all K predicates weighted by W
+			tv = 1.0
+			for k in range(0, self.K):
+				tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
+			self.ruleTail[i] = tv # ???
+		# exp to calculate probability distribution over all M conclusions
+		# return prob distro for all M conclusions
+
 		# For each fact xi in x:
 		for xi in state:
 			# First, evaluate all predicates
@@ -121,14 +160,6 @@ class AlgelogicNetwork(nn.Module):
 				# keep truth values for later
 				P[k] = y.item()
 
-		for i in range(0, self.M):			# for each rule
-			# TV = multiply TVs of all K predicates weighted by W
-			tv = 1.0
-			for k in range(0, self.K):
-				tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
-			self.ruleTail[i] = tv # ???
-		# exp to calculate probability distribution over all M conclusions
-		# return prob distro for all M conclusions
 
 class DQN():
 
