@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.4 (e7c3feb, 2024-10-09)"
+   sodipodi:docname="algorithm-explanation.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#cccccc"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="1"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1"
+     inkscape:cx="396"
+     inkscape:cy="613"
+     inkscape:window-width="1082"
+     inkscape:window-height="1895"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     inkscape:showpageshadow="0"
+     inkscape:deskcolor="#d1d1d1" />
+  <defs
+     id="defs2">
+    <rect
+       x="252"
+       y="165"
+       width="542"
+       height="206"
+       id="rect6" />
+    <rect
+       x="317"
+       y="226"
+       width="85"
+       height="64"
+       id="rect5" />
+    <rect
+       x="188"
+       y="229"
+       width="225"
+       height="76"
+       id="rect2" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 50.031676,99.958077 H 79.306964"
+       id="path72" />
+    <path
+       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 50.031676,110.54142 H 79.306964"
+       id="path72-3" />
+    <path
+       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 59.266669,119.9418 V 90.666522"
+       id="path72-6" />
+    <path
+       style="fill:#1a1a1a;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 69.850003,119.9418 V 90.666522"
+       id="path72-6-7" />
+    <text
+       xml:space="preserve"
+       style="font-weight:300;font-size:4.9389px;line-height:1.25;font-family:'Alibaba PuHuiTi';-inkscape-font-specification:'Alibaba PuHuiTi, Light';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583;fill:#1a1a1a"
+       x="84.137497"
+       y="60.060417"
+       id="text1"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.9389px;font-family:'TexMaths Symbols';-inkscape-font-specification:'TexMaths Symbols, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583;fill:#1a1a1a"
+         x="84.137497"
+         y="60.060417">❌⭕</tspan></text>
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text2"
+       style="font-size:18.6667px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect2);display:inline;fill:#1a1a1a" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.9389px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583;fill:#1a1a1a"
+       x="39.952084"
+       y="49.741665"
+       id="text3"><tspan
+         sodipodi:role="line"
+         id="tspan2"
+         style="stroke-width:0.264583;fill:#1a1a1a"
+         x="39.952084"
+         y="49.741665" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16.9333px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;white-space:pre;inline-size:85.1958;display:inline;fill:#1a1a1a;stroke-width:0.264583"
+       x="58.737499"
+       y="45.772915"
+       id="text4"><tspan
+         x="58.737499"
+         y="45.772915"
+         id="tspan4">🍷🍺🍻</tspan></text>
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text5"
+       style="font-size:64px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect5);display:inline"><tspan
+         x="317"
+         y="349.2"
+         id="tspan9"><tspan
+           dx="0 40.895996 40.895996"
+           id="tspan5">AAA</tspan><tspan
+           dx="40.895996 79.6875 79.6875"
+           id="tspan7">🍷🍺🍻</tspan><tspan
+           dx="79.6875 40.895996 40.895996"
+           id="tspan8">AAA</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:18px;line-height:1;text-align:center;text-anchor:middle"
+       x="102.12917"
+       y="60.060413"
+       id="text6"><tspan
+         id="tspan6"
+         style="font-size:18px"
+         x="102.12917"
+         y="60.060413">AB❌A⭕AB</tspan></text>
+  </g>
+</svg>

@@ -69,7 +69,7 @@ class AlgelogicNetwork(nn.Module):
 
 		self.M = 16		# number of rules
 		self.J = 3		# number of atoms per rule
-		self.I = 3		# num of variables in an atom = length of an atom
+		self.I = 2		# num of variables in an atom = length of an atom
 		self.W = 9*2	# number of propositions in Working Memory
 
 		# **** Define M rules
@@ -79,7 +79,7 @@ class AlgelogicNetwork(nn.Module):
 		self.rules = nn.ModuleList()
 		for i in range(0, self.M):
 			rule = nn.ModuleList()
-			rule.append(nn.Linear(self.I, 1))			# rule tail
+			rule.append(nn.Linear(self.I, self.I))		# rule tail
 			for j in range(0, self.J):
 				rule.append(nn.Linear(self.I, self.W))	# rule head
 			l = (self.J + 1) * self.I		# create l constants
@@ -103,7 +103,7 @@ class AlgelogicNetwork(nn.Module):
 		return p*t + 1.0 - t
 
 	def my_softmax(x):
-		β = 5
+		β = 5		# temperature parameter
 		maxes = torch.max(x, 1, keepdim=True)[0]
 		x_exp = torch.exp(β * (x - maxes))
 		x_exp_sum = torch.sum(x_exp, 1, keepdim=True)
@@ -135,31 +135,20 @@ class AlgelogicNetwork(nn.Module):
 				print("Xs =", Xs)
 				# copy from Xs into output proposition:
 				weights = self.rules[i][0].weight.T
-				print("weights=", weights)
+				# print("weights=", weights)
 				logits = AlgelogicNetwork.my_softmax(weights)
-				print("logits=", logits)
-				Ys = torch.matmul(logits, Xs.T)
+				# print("logits=", logits)
+				Ys = torch.matmul(logits, Xs)
 				print("Ys =", Ys)
-			exit(0)
-				
-			# TV = multiply TVs of all K predicates weighted by W
-			tv = 1.0
-			for k in range(0, self.K):
-				tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
-			self.ruleTail[i] = tv # ???
+
+		# 2. Do matchings
+		# TV = multiply TVs of all K predicates weighted by W
+		tv = 1.0
+		for k in range(0, self.K):
+			tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
+		self.ruleTail[i] = tv # ???
 		# exp to calculate probability distribution over all M conclusions
 		# return prob distro for all M conclusions
-
-		# For each fact xi in x:
-		for xi in state:
-			# First, evaluate all predicates
-			for k in range(0, self.K):		# for each predicate
-				y = self.activation(self.predicates[k].linear1(xi))
-				y = self.activation(self.predicates[k].linear2(y))
-				y = self.activation(self.predicates[k].linear3(y))
-				# keep truth values for later
-				P[k] = y.item()
-
 
 class DQN():
 
