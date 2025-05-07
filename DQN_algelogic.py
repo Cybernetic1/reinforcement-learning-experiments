@@ -112,12 +112,10 @@ class AlgelogicNetwork(nn.Module):
 
 	# **** Algorithm ****
 	# for each rule:
-	#	do substitutions
+	#	do substitutions, result = output atom
 	#	do matchings
-	#	TV of the conclusion is equal to that of the premise
-	#	prepare output predicate
-	#	use softmax dot-product to get "target point" of output predicate
-	#	else:  that conclusion can be disgarded
+	#	TV of the conclusion is equal to that of the premises
+	#	if TV is too low, that conclusion can be disgarded
 	def forward(self, state):
 		# TVs of all output predicates:
 		P = torch.zeros([self.M], dtype=torch.float)
@@ -143,10 +141,11 @@ class AlgelogicNetwork(nn.Module):
 
 		# 2. Do matchings
 		# TV = multiply TVs of all K predicates weighted by W
+		# our final result is just a single TV:
 		tv = 1.0
 		for k in range(0, self.K):
 			tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
-		self.ruleTail[i] = tv # ???
+		self.ruleTail[i] = tv	# ???
 		# exp to calculate probability distribution over all M conclusions
 		# return prob distro for all M conclusions
 
