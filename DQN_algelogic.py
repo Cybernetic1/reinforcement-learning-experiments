@@ -77,16 +77,20 @@ class AlgelogicNetwork(nn.Module):
 		# Each rule head consists of J atoms, with I substitutions
 		# Each atom in a rule has I constants 'c'
 		self.rules = nn.ModuleList()
-		for i in range(0, self.M):
+		for m in range(0, self.M):
 			rule = nn.ModuleList()
 			rule.append(nn.Linear(self.I, self.I))		# rule tail
-			for j in range(0, self.J):
-				rule.append(nn.Linear(self.I, self.W))	# rule head
-			l = (self.J + 1) * self.I		# create l constants
-			c1s = torch.FloatTensor(l).uniform_(-1,1)
-			c2s = torch.FloatTensor(l).uniform_(-4,4)
+			for j in range(0, self.J):					# rule head
+				rule.append(nn.Linear(self.I, self.W))
+			for i in range(0, self.I):
+				if i == 0:
+					c = torch.FloatTensor(self.J + 1).uniform_(-1,1)
+				else:
+					c = torch.FloatTensor(self.J + 1).uniform_(-4,4)
 			rule.constants = nn.Parameter(
 				torch.stack((c1s, c2s), dim=1).flatten())
+			# create l γ values
+			rule.γs = nn.Parameter(torch.FloatTensor(l).uniform_(0,1))
 			self.rules.append(rule)
 
 		self.activation = F.relu
@@ -112,19 +116,27 @@ class AlgelogicNetwork(nn.Module):
 
 	# **** Algorithm ****
 	# for each rule:
-	#	do substitutions, result = output atom
-	#	do matchings
-	#	TV of the conclusion is equal to that of the premises
-	#	if TV is too low, that conclusion can be disgarded
+	#	for each atom in rule:
+	#		try to match WM atoms (which always succeeds to a degree)
+	#		for each match
+	#			do substitutions (which are cumulative)
+	#	output atom (per rule)
+	# TV of the conclusion is equal to that of the premises
+	# if TV is too low, can that conclusion be disgarded?
 	def forward(self, state):
 		# TVs of all output predicates:
 		P = torch.zeros([self.M], dtype=torch.float)
 
-		# 1. Do substitutions:
-		for i in range(0, self.M):			# for each rule
+		for m in range(0, self.M):			# for each rule
+			rule = self.rules[i]
 			for j in range(0, self.J):		# for each atom in rule
+				for w in range(0, self.W):	# for each atom in WM
+					# match( rule atom, WM atom )
+					tv[i] = (1 - rule.γs[j*self.I + i]) * match(rule.constants[j][i], state[w][i])
+
+				# 2. Do substitutions:
 				# copy from state (Working Memory) into variable slots Xs:
-				weights = self.rules[i][j + 1].weight.T
+				weights = rule[j + 1].weight.T
 				# print("weights=", weights)
 				logits = AlgelogicNetwork.my_softmax(weights)
 				# print("logits=", logits)
@@ -132,22 +144,17 @@ class AlgelogicNetwork(nn.Module):
 				Xs = torch.matmul(logits, state.T)
 				print("Xs =", Xs)
 				# copy from Xs into output proposition:
-				weights = self.rules[i][0].weight.T
+				weights = rule[0].weight.T
 				# print("weights=", weights)
 				logits = AlgelogicNetwork.my_softmax(weights)
 				# print("logits=", logits)
 				Ys = torch.matmul(logits, Xs)
 				print("Ys =", Ys)
 
-		# 2. Do matchings
-		# TV = multiply TVs of all J matches
-		# final result is just a single TV:
-		tv = 1.0
-		for j in range(0, self.J):
-			tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
-		self.ruleTail[i] = tv	# ???
-		# exp to calculate probability distribution over all M conclusions
-		# return prob distro for all M conclusions
+				tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
+				self.ruleTail[i] = tv	# ???
+				# exp to calculate probability distribution over all M conclusions
+				# return prob distro for all M conclusions
 
 class DQN():
 

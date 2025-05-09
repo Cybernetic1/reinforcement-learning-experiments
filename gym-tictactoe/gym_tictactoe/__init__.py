@@ -28,6 +28,12 @@ register(
 )
 
 register(
+    id='TicTacToe-logic-dim2-v2',	# logic dim2
+    entry_point='gym_tictactoe.TTT_logic_dim2_uniform:TicTacToeEnv',
+    reward_threshold=1000
+)
+
+register(
     id='TicTacToe-logic-dim2-intermediate-v0',	# logic dim2, with intermediate memory
     entry_point='gym_tictactoe.TTT_logic_dim2_intermediate:TicTacToeEnv',
     reward_threshold=1000
