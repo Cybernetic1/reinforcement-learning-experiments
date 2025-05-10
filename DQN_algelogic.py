@@ -1,6 +1,6 @@
 """
 DQN (Deep Q Network) using my invention "algebraic logic network" to implement Q.
-Board representation:  logic, dim-2
+Board representation:  logic, dim-2, polar
 Code is adapted from DQN_shrink.py.
 """
 
@@ -165,7 +165,7 @@ class AlgelogicNetwork(nn.Module):
 							rule.constants[j][i],
 							state[0, w * self.I + i] )"""
 
-				print("TV=", tv)
+				print("TV=", tv.shape, tv)
 
 				# 2. Do substitutions:
 				# copy from state (Working Memory) into variable slots Xs:
@@ -173,15 +173,15 @@ class AlgelogicNetwork(nn.Module):
 				print("weights=", weights)
 				logits = AlgelogicNetwork.softmax(weights)
 				print("logits=", logits.shape, logits)
-				print("state=", state.mT.shape, state.mT)
-				Xs = torch.matmul(logits, state.mT)
-				print("Xs =", Xs)
+				print("state=", state.shape, state)
+				Xs = torch.matmul(state, logits.mT)
+				print("Xs =", Xs.shape, Xs)
 				# copy from Xs into OUTPUT proposition:
-				weights = rule.tail.weight.T
+				weights = rule.tail.weight
 				# print("weights=", weights)
 				logits = AlgelogicNetwork.softmax(weights)
-				# print("logits=", logits)
-				Ys = torch.matmul(logits.mT, Xs)
+				print("logits=", logits.shape, logits)
+				Ys = torch.matmul(Xs, logits.mT)
 				print("Ys =", Ys)
 				exit(0)
 				# exp to get probability distro over all M conclusions

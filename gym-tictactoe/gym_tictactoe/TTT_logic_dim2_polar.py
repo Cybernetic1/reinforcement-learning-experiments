@@ -51,7 +51,7 @@ class TicTacToeEnv(gym.Env):
 		# fill state vector with 9 empty squares:
 		self.state_vector = []
 		for i in range(0, self.board_size * self.board_size):
-			angle = i * 2 * np.pi / 27
+			angle = (9 + i) * 2*np.pi / 27
 			self.state_vector += [np.cos(angle), np.sin(angle)]
 		self.index = 0	  # current state_vector position to write into
 		return np.array(self.state_vector)
