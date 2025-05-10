@@ -1,15 +1,15 @@
 # State space has 9 elements, each element is a vector of dim 2
 # (without intermediate states)
-# Each state element = { player = -1, 0, 1 } x { square = -1 ... 1 }
-# where player = 0 means empty square
-# square ∈ [-1,1] corresponds *evenly* to { 0, 1, ..., 8 }
+# The state (x,y) represents an angle ∈ 3 * 9 anglular divisions of 360°
+# The angles correspond *evenly* to 3 x { 0, 1, ..., 8 } states
+# where 3 = {0, 1, 2} represents "player -1", "empty", "player -1" resp.
 # Action space = { 0 ... 8 }
 
 # TO-DO:
 # *
 
 import gym
-import numpy
+import numpy as np
 import random
 from gym import spaces, error
 import os
@@ -36,9 +36,8 @@ class TicTacToeEnv(gym.Env):
 		# State space has 9 elements, each element is a vector of dim 2
 		self.state_space = spaces.Box(
 		# The entries indicate the min and max values of the "box":
-			numpy.array(numpy.float32( [-1] * 9 * 2)), \
-			numpy.array(numpy.float32( [1] * 9 * 2))  )
-		# 2 means "bad move", -2 means "intermediate thought"
+			np.array(np.float32([-1] * 9 * 2)), \
+			np.array(np.float32([1] * 9 * 2))  )
 
 		self.rewards = {
 			'still_in_game': 0.0,
@@ -52,9 +51,10 @@ class TicTacToeEnv(gym.Env):
 		# fill state vector with 9 empty squares:
 		self.state_vector = []
 		for i in range(0, self.board_size * self.board_size):
-			self.state_vector += [0, (i - 4) / 4]
+			angle = i * 2 * np.pi / 27
+			self.state_vector += [np.cos(angle), np.sin(angle)]
 		self.index = 0	  # current state_vector position to write into
-		return numpy.array(self.state_vector)
+		return np.array(self.state_vector)
 
 	# -------------------- GAME STATE CHECK -------------------------
 	def is_win(self):
@@ -95,7 +95,7 @@ class TicTacToeEnv(gym.Env):
 	def check_diagonal(self):
 		grid = self.board
 		m = self.to_matrix(grid)
-		m = numpy.array(m)
+		m = np.array(m)
 
 		for i in range(self.board_size - self.win_size + 1):
 			for j in range(self.board_size - self.win_size + 1):
@@ -140,14 +140,17 @@ class TicTacToeEnv(gym.Env):
 
 		if is_position_already_used:
 			self.board[action] = 2
-			self.state_vector[self.index] = 2	# this seems not matter
-			self.state_vector[self.index +1] = (action - 4) / 4
+			# in this case, value of symbol seems not matter, assume = 0
+			angle = ((0 + 1) * 9 + action) * 2*np.pi / 27
+			self.state_vector[self.index] = np.cos(angle)
+			self.state_vector[self.index +1] = np.sin(angle)
 			reward_type = 'bad_position'
 			done = True
 		else:
 			self.board[action] = symbol
-			self.state_vector[self.index] = symbol
-			self.state_vector[self.index +1] = (action - 4) / 4
+			angle = ((symbol + 1) * 9 + action) * 2*np.pi / 27
+			self.state_vector[self.index] = np.cos(angle)
+			self.state_vector[self.index +1] = np.sin(angle)
 
 			if self.is_win():
 				reward_type = 'win'
@@ -163,7 +166,7 @@ class TicTacToeEnv(gym.Env):
 
 		# state_vector2 = self.state_vector.copy()
 		# random.shuffle(state_vector2)
-		return numpy.array(self.state_vector), \
+		return np.array(self.state_vector), \
 			self.rewards[reward_type], done, reward_type
 
 	# ----------------------------- DISPLAY -----------------------------

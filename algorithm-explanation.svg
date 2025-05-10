@@ -7,7 +7,7 @@
    viewBox="0 0 210 297"
    version="1.1"
    id="svg5"
-   inkscape:version="1.4.1 (1:1.4.1+202503302257+93de688d07)"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    sodipodi:docname="algorithm-explanation.svg"
    xml:space="preserve"
    inkscape:export-filename="/home/yky/misc-programs/reinforcement-learning-experiments/algorithm-explanation.png"
@@ -28,23 +28,16 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1"
-<<<<<<< HEAD
-     inkscape:cx="436.5"
-     inkscape:cy="320.5"
+     inkscape:cx="418.5"
+     inkscape:cy="482.5"
      inkscape:window-width="1078"
      inkscape:window-height="929"
-=======
-     inkscape:cx="400.5"
-     inkscape:cy="608.5"
-     inkscape:window-width="1920"
-     inkscape:window-height="1059"
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc
      inkscape:window-x="0"
      inkscape:window-y="960"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      inkscape:showpageshadow="0"
-     inkscape:deskcolor="#ffffff"
+     inkscape:deskcolor="#d1d1d1"
      inkscape:snap-global="false" /><defs
      id="defs2"><marker
        style="overflow:visible"
@@ -221,93 +214,21 @@
          d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
          id="path646-6" /></marker><marker
        style="overflow:visible"
-       id="DotS-7-36"
+       id="marker14-6"
        refX="0"
        refY="0"
-       orient="auto"
-       inkscape:stockid="DotS"
-       inkscape:isstock="true"><path
-         transform="matrix(0.2,0,0,0.2,1.48,0.2)"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="2"
+       markerHeight="2"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"><path
+         transform="scale(0.5)"
          style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
-         id="path1534-2-7" /></marker><marker
-       style="overflow:visible"
-       id="marker1"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="DotS"
-       inkscape:isstock="true"><path
-         transform="matrix(0.2,0,0,0.2,1.48,0.2)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
-         id="path1" /></marker><marker
-       style="overflow:visible"
-       id="DotS-7-3-5"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="DotS"
-       inkscape:isstock="true"><path
-         transform="matrix(0.2,0,0,0.2,1.48,0.2)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
-         id="path1534-2-6-3" /></marker><marker
-       style="overflow:visible"
-       id="marker2"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="DotS"
-       inkscape:isstock="true"><path
-         transform="matrix(0.2,0,0,0.2,1.48,0.2)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
-         id="path2" /></marker><marker
-       style="overflow:visible"
-       id="DotS-7-36-2"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="DotS"
-       inkscape:isstock="true"><path
-         transform="matrix(0.2,0,0,0.2,1.48,0.2)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
-         id="path1534-2-7-7" /></marker><marker
-       style="overflow:visible"
-       id="marker1-0"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="DotS"
-       inkscape:isstock="true"><path
-         transform="matrix(0.2,0,0,0.2,1.48,0.2)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
-         id="path1-9" /></marker><marker
-       style="overflow:visible"
-       id="DotS-7-36-0"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="DotS"
-       inkscape:isstock="true"><path
-         transform="matrix(0.2,0,0,0.2,1.48,0.2)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
-         id="path1534-2-7-6" /></marker><marker
-       style="overflow:visible"
-       id="marker1-2"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="DotS"
-       inkscape:isstock="true"><path
-         transform="matrix(0.2,0,0,0.2,1.48,0.2)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
-         id="path1-6" /></marker></defs><g
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path14-1" /></marker></defs><g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"><path
@@ -434,19 +355,16 @@
        d="m 48.947915,34.792699 c 0,0 9.525,4.630197 18.653124,4.233327"
        id="path13"
        sodipodi:nodetypes="cc" /><path
-<<<<<<< HEAD
        style="fill:none;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#marker14-6)"
        d="m 96.356576,320.97461 c -0.646486,18.05152 -21.568307,0.1976 -40.826464,-8.58077"
        id="path13-2"
        sodipodi:nodetypes="cc" /><path
-=======
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc
        style="fill:none;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#marker14-9)"
        d="m 80.785432,112.05632 c 0,0 -0.01216,8.85856 12.083928,8.72828"
        id="path13-8"
        sodipodi:nodetypes="cc" /><g
        id="g56292"
-       transform="rotate(180,57.68808,105.33029)"
+       transform="rotate(180,57.423497,105.06571)"
        style="stroke:#ff8080"><path
          style="fill:none;stroke:#ff8080;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#marker14-9-3)"
          d="m 39.524058,117.0609 c 0,0 7.825693,-1.31372 12.174096,-0.61739"
@@ -517,21 +435,6 @@
          d="m 93.109392,100.68087 26.759648,13.44942"
          id="path13-8-0-85-7-7"
          sodipodi:nodetypes="cc" /></g><g
-       id="g59283-6"
-       transform="translate(-13.354337,203.01971)"
-       style="stroke:#0000ff"><path
-         style="fill:none;stroke:#0000ff;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.529167, 0.529167;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#DotS-7-36);marker-end:url(#DotS-7-36)"
-         d="m 95.617822,107.94684 c 13.493748,-0.52916 37.927768,7.53679 38.192348,14.41596"
-         id="path13-8-0-85-7-29"
-         sodipodi:nodetypes="cc" /><path
-         style="fill:none;stroke:#0000ff;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.529167, 0.529167;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#DotS-7-36-2);marker-end:url(#DotS-7-36-2)"
-         d="m 135.14125,108.2068 c 7.40832,-0.26458 38.98609,7.00762 37.66317,14.68054"
-         id="path13-8-0-85-7-29-6"
-         sodipodi:nodetypes="cc" /><path
-         style="fill:none;stroke:#0000ff;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.529167, 0.529167;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#DotS-7-3-5);marker-end:url(#DotS-7-3-5)"
-         d="m 99.988559,121.58295 c 1.058331,-5.82083 16.176321,-12.47975 26.495061,-13.27349"
-         id="path13-8-0-85-7-7-1"
-         sodipodi:nodetypes="cc" /></g><g
        id="g52104"
        transform="translate(87.890832,-76.026143)"><path
          style="fill:none;stroke:#008000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.529167, 0.529167;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#DotS);marker-end:url(#DotS)"
@@ -555,7 +458,6 @@
          id="tspan15934">    ∧        ∧         → </tspan></text><text
        xml:space="preserve"
        style="font-size:4.9389px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583"
-<<<<<<< HEAD
        x="62.553158"
        y="291.11264"
        id="text1024-7"><tspan
@@ -585,17 +487,6 @@
          y="345.79578"
          id="tspan15934-3-0">father X Y</tspan></text><text
        xml:space="preserve"
-=======
-       x="8.9737978"
-       y="289.64917"
-       id="text1024-7"><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="8.9737978"
-         y="289.64917"
-         id="tspan15934-3">father X Y ∧ father Y Z → grand father X Z</tspan></text><text
-       xml:space="preserve"
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc
        style="font-size:4.23333px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#0000ff;stroke-width:0.264583"
        x="76.868744"
        y="315.70587"
@@ -655,23 +546,23 @@
          id="tspan12616">number of atoms in Working Memory = W</tspan></text><text
        xml:space="preserve"
        style="font-size:4.9389px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols, Normal';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ff80cf;fill-opacity:1;stroke-width:0.264583"
-       x="42.434124"
-       y="89.330894"
+       x="41.904957"
+       y="88.801727"
        id="text23241"><tspan
          sodipodi:role="line"
          id="tspan23239"
          style="fill:#ff80cf;fill-opacity:1;stroke-width:0.264583"
-         x="42.434124"
-         y="89.330894">1 rule atom</tspan><tspan
+         x="41.904957"
+         y="88.801727">1 rule atom</tspan><tspan
          sodipodi:role="line"
          style="fill:#ff80cf;fill-opacity:1;stroke-width:0.264583"
-         x="42.434124"
-         y="95.504517"
+         x="41.904957"
+         y="94.975349"
          id="tspan23243">matched against</tspan><tspan
          sodipodi:role="line"
          style="fill:#ff80cf;fill-opacity:1;stroke-width:0.264583"
-         x="42.434124"
-         y="101.67815"
+         x="41.904957"
+         y="101.14898"
          id="tspan23245">1 WM atom</tspan></text><text
        xml:space="preserve"
        style="font-size:4.9389px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols, Normal';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#008000;fill-opacity:1;stroke-width:0.264583"
@@ -994,60 +885,35 @@
          y="196.28748"
          id="tspan37662" /></text><text
        xml:space="preserve"
-       style="font-size:4.9389px;line-height:1;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans Light';letter-spacing:0px;word-spacing:0px;white-space:pre;inline-size:197.888;display:inline;fill:#000000;stroke-width:0.264583"
+       style="font-size:4.9389px;line-height:1;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans Light';letter-spacing:0px;word-spacing:0px;white-space:pre;inline-size:197.888;fill:#000000;stroke-width:0.264583"
        x="8.154789"
        y="233.45242"
        id="text963"
        transform="translate(0,-32.808341)"><tspan
          x="8.154789"
          y="233.45242"
-<<<<<<< HEAD
-         id="tspan44505">现在 顺理成章地，走到非常关键的一步： variable-length WM &amp; variable-length atoms.
+         id="tspan44782">现在 顺理成章地，走到非常关键的一步： variable-length WM &amp; variable-length atoms.
 </tspan><tspan
          x="8.154789"
          y="238.8852"
-         id="tspan44507">Matchings 是根据 symbols 进行的，它的「参数」其实只是 symbols 本身，而不涉及 </tspan><tspan
+         id="tspan44784">Matchings 是根据 symbols 进行的，它的「参数」其实只是 symbols 本身，而不涉及 </tspan><tspan
          x="8.154789"
          y="244.31799"
-         id="tspan44509">weights，因此 即使 WM 的长度很大，计算仍然是很经济、高效率的。因为每次 matching </tspan><tspan
+         id="tspan44786">weights，因此 即使 WM 的长度很大，计算仍然是很经济、高效率的。因为每次 matching </tspan><tspan
          x="8.154789"
          y="249.75077"
-         id="tspan44511">只贡献出 sum 的一部分，然后 sum 变成 error，而 error back-prop 只会影响 两个 </tspan><tspan
+         id="tspan44788">只贡献出 sum 的一部分，然后 sum 变成 error，而 error back-prop 只会影响 两个 </tspan><tspan
          x="8.154789"
          y="255.18356"
-         id="tspan44513">symbols 的梯度下降。
+         id="tspan44790">symbols 的梯度下降。
 </tspan><tspan
          x="8.154789"
          y="260.61634"
-         id="tspan44515">既然 matching 可以根据 symbols 进行，则 variable substitutions 可不可以也一样呢？
+         id="tspan44792">既然 matching 可以根据 symbols 进行，则 variable substitutions 可不可以也一样呢？
 </tspan><tspan
          x="8.154789"
          y="266.04914"
-         id="tspan44517">Variable-length propositions 是最为有趣的问题。 </tspan></text><text
-=======
-         id="tspan5">现在 顺理成章地，走到非常关键的一步： variable-length WM &amp; variable-length atoms.
-</tspan><tspan
-         x="8.154789"
-         y="238.8852"
-         id="tspan6">Matchings 是根据 symbols 进行的，它的「参数」其实只是 symbols 本身，而不涉及 </tspan><tspan
-         x="8.154789"
-         y="244.31799"
-         id="tspan7">weights，因此 即使 WM 的长度很大，计算仍然是很经济、高效率的。因为每次 matching </tspan><tspan
-         x="8.154789"
-         y="249.75077"
-         id="tspan8">只贡献出 sum 的一部分，然后 sum 变成 error，而 error back-prop 只会影响 两个 </tspan><tspan
-         x="8.154789"
-         y="255.18356"
-         id="tspan16">symbols 的梯度下降。
-</tspan><tspan
-         x="8.154789"
-         y="260.61634"
-         id="tspan17">既然 matching 可以根据 symbols 进行，则 variable substitutions 可不可以也一样呢？
-</tspan><tspan
-         x="8.154789"
-         y="266.04914"
-         id="tspan18">Variable-length propositions 是最为有趣的问题。 </tspan></text><text
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc
+         id="tspan44794">Variable-length propositions 是最为有趣的问题。 </tspan></text><text
        xml:space="preserve"
        style="font-size:4.9389px;line-height:1;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans Light';letter-spacing:0px;word-spacing:0px;fill:#ff0000;stroke-width:0.264583"
        x="14.986718"
@@ -1249,7 +1115,6 @@
        inkscape:tile-h="3.9451725"
        inkscape:tile-x0="76.959138"
        inkscape:tile-y0="200.95239"
-<<<<<<< HEAD
        width="24.52758" /><rect
        style="fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
        id="rect23829-2-6-8-2-7"
@@ -1277,105 +1142,6 @@
        inkscape:tile-x0="76.959138"
        inkscape:tile-y0="200.95239"
        width="28.482851" /><text
-=======
-       width="24.52758" /><g
-       id="g8"><text
-         xml:space="preserve"
-         style="font-size:4.9389px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#008000;stroke-width:0.264583"
-         x="79.492317"
-         y="361.67075"
-         id="text1024-7-6"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';text-align:start;text-anchor:start;fill:#008000;stroke-width:0.264583"
-           x="79.492317"
-           y="361.67075"
-           id="tspan15934-3-0">father X Y</tspan></text><rect
-         style="fill:none;fill-opacity:1;stroke:#008000;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
-         id="rect23829-2-6-8-2-7"
-         height="7.2929659"
-         x="76.747704"
-         y="356.21802"
-         ry="1.3592019"
-         inkscape:tile-cx="79.984333"
-         inkscape:tile-cy="202.92498"
-         inkscape:tile-w="6.0503897"
-         inkscape:tile-h="3.9451725"
-         inkscape:tile-x0="76.959138"
-         inkscape:tile-y0="200.95239"
-         width="28.482851" /></g><g
-       id="g5"><text
-         xml:space="preserve"
-         style="font-size:4.9389px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ff0000;stroke-width:0.264583"
-         x="72.859192"
-         y="386.71732"
-         id="text1024-7-6-9"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';text-align:start;text-anchor:start;fill:#ff0000;stroke-width:0.264583"
-           x="72.859192"
-           y="386.71732"
-           id="tspan15934-3-0-20">father John Pete</tspan></text><rect
-         style="fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
-         id="rect23829-2-6-8-2-7-2"
-         height="7.8221478"
-         x="70.114578"
-         y="381.26459"
-         ry="1.3592019"
-         inkscape:tile-cx="79.984333"
-         inkscape:tile-cy="202.92498"
-         inkscape:tile-w="6.0503897"
-         inkscape:tile-h="3.9451725"
-         inkscape:tile-x0="76.959138"
-         inkscape:tile-y0="200.95239"
-         width="42.770351" /></g><g
-       id="g6"><text
-         xml:space="preserve"
-         style="font-size:4.9389px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ff0000;stroke-width:0.264583"
-         x="125.77583"
-         y="386.71732"
-         id="text1024-7-6-9-7"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';text-align:start;text-anchor:start;fill:#ff0000;stroke-width:0.264583"
-           x="125.77583"
-           y="386.71732"
-           id="tspan15934-3-0-20-5">father Pete Paul</tspan></text><rect
-         style="fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
-         id="rect23829-2-6-8-2-7-2-9"
-         height="7.8221478"
-         x="123.03123"
-         y="381.26459"
-         ry="1.3592019"
-         inkscape:tile-cx="79.984333"
-         inkscape:tile-cy="202.92498"
-         inkscape:tile-w="6.0503897"
-         inkscape:tile-h="3.9451725"
-         inkscape:tile-x0="76.959138"
-         inkscape:tile-y0="200.95239"
-         width="42.770351" /></g><g
-       id="g7"><text
-         xml:space="preserve"
-         style="font-size:4.9389px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#008000;stroke-width:0.264583"
-         x="131.87987"
-         y="361.67075"
-         id="text1024-7-9"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';text-align:start;text-anchor:start;fill:#008000;stroke-width:0.264583"
-           x="131.87987"
-           y="361.67075"
-           id="tspan15934-3-3">father Y Z</tspan></text><rect
-         style="fill:none;fill-opacity:1;stroke:#008000;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
-         id="rect23829-2-6-8-2-7-3"
-         height="7.2929659"
-         x="128.80061"
-         y="356.18982"
-         ry="1.3592019"
-         inkscape:tile-cx="79.984333"
-         inkscape:tile-cy="202.92498"
-         inkscape:tile-w="6.0503897"
-         inkscape:tile-h="3.9451725"
-         inkscape:tile-x0="76.959138"
-         inkscape:tile-y0="200.95239"
-         width="28.482851" /></g><text
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc
        xml:space="preserve"
        style="font-size:4.23333px;line-height:1.25;font-family:'Noto Sans Symbols';-inkscape-font-specification:'Noto Sans Symbols';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#0000ff;stroke-width:0.264583"
        x="155.71594"
@@ -1582,11 +1348,7 @@
        id="path13-8-0-85-7-2"
        sodipodi:nodetypes="cc" /><g
        id="g18858"
-<<<<<<< HEAD
        transform="translate(42.333335,-15.875)"><rect
-=======
-       transform="translate(31.750001,-10.583333)"><rect
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc
          style="fill:none;stroke:#0000ff;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
          id="rect21969-7-4-6"
          width="5.0375557"
@@ -1605,11 +1367,7 @@
            x="43.955288"
            y="322.92197">X</tspan></text></g><g
        id="g18848"
-<<<<<<< HEAD
        transform="translate(60.85417,-15.875)"><rect
-=======
-       transform="translate(50.270836,-10.583333)"><rect
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc
          style="fill:#ffffff;stroke:#0000ff;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
          id="rect21969-9-3-7-2"
          width="5.0375557"
@@ -1628,11 +1386,7 @@
            x="65.651131"
            y="322.92197">Y</tspan></text></g><g
        id="g18853"
-<<<<<<< HEAD
        transform="translate(69.32084,-15.875)"><rect
-=======
-       transform="translate(58.737506,-10.583333)"><rect
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc
          style="fill:#ffffff;stroke:#0000ff;stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
          id="rect21969-1-6-4-9"
          width="5.0375557"
@@ -1672,17 +1426,12 @@
          y="337.89749" /></text><text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-size:4.93889px;line-height:1;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans Medium';letter-spacing:0px;word-spacing:0px;fill:#000000;stroke:none;stroke-width:0.264583"
-<<<<<<< HEAD
        x="11.782081"
        y="307.53165"
-=======
-       x="5.6966643"
-       y="315.46915"
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc
        id="text34769"><tspan
          sodipodi:role="line"
+         id="tspan34767"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';stroke-width:0.264583"
-<<<<<<< HEAD
          x="11.782081"
          y="307.53165">这个 pattern 的右边符号</tspan><tspan
          sodipodi:role="line"
@@ -1695,47 +1444,3 @@
          x="11.782081"
          y="318.39722"
          id="tspan38423">似乎 很难处理！！</tspan></text></g></svg>
-=======
-         x="5.6966643"
-         y="315.46915"
-         id="tspan4">Patterns 的某些符号</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';stroke-width:0.264583"
-         x="5.6966643"
-         y="320.90192"
-         id="tspan38421">是 另一些 变量，</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';stroke-width:0.264583"
-         x="5.6966643"
-         y="326.33472"
-         id="tspan38423">似乎 很难处理！！</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';stroke-width:0.264583"
-         x="5.6966643"
-         y="331.76749"
-         id="tspan1">根据经典逻辑，</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';stroke-width:0.264583"
-         x="5.6966643"
-         y="337.20026"
-         id="tspan2">它的要求是什么？</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';stroke-width:0.264583"
-         x="5.6966643"
-         y="342.63306"
-         id="tspan9">它的名字叫不叫 Y 似乎不重要</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';stroke-width:0.264583"
-         x="5.6966643"
-         y="348.06583"
-         id="tspan14">重要的似乎是它被代入的内容</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:'Alibaba Sans';-inkscape-font-specification:'Alibaba Sans';stroke-width:0.264583"
-         x="5.6966643"
-         y="353.0047"
-         id="tspan15" /></text><path
-       style="fill:none;stroke:#0000ff;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.529167, 0.529167;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#DotS-7-36-0);marker-end:url(#DotS-7-36-0)"
-       d="m 131.57649,341.389 c 11.37707,1.05834 4.32567,-36.38404 20.46525,-30.56321"
-       id="path13-8-0-85-7-29-8"
-       sodipodi:nodetypes="cc" /></g></svg>
->>>>>>> a27af6b5109e6b3b4ce7d210732a1e332bf146fc

@@ -28,8 +28,15 @@ register(
 )
 
 register(
-    id='TicTacToe-logic-dim2-v2',	# logic dim2
+    id='TicTacToe-logic-dim2-v2',	# logic dim2 uniform
     entry_point='gym_tictactoe.TTT_logic_dim2_uniform:TicTacToeEnv',
+    reward_threshold=1000
+)
+
+
+register(
+    id='TicTacToe-logic-dim2-v3',	# logic dim2 polar
+    entry_point='gym_tictactoe.TTT_logic_dim2_polar:TicTacToeEnv',
     reward_threshold=1000
 )
 

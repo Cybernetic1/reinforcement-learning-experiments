@@ -100,8 +100,10 @@ elif config == 23:
 	env = gym.make('TicTacToe-logic-dim1-v0', symbols=[-1, 1], board_size=3, win_size=3)
 elif config == 25:
 	env = gym.make('TicTacToe-logic-dim2-intermediate-v0', symbols=[-1, 1], board_size=3, win_size=3)
-elif config in [26, 27, 28]:
+elif config in [26, 27]:
 	env = gym.make('TicTacToe-logic-dim2-v1', symbols=[-1, 1], board_size=3, win_size=3)
+elif config == 28:
+	env = gym.make('TicTacToe-logic-dim2-v3', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
@@ -364,6 +366,7 @@ running_reward = 0.0
 while True:
 	i_episode += 1
 	state = env.reset()
+	print("**** state =", state)
 	preplay_moves()
 	if RENDER > 0:
 		env.render(mode=RENDERMODE)

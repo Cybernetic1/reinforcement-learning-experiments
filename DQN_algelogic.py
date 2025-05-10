@@ -67,30 +67,29 @@ class AlgelogicNetwork(nn.Module):
 	def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
 		super(AlgelogicNetwork, self).__init__()
 
-		self.M = 16		# number of rules
-		self.J = 3		# number of atoms per rule
-		self.I = 2		# num of variables in an atom = length of an atom
-		self.W = 9*2	# number of propositions in Working Memory
+		self.M = 16	# number of rules
+		self.J = 3	# number of atoms per rule
+		self.I = 3	# number of variables per rule
+		self.L = 2	# length of each atom = number of vars or consts
+		self.W = 9	# number of atoms (propositions) in Working Memory
 
 		# **** Define M rules
 		# Each rule tail consists of 1 atom, with I substitutions
 		# Each rule head consists of J atoms, with I substitutions
-		# Each atom in a rule has I constants 'c'
+		# Each atom in a rule has I constants 'c' and γ's
 		self.rules = nn.ModuleList()
 		for m in range(0, self.M):
-			rule = nn.ModuleList()
-			rule.append(nn.Linear(self.I, self.I))		# rule tail
-			for j in range(0, self.J):					# rule head
-				rule.append(nn.Linear(self.I, self.W))
-			for i in range(0, self.I):
-				if i == 0:
-					c = torch.FloatTensor(self.J + 1).uniform_(-1,1)
-				else:
-					c = torch.FloatTensor(self.J + 1).uniform_(-4,4)
-			rule.constants = nn.Parameter(
-				torch.stack((c1s, c2s), dim=1).flatten())
-			# create l γ values
-			rule.γs = nn.Parameter(torch.FloatTensor(l).uniform_(0,1))
+			rule = nn.Module()
+			rule.tail = nn.Linear(self.I, self.L)
+			rule.head = nn.ModuleList()
+			for j in range(0, self.J):			# per atom in rule head
+				rule.head.append(nn.Linear(self.L, self.I))
+			# create constant symbols
+			cs = torch.FloatTensor(self.J + 1, self.L).uniform_(-1,1)
+			rule.constants = nn.Parameter(cs)
+			# create γ values
+			γs = torch.FloatTensor(self.J + 1, self.L).uniform_(0,1)
+			rule.γs = nn.Parameter(γs)
 			self.rules.append(rule)
 
 		self.activation = F.relu
@@ -106,13 +105,25 @@ class AlgelogicNetwork(nn.Module):
 		t = 1.0/(1.0 + exp(-50*(γ - 0.5)))
 		return p*t + 1.0 - t
 
-	def my_softmax(x):
+	def softmax(x):
 		β = 5		# temperature parameter
-		maxes = torch.max(x, 1, keepdim=True)[0]
+		maxes = torch.max(x, 0, keepdim=True)[0]
 		x_exp = torch.exp(β * (x - maxes))
-		x_exp_sum = torch.sum(x_exp, 1, keepdim=True)
+		x_exp_sum = torch.sum(x_exp, 0, keepdim=True)
 		probs = x_exp / x_exp_sum
 		return probs
+
+	def sigmoid(γ):
+		steepness = 10.0
+		t = 1.0/(1.0 + torch.exp(-steepness*(γ - 0.5)))
+		return t
+
+	# **** This is the "matching" or equality function
+	# in general, x & y are two vectors
+	# in TicTacToe, x & y would be two real numbers ∈ [0,1]
+	def match(γ, x, y):
+		match_degree = AlgelogicNetwork.sigmoid(γ) * (x - y)**2
+		return match_degree
 
 	# **** Algorithm ****
 	# for each rule:
@@ -126,34 +137,54 @@ class AlgelogicNetwork(nn.Module):
 	def forward(self, state):
 		# TVs of all output predicates:
 		P = torch.zeros([self.M], dtype=torch.float)
+		state=state.reshape(-1,9,2)
+		print('state=', state)
 
 		for m in range(0, self.M):			# for each rule
-			rule = self.rules[i]
+			rule = self.rules[m]
 			for j in range(0, self.J):		# for each atom in rule
+				# 1. Calculate matching degrees
+				# tv = torch.zeros(self.W, self.I)
+				tv = AlgelogicNetwork.match(
+					1 - rule.γs[j+1],
+					rule.constants[j],
+					state )
+
+				""" Below is same operation as above,
+					but iterated with loops, for initial testing:
 				for w in range(0, self.W):	# for each atom in WM
 					# match( rule atom, WM atom )
-					tv[i] = (1 - rule.γs[j*self.I + i]) * match(rule.constants[j][i], state[w][i])
+					tv[w] = AlgelogicNetwork.match(
+						1 - rule.γs[j+1],
+						rule.constants[j],
+						state[0, w] )
+
+					for i in range(0, self.I):
+						tv[w,i] = AlgelogicNetwork.match(
+							1 - rule.γs[j+1][i],
+							rule.constants[j][i],
+							state[0, w * self.I + i] )"""
+
+				print("TV=", tv)
 
 				# 2. Do substitutions:
 				# copy from state (Working Memory) into variable slots Xs:
-				weights = rule[j + 1].weight.T
-				# print("weights=", weights)
-				logits = AlgelogicNetwork.my_softmax(weights)
-				# print("logits=", logits)
-				# print("state=", state)
-				Xs = torch.matmul(logits, state.T)
+				weights = rule.head[j].weight
+				print("weights=", weights)
+				logits = AlgelogicNetwork.softmax(weights)
+				print("logits=", logits.shape, logits)
+				print("state=", state.mT.shape, state.mT)
+				Xs = torch.matmul(logits, state.mT)
 				print("Xs =", Xs)
-				# copy from Xs into output proposition:
-				weights = rule[0].weight.T
+				# copy from Xs into OUTPUT proposition:
+				weights = rule.tail.weight.T
 				# print("weights=", weights)
-				logits = AlgelogicNetwork.my_softmax(weights)
+				logits = AlgelogicNetwork.softmax(weights)
 				# print("logits=", logits)
-				Ys = torch.matmul(logits, Xs)
+				Ys = torch.matmul(logits.mT, Xs)
 				print("Ys =", Ys)
-
-				tv *= AlgelogicNetwork.selector(self.ruleHead[i][k], P[k])
-				self.ruleTail[i] = tv	# ???
-				# exp to calculate probability distribution over all M conclusions
+				exit(0)
+				# exp to get probability distro over all M conclusions
 				# return prob distro for all M conclusions
 
 class DQN():
@@ -181,7 +212,6 @@ class DQN():
 
 	def choose_action(self, state, deterministic=True):
 		state = torch.FloatTensor(state).unsqueeze(0).to(device)
-
 		logits = self.anet(state)
 		probs  = torch.softmax(logits, dim=1)
 		dist   = Categorical(probs)
