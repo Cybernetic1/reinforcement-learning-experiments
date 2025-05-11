@@ -145,10 +145,10 @@ class AlgelogicNetwork(nn.Module):
 			for j in range(0, self.J):		# for each atom in rule
 				# 1. Calculate matching degrees
 				# tv = torch.zeros(self.W, self.I)
-				tv = AlgelogicNetwork.match(
-					1 - rule.γs[j+1],
-					rule.constants[j],
-					state )
+				matchness = AlgelogicNetwork.match(
+						1 - rule.γs[j+1],
+						rule.constants[j],
+						state )
 
 				""" Below is same operation as above,
 					but iterated with loops, for initial testing:
@@ -165,10 +165,19 @@ class AlgelogicNetwork(nn.Module):
 							rule.constants[j][i],
 							state[0, w * self.I + i] )"""
 
-				print("TV=", tv.shape, tv)
+				# for each atom, ADD together and divide by length:
+				# (reason is explained below, in substitution)
+				matchness = torch.sum(matchness, dim=2) / \
+					torch.as_tensor(self.L).unsqueeze(-1)
+				print("matchness=", matchness.shape, matchness)
 
 				# 2. Do substitutions:
-				# copy from state (Working Memory) into variable slots Xs:
+				# copy from state (Working Memory) into variable slots Xs
+				# each state atom results in 1 substitution
+				# the 'strength' of each sub depends on matching degrees
+				# of all OTHER positions within that atom, ADDED together
+				# In other words: at least 1 position has to be good match
+				# In other words: it's an 'OR' operation
 				weights = rule.head[j].weight
 				print("weights=", weights)
 				logits = AlgelogicNetwork.softmax(weights)
@@ -176,16 +185,21 @@ class AlgelogicNetwork(nn.Module):
 				print("state=", state.shape, state)
 				Xs = torch.matmul(state, logits.mT)
 				print("Xs =", Xs.shape, Xs)
-				# copy from Xs into OUTPUT proposition:
-				weights = rule.tail.weight
-				# print("weights=", weights)
-				logits = AlgelogicNetwork.softmax(weights)
-				print("logits=", logits.shape, logits)
-				Ys = torch.matmul(Xs, logits.mT)
-				print("Ys =", Ys)
-				exit(0)
-				# exp to get probability distro over all M conclusions
-				# return prob distro for all M conclusions
+				Xs = torch.mul(Xs, matchness.unsqueeze(-1))
+				Xs = torch.sum(Xs, dim=1)
+				print("weighted sum of Xs =", Xs.shape, Xs)
+
+			# copy from Xs into OUTPUT proposition:
+			# seems that this should happen after J atoms processed
+			weights = rule.tail.weight
+			# print("weights=", weights)
+			logits = AlgelogicNetwork.softmax(weights)
+			print("logits=", logits.shape, logits)
+			Ys = torch.matmul(Xs, logits.mT)
+			print("Ys =", Ys)
+			exit(0)
+			# exp to get probability distro over all M conclusions
+			# return prob distro for all M conclusions
 
 class DQN():
 
