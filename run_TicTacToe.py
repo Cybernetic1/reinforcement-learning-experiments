@@ -33,7 +33,8 @@ print("24. PyTorch\tDQN\tsymmetric NN\t\tlogic, dim3")
 print("25. PyTorch\tDQN\tloop symNN\t\tlogic, dim2")
 print("26. PyTorch\tDQN\tshrink until fail\tlogic, dim2")
 print("27. PyTorch\tDQN\tshrink symNN\t\tlogic, dim2")
-print("28. PyTorch\tDQN\talgelogic\t\tlogic, dim2")
+print("28. PyTorch\tDQN\tlogic-with-vars\t\tlogic, dim2 polar")
+print("29. PyTorch\tDQN\trelation-graph\t\tlogic, dim2 polar")
 config = int(input("Choose config: ") or '0')
 
 import gym
@@ -88,8 +89,11 @@ elif config == 27:
 	from DQN_shrink_SymNN import DQN, ReplayBuffer
 	tag = "DQN.shrink-SymNN"
 elif config == 28:
-	from DQN_algelogic import DQN, ReplayBuffer
-	tag = "DQN.algelogic"
+	from DQN_logic_with_vars import DQN, ReplayBuffer
+	tag = "DQN.logic_with_vars"
+elif config == 29:
+	from DQN_relation_graph import DQN, ReplayBuffer
+	tag = "DQN.relation_graph"
 
 import sys
 sys.path.insert(0, './gym-tictactoe')
@@ -102,7 +106,7 @@ elif config == 25:
 	env = gym.make('TicTacToe-logic-dim2-intermediate-v0', symbols=[-1, 1], board_size=3, win_size=3)
 elif config in [26, 27]:
 	env = gym.make('TicTacToe-logic-dim2-v1', symbols=[-1, 1], board_size=3, win_size=3)
-elif config == 28:
+elif config in [28, 29]:
 	env = gym.make('TicTacToe-logic-dim2-v3', symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
@@ -131,7 +135,7 @@ elif config == 25:
 		learning_rate = 0.001,
 		gamma = 1.0,	# seems to matter for looping!
 	)
-elif config in [26, 27, 28]:
+elif config in [26, 27, 28, 29]:
 	RL = DQN(
 		action_dim = env.action_space.n,
 		state_dim = env.state_space.shape[0],
