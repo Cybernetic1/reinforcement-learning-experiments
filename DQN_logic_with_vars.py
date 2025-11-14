@@ -134,6 +134,14 @@ class AlgelogicNetwork(nn.Module):
 	#	output atom (per rule)
 	# TV of the conclusion is equal to that of the premises
 	# if TV is too low, can that conclusion be disgarded?
+
+	# What is the output of matching?
+	# We try to match (unify) WM proposition with rule proposition
+	# the result is a "matchness" together with substitutions
+	# 上次问题卡在 props 要 permutations
+	# 例如 father(X,Y) 可以配 father(john,paul) 或 father(paul,pete)
+	# 用 Transformer 术语，每个 token 要跟 QKV matching
+	# 
 	def forward(self, state):
 		# TVs of all output predicates:
 		P = torch.zeros([self.M], dtype=torch.float)
@@ -144,26 +152,26 @@ class AlgelogicNetwork(nn.Module):
 			rule = self.rules[m]
 			for j in range(0, self.J):		# for each atom in rule
 				# 1. Calculate matching degrees
-				# tv = torch.zeros(self.W, self.I)
 				matchness = AlgelogicNetwork.match(
 						1 - rule.γs[j+1],
 						rule.constants[j],
 						state )
 
 				""" Below is same operation as above,
-					but iterated with loops, for initial testing:
+					but iterated with loops, for initial testing:"""
+				tv = torch.zeros(self.W, self.I)
 				for w in range(0, self.W):	# for each atom in WM
 					# match( rule atom, WM atom )
 					tv[w] = AlgelogicNetwork.match(
-						1 - rule.γs[j+1],
+						1 - rule.γs[j+1],		# for atoms on LHS
 						rule.constants[j],
 						state[0, w] )
 
 					for i in range(0, self.I):
 						tv[w,i] = AlgelogicNetwork.match(
-							1 - rule.γs[j+1][i],
-							rule.constants[j][i],
-							state[0, w * self.I + i] )"""
+							1 - rule.γs[j+1][i],	# rule atom #j, var #i
+							rule.constants[j][i],	# rule atom #j, var #i
+							state[0, w * self.I + i] )
 
 				# for each atom, ADD together and divide by length:
 				# (reason is explained below, in substitution)
