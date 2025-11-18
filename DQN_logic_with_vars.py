@@ -68,10 +68,10 @@ class AlgelogicNetwork(nn.Module):
 		super(AlgelogicNetwork, self).__init__()
 
 		self.M = 16	# number of rules
-		self.J = 3	# number of atoms per rule
+		self.J = 2	# number of propositions per rule
 		self.I = 3	# number of variables per rule
-		self.L = 2	# length of each atom = number of vars or consts
-		self.W = 9	# number of atoms (propositions) in Working Memory
+		self.L = 2	# length of each prop = number of vars or consts
+		self.W = 9	# number of propositions in Working Memory
 
 		# **** Define M rules
 		# Each rule tail consists of 1 atom, with I substitutions
