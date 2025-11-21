@@ -93,7 +93,7 @@ class AlgelogicNetwork(nn.Module):
     - Output: Action probabilities based on pattern matching strength
     """
 
-    def __init__(self, input_dim, action_dim, hidden_size, activation=F.relu, init_w=3e-3):
+    def __init__(self, input_dim, action_dim, activation=F.relu, learning_rate=3e-3):
         super(AlgelogicNetwork, self).__init__()
 
         # LOGICAL ARCHITECTURE HYPERPARAMETERS
@@ -195,14 +195,14 @@ class AlgelogicNetwork(nn.Module):
     def forward(self, state):
         """
         MAIN MATCHING / UNIFICATION ALGORITHM
-    
+
         FOR EACH RULE:
         1. PATTERN MATCHING: Check how well rule premises match WM
         2. VARIABLE CAPTURE: Extract values into variable slots (when γ≈1)
         3. CONSTANT CHECKING: Verify fixed constraints (when γ≈0)
         4. CONCLUSION GENERATION: Use captured variables to produce output
         """
-    
+
         batch_size = state.shape[0]
         state = state.reshape(batch_size, self.W, self.L)  # [batch, 9 squares, 2 features]
         
@@ -231,11 +231,16 @@ class AlgelogicNetwork(nn.Module):
                     diff = (constant - wm_values) ** 2
                     match_penalty = (1 - γ) * diff  # Only penalize if constant mode
                     match_scores += match_penalty
-                    
-                    # Capture variables (project WM content into variable slots)
-                    # When γ≈1, this captures; when γ≈0, captures nothing
-                    projection = rule.body[j](state[:, :, l:l+1])  # [batch, W, I]
-                    captures += γ * projection.squeeze(-1)
+            
+                # Capture variables (project entire proposition into variable slots)
+                # Reshape for linear layer: [batch*W, L] -> [batch*W, I] -> [batch, W, I]
+                props_flat = state.view(batch_size * self.W, self.L)  # [batch*W, L]
+                projections = rule.body[j](props_flat)  # [batch*W, I]
+                projections = projections.view(batch_size, self.W, self.I)  # [batch, W, I]
+                
+                # Apply cylindrification - only capture when γ≈1
+                γ_mean = self.sigmoid(rule.γs[j, :]).mean()  # Average γ for this premise
+                captures = γ_mean * projections
                 
                 premise_matches.append(match_scores)  # [batch, W]
                 premise_captures.append(captures)      # [batch, W, I]
@@ -257,7 +262,7 @@ class AlgelogicNetwork(nn.Module):
                     captured_vars[b] += premise_captures[j, b, best_indices[b], :]
         
             # STEP 4: GENERATE CONCLUSION FROM CAPTURED VARIABLES
-            # The tail network maps captured variables to output space
+            # The head network maps captured variables to output space
             conclusion = rule.head(captured_vars)  # [batch, L]
             
             # STEP 5: MATCH CONCLUSION AGAINST ACTION SPACE
@@ -268,41 +273,67 @@ class AlgelogicNetwork(nn.Module):
                 # How well does the conclusion match this action/square?
                 diff = (conclusion - state[:, w, :]) ** 2
                 similarity = torch.exp(-diff.sum(dim=1))  # Higher = better match
-                action_scores[:, w] += similarity
+                action_scores[:, w] = similarity
             
             # Weight by rule's overall match quality
             rule_confidence = torch.exp(-total_match.min(dim=1).values)  # [batch]
             outputs += action_scores * rule_confidence.unsqueeze(1)
         
         return outputs  # [batch_size, 9] Q-values for each square
-"""
-BOARD REPRESENTATION (Updated):
-- Each square encoded as [player, normalized_position]  
-- player ∈ {-1, 0, 1} for {opponent, empty, self}
-- position ∈ [-1, +1] where (square_index - 4)/4
-- Center square → [?, 0.0], Corners → [?, ±1.0, ±0.75]
-- This preserves spatial relationships crucial for strategic reasoning
-"""
 
-def choose_action(self, state, deterministic=True):
-    """
-    ACTION SELECTION for TicTacToe using logical reasoning
-    
-    INPUT: state = [18] array: [player0, pos0, player1, pos1, ..., player8, pos8]
-           - player ∈ {-1,0,1} for opponent/empty/self
-           - pos ∈ [-1,+1] normalized position encoding
-           
-    OUTPUT: action ∈ {0,1,2,3,4,5,6,7,8} representing board square
-    
-    STRATEGIC ADVANTAGE: Normalized encoding allows rules to learn
-    spatial concepts like "corner play" or "center control" naturally
-    """
-    state = torch.FloatTensor(state).unsqueeze(0).to(device)
-    logits = self.anet(state)  # Get action probabilities from logic rules
-    probs  = torch.softmax(logits, dim=1)
-    dist   = Categorical(probs)
-    action = dist.sample().numpy()[0]
-    return action
+class DQN():
+    def __init__(
+            self,
+            action_dim,
+            state_dim,
+            learning_rate = 3e-4,
+            gamma = 0.9 ):
+        super(DQN, self).__init__()
+        self.action_dim = action_dim
+        self.state_dim = state_dim
+        self.lr = learning_rate
+        self.gamma = gamma
+        
+        # Define terminal/end state with properly normalized position encoding
+        # Each square: [player=0, normalized_position]
+        # Position formula: (square_index - 4) / 4 maps [0,8] to [-1,+1]
+        self.endState = [
+            0, -1.0,    # Square 0: (0-4)/4 = -1.0
+            0, -0.75,   # Square 1: (1-4)/4 = -0.75
+            0, -0.5,    # Square 2: (2-4)/4 = -0.5
+            0, -0.25,   # Square 3: (3-4)/4 = -0.25
+            0,  0.0,    # Square 4: (4-4)/4 = 0.0
+            0,  0.25,   # Square 5: (5-4)/4 = 0.25
+            0,  0.5,    # Square 6: (6-4)/4 = 0.5
+            0,  0.75,   # Square 7: (7-4)/4 = 0.75
+            0,  1.0     # Square 8: (8-4)/4 = 1.0
+        ]
+        
+        self.replay_buffer = ReplayBuffer(int(1e6))
+        hidden_dim = 16
+        self.anet = AlgelogicNetwork(state_dim, action_dim, activation=F.relu).to(device)
+        self.q_criterion = nn.MSELoss()
+        self.q_optimizer = optim.Adam(self.anet.parameters(), lr=self.lr)
+
+    def choose_action(self, state, deterministic=True):
+        """
+        ACTION SELECTION for TicTacToe using logical reasoning
+        
+        INPUT: state = [18] array: [player0, pos0, player1, pos1, ..., player8, pos8]
+               - player ∈ {-1,0,1} for opponent/empty/self
+               - pos ∈ [-1,+1] normalized position encoding
+               
+        OUTPUT: action ∈ {0,1,2,3,4,5,6,7,8} representing board square
+        
+        STRATEGIC ADVANTAGE: Normalized encoding allows rules to learn
+        spatial concepts like "corner play" or "center control" naturally
+        """
+        state = torch.FloatTensor(state).unsqueeze(0).to(device)
+        logits = self.anet(state)  # Get action probabilities from logic rules
+        probs  = torch.softmax(logits, dim=1)
+        dist   = Categorical(probs)
+        action = dist.sample().numpy()[0]
+        return action
 
     def update(self, batch_size, reward_scale, gamma=0.99):
         """
@@ -347,16 +378,9 @@ def choose_action(self, state, deterministic=True):
 
     def net_info(self):
         """Network architecture description"""
-        config = "(9)-9-9-(9)"
-        neurons = config.split('-')
-        last_n = 9
-        total = 0
-        for n in neurons[1:-1]:
-            n = int(n)
-            total += last_n * n
-            last_n = n
-        total += last_n * 9
-        return (config, total)
+        config = "(18)-16rules-(9)"
+        total_params = sum(p.numel() for p in self.anet.parameters())
+        return (config, total_params)
 
     def play_random(self, state, action_space):
         """
@@ -372,18 +396,26 @@ def choose_action(self, state, deterministic=True):
             proposition = state[i : i + 2]
             sym = proposition[0]
             if sym == 1 or sym == -1:  # If square is occupied
-                x = proposition[1]
-                j = x + 4  # Convert position encoding to square index  
-                empties.remove(j)
+                pos = proposition[1]
+                # Convert position encoding back to square index
+                square_idx = int(round(pos * 4 + 4))  # Reverse of (i-4)/4
+                if square_idx in empties:
+                    empties.remove(square_idx)
                 
         # Randomly select from available squares
-        action = random.sample(empties, 1)[0]
+        if empties:
+            action = random.choice(empties)
+        else:
+            action = random.choice([0,1,2,3,4,5,6,7,8])  # Fallback
         return action
 
     def save_net(self, fname):
-        """TODO: Implement saving of logical rule parameters"""
-        print("Model not saved.")
+        """Save logical rule parameters"""
+        torch.save(self.anet.state_dict(), fname)
+        print(f"Algebraic logic model saved to {fname}")
 
     def load_net(self, fname):
-        """TODO: Implement loading of logical rule parameters"""  
-        print("Model not loaded.")
+        """Load logical rule parameters"""
+        self.anet.load_state_dict(torch.load(fname))
+        print(f"Algebraic logic model loaded from {fname}")
+
