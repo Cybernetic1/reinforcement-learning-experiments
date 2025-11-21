@@ -110,23 +110,21 @@ class AlgelogicNetwork(nn.Module):
         for m in range(0, self.M):
             rule = nn.Module()
             
-            # RULE TAIL: Maps captured variables to output conclusions
+            # RULE BODY: Maps captured variables to output conclusions
             # "Given what we captured in variables, what should we conclude?"
-            rule.tail = nn.Linear(self.I, self.L)
-            
-            # RULE HEAD: Neural networks for variable capture/projection
-            # "How to copy/transform WM content into variable slots"
-            rule.head = nn.ModuleList()
-            for j in range(0, self.J):
-                rule.head.append(nn.Linear(self.L, self.I))
+            rule.body = nn.ModuleList()  # For premise matching/variable capture
+            for j in range(self.J):
+                rule.body.append(nn.Linear(self.L, self.I))
+
+            rule.head = nn.Linear(self.I, self.L)  # For conclusion generation
             
             # LEARNED CONSTANTS: Template values for constant-mode matching
-            cs = torch.FloatTensor(self.J + 1, self.L).uniform_(-1,1)
+            cs = torch.FloatTensor(self.J, self.L).uniform_(-1,1)
             rule.constants = nn.Parameter(cs)
             
             # CYLINDRIFICATION FACTORS: Constant vs Variable decision
             # γ[j][i] controls whether rule position (j,i) acts as constant or variable
-            γs = torch.FloatTensor(self.J + 1, self.L).uniform_(0,1)
+            γs = torch.FloatTensor(self.J, self.L).uniform_(0,1)
             rule.γs = nn.Parameter(γs)
             
             self.rules.append(rule)
@@ -225,7 +223,7 @@ class AlgelogicNetwork(nn.Module):
                 captures = torch.zeros(batch_size, self.W, self.I)
                 
                 for l in range(self.L):  # For each position (player, location)
-                    γ = torch.sigmoid(rule.γs[j, l])  # 0=constant, 1=variable
+                    γ = self.sigmoid(rule.γs[j, l])  # Apply steep sigmoid for crisp behavior
                     constant = rule.constants[j, l]
                     wm_values = state[:, :, l]  # [batch, W]
                     
@@ -236,7 +234,7 @@ class AlgelogicNetwork(nn.Module):
                     
                     # Capture variables (project WM content into variable slots)
                     # When γ≈1, this captures; when γ≈0, captures nothing
-                    projection = rule.head[j](state[:, :, l:l+1])  # [batch, W, I]
+                    projection = rule.body[j](state[:, :, l:l+1])  # [batch, W, I]
                     captures += γ * projection.squeeze(-1)
                 
                 premise_matches.append(match_scores)  # [batch, W]
@@ -260,7 +258,7 @@ class AlgelogicNetwork(nn.Module):
         
             # STEP 4: GENERATE CONCLUSION FROM CAPTURED VARIABLES
             # The tail network maps captured variables to output space
-            conclusion = rule.tail(captured_vars)  # [batch, L]
+            conclusion = rule.head(captured_vars)  # [batch, L]
             
             # STEP 5: MATCH CONCLUSION AGAINST ACTION SPACE
             # The conclusion should match one of the WM propositions (squares)
