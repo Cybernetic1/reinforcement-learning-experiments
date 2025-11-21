@@ -164,10 +164,19 @@ class AlgelogicNetwork(nn.Module):
         t = 1.0/(1.0 + torch.exp(-steepness*(γ - 0.5)))
         return t
 
+    """Let's focus on matching one propositional term in a rule against 
+    a working memory (WM) proposition.  Each proposition consists of L=2
+    tokens or "symbols" or "positions".  Each position is either a constant
+    or a variable, as in first-order logic.  If the position is a constant,
+    it is simply compared against the WM content.  If the position is a variable,
+    the corresponding WM position is copied into a "variable slot".
+    What determines whether a position is constant or variable is the value γ
+    ∈ [0, 1], which I termed the "cylindrification factor". """
+
     @staticmethod
-    def match(γ, rule_constant, wm_value):
+    def match(γ, rule_constant, wm_token):
         """
-        UNIFIED CONSTANT/VARIABLE MATCHING
+        CONSTANT/VARIABLE MATCHING
         
         INPUTS:
         - γ: Cylindrification factor (0=constant, 1=variable)
@@ -182,71 +191,92 @@ class AlgelogicNetwork(nn.Module):
         """
         # When γ≈1 (variable mode): match penalty approaches 0 (perfect match)
         # When γ≈0 (constant mode): match penalty = actual difference
-        match_degree = AlgelogicNetwork.sigmoid(γ) * (rule_constant - wm_value)**2
-        return match_degree
+        # match_degree = AlgelogicNetwork.sigmoid(γ) * (rule_constant - wm_value)**2
+        # return match_degree
 
     def forward(self, state):
         """
-        MAIN MATCHING & UNIFICATION ALGORITHM
-        
+        MAIN MATCHING / UNIFICATION ALGORITHM
+    
         FOR EACH RULE:
         1. PATTERN MATCHING: Check how well rule premises match WM
         2. VARIABLE CAPTURE: Extract values into variable slots (when γ≈1)
         3. CONSTANT CHECKING: Verify fixed constraints (when γ≈0)
         4. CONCLUSION GENERATION: Use captured variables to produce output
         """
+    
+        batch_size = state.shape[0]
+        state = state.reshape(batch_size, self.W, self.L)  # [batch, 9 squares, 2 features]
         
-        P = torch.zeros([self.M], dtype=torch.float)
-        state = state.reshape(-1, 9, 2)  # [batch, squares, (player,position)]
+        # Output will be [batch_size, W] representing Q-values for each action/square
+        outputs = torch.zeros(batch_size, self.W)
         
-        for m in range(0, self.M):  # For each rule
+        for m in range(self.M):  # For each rule
             rule = self.rules[m]
-            captured_variables = torch.zeros(self.I)  # Variable slots for this rule
             
-            for j in range(0, self.J):  # For each premise in rule
+            # STEP 1: MATCH EACH PREMISE AGAINST ALL WM PROPOSITIONS
+            # Track which WM props satisfy each premise
+            premise_matches = []  # Will hold [J, batch, W] match scores
+            premise_captures = []  # Will hold [J, batch, W, I] captured variables
+            
+            for j in range(self.J):  # For each premise in the rule
+                # Match this premise against all WM propositions
+                match_scores = torch.zeros(batch_size, self.W)
+                captures = torch.zeros(batch_size, self.W, self.I)
                 
-                # STEP 1: MATCHING PHASE
-                # For each WM proposition, compute match quality
-                match_qualities = torch.zeros(self.W)
-                variable_captures = torch.zeros(self.W, self.I)
-                
-                for w in range(0, self.W):  # For each board square
-                    wm_prop = state[0, w]  # Current WM proposition
+                for l in range(self.L):  # For each position (player, location)
+                    γ = torch.sigmoid(rule.γs[j, l])  # 0=constant, 1=variable
+                    constant = rule.constants[j, l]
+                    wm_values = state[:, :, l]  # [batch, W]
                     
-                    # Match each position in the proposition
-                    total_match = 0
-                    for pos in range(self.L):  # For each position (player, location)
-                        γ = rule.γs[j+1][pos]
-                        rule_template = rule.constants[j][pos]
-                        wm_value = wm_prop[pos]
-                        
-                        # CORE OPERATION: Constant vs Variable behavior
-                        match_penalty = self.match(γ, rule_template, wm_value)
-                        total_match += match_penalty
-                        
-                        # VARIABLE CAPTURE: When γ≈1, copy WM content to variables
-                        if γ > 0.5:  # Variable mode
-                            # Use neural projection to capture into variable slots
-                            capture_weights = rule.head[j].weight[:, pos]
-                            for i in range(self.I):
-                                variable_captures[w, i] += capture_weights[i] * wm_value
+                    # Compute match quality (lower is better)
+                    diff = (constant - wm_values) ** 2
+                    match_penalty = (1 - γ) * diff  # Only penalize if constant mode
+                    match_scores += match_penalty
                     
-                    match_qualities[w] = total_match
+                    # Capture variables (project WM content into variable slots)
+                    # When γ≈1, this captures; when γ≈0, captures nothing
+                    projection = rule.head[j](state[:, :, l:l+1])  # [batch, W, I]
+                    captures += γ * projection.squeeze(-1)
                 
-                # STEP 2: AGGREGATE BEST MATCHES
-                # Select best matching WM propositions for this premise
-                best_match_idx = torch.argmin(match_qualities)
-                captured_variables += variable_captures[best_match_idx]
+                premise_matches.append(match_scores)  # [batch, W]
+                premise_captures.append(captures)      # [batch, W, I]
             
-            # STEP 3: GENERATE CONCLUSION
-            # Use captured variables to produce rule output
-            conclusion = rule.tail(captured_variables)
-            P[m] = torch.norm(conclusion)  # Rule firing strength
+            # STEP 2: AGGREGATE MATCHES ACROSS PREMISES
+            # For each WM prop, sum match quality across all premises
+            premise_matches = torch.stack(premise_matches)  # [J, batch, W]
+            total_match = premise_matches.sum(dim=0)  # [batch, W]
             
-        # Convert rule activations to action probabilities
-        action_probs = torch.softmax(P, dim=0)
-        return action_probs
-
+            # STEP 3: SELECT BEST MATCHING WM PROPOSITIONS
+            # For each batch, find the W proposition that best satisfies all premises
+            best_indices = torch.argmin(total_match, dim=1)  # [batch]
+            
+            # Gather the captured variables from best matching props
+            premise_captures = torch.stack(premise_captures)  # [J, batch, W, I]
+            captured_vars = torch.zeros(batch_size, self.I)
+            for b in range(batch_size):
+                for j in range(self.J):
+                    captured_vars[b] += premise_captures[j, b, best_indices[b], :]
+        
+            # STEP 4: GENERATE CONCLUSION FROM CAPTURED VARIABLES
+            # The tail network maps captured variables to output space
+            conclusion = rule.tail(captured_vars)  # [batch, L]
+            
+            # STEP 5: MATCH CONCLUSION AGAINST ACTION SPACE
+            # The conclusion should match one of the WM propositions (squares)
+            # to indicate which action to take
+            action_scores = torch.zeros(batch_size, self.W)
+            for w in range(self.W):
+                # How well does the conclusion match this action/square?
+                diff = (conclusion - state[:, w, :]) ** 2
+                similarity = torch.exp(-diff.sum(dim=1))  # Higher = better match
+                action_scores[:, w] += similarity
+            
+            # Weight by rule's overall match quality
+            rule_confidence = torch.exp(-total_match.min(dim=1).values)  # [batch]
+            outputs += action_scores * rule_confidence.unsqueeze(1)
+        
+        return outputs  # [batch_size, 9] Q-values for each square
 """
 BOARD REPRESENTATION (Updated):
 - Each square encoded as [player, normalized_position]  
