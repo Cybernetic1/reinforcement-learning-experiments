@@ -111,7 +111,7 @@ elif config in [28, 29]:
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
-env_seed = 222 # reproducible, general Policy gradient has high variance
+env_seed = 333 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
 if config in [0, 1]:
@@ -276,8 +276,8 @@ def preplay_moves():
 	state, _, _, _ = env.step(3, 1)
 	state, _, _, _ = env.step(6, -1)
 	state, _, _, _ = env.step(4, 1)
-	# state, _, _, _ = env.step(5, -1)
-	# state, _, _, _ = env.step(1, 1)
+	state, _, _, _ = env.step(5, -1)
+	state, _, _, _ = env.step(1, 1)
 	return
 
 print("Pre-play moves:")
