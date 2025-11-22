@@ -111,7 +111,7 @@ elif config in [28, 29]:
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
-env_seed = 111 # reproducible, general Policy gradient has high variance
+env_seed = 222 # reproducible, general Policy gradient has high variance
 env.seed(env_seed)
 
 if config in [0, 1]:
@@ -270,7 +270,7 @@ if j:
 		RL.load_net(files[int(j)][15:-5])
 
 def preplay_moves():
-	return
+	# return
 	global state
 	state, _, _, _ = env.step(0, -1)
 	state, _, _, _ = env.step(3, 1)
@@ -370,7 +370,7 @@ running_reward = 0.0
 while True:
 	i_episode += 1
 	state = env.reset()
-	print("**** state =", state)
+	# print("**** state =", state)
 	preplay_moves()
 	if RENDER > 0:
 		env.render(mode=RENDERMODE)
@@ -437,7 +437,12 @@ while True:
 	running_reward = running_reward * 0.97 + per_game_reward * 0.03
 
 	if len(RL.replay_buffer) > batch_size:
-		_ = RL.update(batch_size, reward_scale)
+		loss = RL.update(batch_size, reward_scale)
+	else:
+		loss = None
+	
+	# CRITICAL: Decay epsilon for epsilon-greedy exploration
+	RL.decay_epsilon()
 
 	if command:				# wait till end-of-game now to execute command
 		try:
@@ -449,6 +454,9 @@ while True:
 			command = None
 
 	if i_episode % 100 == 0:
+		# CRITICAL: Sync target network for stable Q-learning
+		RL.sync()
+		
 		if RENDER > 0:
 			with connect("ws://localhost:5678") as websocket:
 				websocket.send(json.dumps('ask'))
@@ -457,6 +465,10 @@ while True:
 
 		rr = round(running_reward, 5)
 		print("\n\t\x1b[0m", i_episode, "Running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
+		print(f"\tEpsilon: {RL.epsilon:.4f}", end="")
+		if loss is not None:
+			print(f", Loss: {loss:.4f}", end="")
+		print()
 		if INTERMEDIATE:
 			print("good:rational =", env.good, ":", env.rational, ":", env.irrational)
 			env.good = 0

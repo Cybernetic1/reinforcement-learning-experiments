@@ -98,7 +98,7 @@ class AlgelogicNetwork(nn.Module):
 
         # LOGICAL ARCHITECTURE HYPERPARAMETERS
         # These define the "reasoning capacity" of the network
-        self.M = 16	# number of rules (strategic patterns to learn)
+        self.M = 4	# number of rules (strategic patterns to learn) - reduced for faster convergence
         self.J = 2	# number of propositions per rule premise
         self.I = 3	# number of variable slots per rule (for capture/binding)
         self.L = 2	# length of each proposition vector (player + position for TicTacToe)
@@ -157,10 +157,8 @@ class AlgelogicNetwork(nn.Module):
 
     @staticmethod
     def sigmoid(γ):
-        """Steep sigmoid for crisp fuzzy logic operations"""
-        steepness = 10.0
-        t = 1.0/(1.0 + torch.exp(-steepness*(γ - 0.5)))
-        return t
+        """Direct clamp to [0,1] - prevents gradient saturation while preserving cylindrification semantics"""
+        return torch.clamp(γ, 0.0, 1.0)
 
     """Let's focus on matching one propositional term in a rule against 
     a working memory (WM) proposition.  Each proposition consists of L=2
@@ -202,98 +200,106 @@ class AlgelogicNetwork(nn.Module):
         3. CONSTANT CHECKING: Verify fixed constraints (when γ≈0)
         4. CONCLUSION GENERATION: Use captured variables to produce output
         """
-
         batch_size = state.shape[0]
-        state = state.reshape(batch_size, self.W, self.L)  # [batch, 9 squares, 2 features]
+        state = state.reshape(batch_size, self.W, self.L)
         
-        # Output will be [batch_size, W] representing Q-values for each action/square
+        # Initialize Q-values (can be negative)
         outputs = torch.zeros(batch_size, self.W)
         
-        for m in range(self.M):  # For each rule
+        # Temperature for soft attention (lower = sharper, higher = softer)
+        # Higher temp = softer attention = better gradient flow early in training
+        temperature = 1.0
+        
+        for m in range(self.M):
             rule = self.rules[m]
             
-            # STEP 1: MATCH EACH PREMISE AGAINST ALL WM PROPOSITIONS
-            # Track which WM props satisfy each premise
-            premise_matches = []  # Will hold [J, batch, W] match scores
-            premise_captures = []  # Will hold [J, batch, W, I] captured variables
-            
-            for j in range(self.J):  # For each premise in the rule
-                # Match this premise against all WM propositions
-                match_scores = torch.zeros(batch_size, self.W)
-                captures = torch.zeros(batch_size, self.W, self.I)
-                
-                for l in range(self.L):  # For each position (player, location)
-                    γ = self.sigmoid(rule.γs[j, l])  # Apply steep sigmoid for crisp behavior
-                    constant = rule.constants[j, l]
-                    wm_values = state[:, :, l]  # [batch, W]
-                    
-                    # Compute match quality (lower is better)
-                    diff = (constant - wm_values) ** 2
-                    match_penalty = (1 - γ) * diff  # Only penalize if constant mode
-                    match_scores += match_penalty
-            
-                # Capture variables (project entire proposition into variable slots)
-                # Reshape for linear layer: [batch*W, L] -> [batch*W, I] -> [batch, W, I]
-                props_flat = state.view(batch_size * self.W, self.L)  # [batch*W, L]
-                projections = rule.body[j](props_flat)  # [batch*W, I]
-                projections = projections.view(batch_size, self.W, self.I)  # [batch, W, I]
-                
-                # Apply cylindrification - only capture when γ≈1
-                γ_mean = self.sigmoid(rule.γs[j, :]).mean()  # Average γ for this premise
-                captures = γ_mean * projections
-                
-                premise_matches.append(match_scores)  # [batch, W]
-                premise_captures.append(captures)      # [batch, W, I]
-            
-            # STEP 2: AGGREGATE MATCHES ACROSS PREMISES
-            # For each WM prop, sum match quality across all premises
-            premise_matches = torch.stack(premise_matches)  # [J, batch, W]
-            total_match = premise_matches.sum(dim=0)  # [batch, W]
-            
-            # STEP 3: SELECT BEST MATCHING WM PROPOSITIONS
-            # For each batch, find the W proposition that best satisfies all premises
-            best_indices = torch.argmin(total_match, dim=1)  # [batch]
-            
-            # Gather the captured variables from best matching props
-            premise_captures = torch.stack(premise_captures)  # [J, batch, W, I]
+            # Accumulate captured variables across all premises
             captured_vars = torch.zeros(batch_size, self.I)
-            for b in range(batch_size):
-                for j in range(self.J):
-                    captured_vars[b] += premise_captures[j, b, best_indices[b], :]
-        
-            # STEP 4: GENERATE CONCLUSION FROM CAPTURED VARIABLES
-            # The head network maps captured variables to output space
-            conclusion = rule.head(captured_vars)  # [batch, L]
+            match_quality = torch.zeros(batch_size)
             
-            # STEP 5: MATCH CONCLUSION AGAINST ACTION SPACE
-            # The conclusion should match one of the WM propositions (squares)
-            # to indicate which action to take
-            action_scores = torch.zeros(batch_size, self.W)
+            for j in range(self.J):
+                # For each premise, find best matching WM proposition
+                match_scores = torch.zeros(batch_size, self.W)
+                
+                for l in range(self.L):
+                    γ = self.sigmoid(rule.γs[j, l])
+                    constant = rule.constants[j, l]
+                    wm_values = state[:, :, l]
+                    
+                    # Match penalty (lower is better)
+                    diff = (constant - wm_values) ** 2
+                    match_scores += (1 - γ) * diff
+                
+                # DIFFERENTIABLE soft attention instead of argmin
+                attention_weights = F.softmax(-match_scores / temperature, dim=1)  # [batch, W]
+                
+                # Soft selection: weighted average instead of hard selection
+                best_props = torch.einsum('bw,bwl->bl', attention_weights, state)  # [batch, L]
+                
+                # Soft match quality
+                match_quality += (attention_weights * match_scores).sum(dim=1)
+                
+                # Capture variables from best match
+                captured = rule.body[j](best_props)  # [batch, I]
+                
+                # Weight by average γ (how much this premise wants to capture)
+                γ_avg = self.sigmoid(rule.γs[j, :]).mean()
+                captured_vars += γ_avg * captured
+            
+            # Generate conclusion Q-value from captured variables
+            rule_output = rule.head(captured_vars)  # [batch, L]
+            
+            # Map conclusion to action Q-values
             for w in range(self.W):
-                # How well does the conclusion match this action/square?
-                diff = (conclusion - state[:, w, :]) ** 2
-                similarity = torch.exp(-diff.sum(dim=1))  # Higher = better match
-                action_scores[:, w] = similarity
-            
-            # Weight by rule's overall match quality
-            rule_confidence = torch.exp(-total_match.min(dim=1).values)  # [batch]
-            outputs += action_scores * rule_confidence.unsqueeze(1)
+                diff = (rule_output - state[:, w, :]) ** 2
+                # Use signed similarity so Q can be negative
+                similarity = -diff.sum(dim=1)
+                
+                # Weight by match quality (better match = more confident)
+                confidence = torch.exp(-match_quality)
+                outputs[:, w] += confidence * similarity
         
-        return outputs  # [batch_size, 9] Q-values for each square
+        return outputs
+
+    def choose_action(self, state, epsilon=0.1, deterministic=False):
+        """
+        ACTION SELECTION for TicTacToe using logical reasoning
+        """
+        state_tensor = torch.FloatTensor(state).unsqueeze(0).to(device)
+        q_values = self(state_tensor).squeeze(0)  # [9]
+        
+        # Mask invalid actions
+        state_reshaped = state_tensor.reshape(self.W, self.L)
+        valid_mask = (state_reshaped[:, 0] == 0)  # Empty squares
+        
+        if not valid_mask.any():
+            return random.randint(0, 8)  # Fallback if board full
+        
+        # Set invalid actions to -inf
+        q_values[~valid_mask] = float('-inf')
+        
+        # Epsilon-greedy exploration during training
+        if not deterministic and random.random() < epsilon:
+            valid_actions = torch.where(valid_mask)[0]
+            return valid_actions[random.randint(0, len(valid_actions)-1)].item()
+        
+        return torch.argmax(q_values).item()
+
 
 class DQN():
-    def __init__(
-            self,
-            action_dim,
-            state_dim,
-            learning_rate = 3e-4,
-            gamma = 0.9 ):
-        super(DQN, self).__init__()
-        self.action_dim = action_dim
-        self.state_dim = state_dim
-        self.lr = learning_rate
+    def __init__(self, action_dim, state_dim, learning_rate=3e-4, gamma=0.9):
+        self.anet = AlgelogicNetwork(state_dim, action_dim, learning_rate=learning_rate).to(device)
+        self.tnet = AlgelogicNetwork(state_dim, action_dim, learning_rate=learning_rate).to(device)
+        self.replay_buffer = ReplayBuffer(capacity=10000)
         self.gamma = gamma
+        self.lr = learning_rate
+        self.optimizer = optim.Adam(self.anet.parameters(), lr=learning_rate)
         
+        # Exploration parameters
+        self.epsilon = 1.0
+        self.epsilon_min = 0.01
+        self.epsilon_decay = 0.995
+
         # Define terminal/end state with properly normalized position encoding
         # Each square: [player=0, normalized_position]
         # Position formula: (square_index - 4) / 4 maps [0,8] to [-1,+1]
@@ -308,114 +314,97 @@ class DQN():
             0,  0.75,   # Square 7: (7-4)/4 = 0.75
             0,  1.0     # Square 8: (8-4)/4 = 1.0
         ]
-        
-        self.replay_buffer = ReplayBuffer(int(1e6))
-        hidden_dim = 16
-        self.anet = AlgelogicNetwork(state_dim, action_dim, activation=F.relu).to(device)
-        self.q_criterion = nn.MSELoss()
-        self.q_optimizer = optim.Adam(self.anet.parameters(), lr=self.lr)
 
-    def choose_action(self, state, deterministic=True):
-        """
-        ACTION SELECTION for TicTacToe using logical reasoning
-        
-        INPUT: state = [18] array: [player0, pos0, player1, pos1, ..., player8, pos8]
-               - player ∈ {-1,0,1} for opponent/empty/self
-               - pos ∈ [-1,+1] normalized position encoding
-               
-        OUTPUT: action ∈ {0,1,2,3,4,5,6,7,8} representing board square
-        
-        STRATEGIC ADVANTAGE: Normalized encoding allows rules to learn
-        spatial concepts like "corner play" or "center control" naturally
-        """
-        state = torch.FloatTensor(state).unsqueeze(0).to(device)
-        logits = self.anet(state)  # Get action probabilities from logic rules
-        probs  = torch.softmax(logits, dim=1)
-        dist   = Categorical(probs)
-        action = dist.sample().numpy()[0]
-        return action
+    def choose_action(self, state, deterministic=False):
+        return self.anet.choose_action(
+            state, 
+            epsilon=self.epsilon if not deterministic else 0.0,
+            deterministic=deterministic
+        )
+    
+    def decay_epsilon(self):
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
-    def update(self, batch_size, reward_scale, gamma=0.99):
-        """
-        Q-LEARNING UPDATE using logical rule conclusions
-        
-        INNOVATION: Instead of updating MLP weights, this updates:
-        1. Rule pattern templates (constants)
-        2. Matching fuzziness parameters (gammas)  
-        3. Variable unification mappings (head/tail networks)
-        
-        GOAL: Rules learn to recognize winning/losing patterns and
-        adjust their strategic recommendations accordingly
-        """
-        alpha = 1.0  # trade-off between exploration (max entropy) and exploitation (max Q)
-
+    def update(self, batch_size, reward_scale=1.0):
+        if len(self.replay_buffer) < batch_size:
+            return None
         state, action, reward, next_state, done = self.replay_buffer.sample(batch_size)
 
-        state      = torch.FloatTensor(state).to(device)
+        state = torch.FloatTensor(state).to(device)
         next_state = torch.FloatTensor(next_state).to(device)
-        action     = torch.LongTensor(action).to(device)
-        reward     = torch.FloatTensor(reward).to(device)
-        done       = torch.BoolTensor(done).to(device)
+        action = torch.LongTensor(action).to(device)
+        reward = torch.FloatTensor(reward).to(device)
+        done = torch.FloatTensor(done).to(device)
 
-        # Get Q-values from logical reasoning network
-        logits = self.anet(state)
-        next_logits = self.anet(next_state)
+        q_values = self.anet(state)
+        next_q_values = self.tnet(next_state)
 
-        # BELLMAN EQUATION with logical Q-function
-        # Q_logic(s,a) += η[R + γ max_a' Q_logic(s',a') - Q_logic(s,a)]
-        # This trains the logical rules to predict long-term strategic value
-        q = logits[range(logits.shape[0]), action]
-        m = torch.max(next_logits, 1, keepdim=False).values
-        target_q = torch.where(done, reward, reward + self.gamma * m)
-        q_loss = self.q_criterion(q, target_q.detach())
+        q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
+        next_q_value = next_q_values.max(1)[0]
+        expected_q_value = reward + self.gamma * next_q_value * (1 - done)
 
-        # GRADIENT UPDATE: Adjust logical reasoning parameters
-        self.q_optimizer.zero_grad()
-        q_loss.backward()
-        self.q_optimizer.step()
+        loss = (q_value - expected_q_value.detach()).pow(2).mean()
 
-        return
+        self.optimizer.zero_grad()
+        loss.backward()
+        # Add gradient clipping
+        torch.nn.utils.clip_grad_norm_(self.anet.parameters(), 1.0)
+        self.optimizer.step()
+        
+        return loss.item()
+
+    def sync(self):
+        self.tnet.load_state_dict(self.anet.state_dict())
 
     def net_info(self):
-        """Network architecture description"""
-        config = "(18)-16rules-(9)"
-        total_params = sum(p.numel() for p in self.anet.parameters())
-        return (config, total_params)
+        """
+        Calculate and return network topology description and total parameters.
+        
+        Per rule parameters:
+        - body networks: J × (L×I + I) weights/biases for premise projections
+        - head network: I×L + L weights/biases for conclusion generation  
+        - constants: J×L learned template values
+        - gammas: J×L cylindrification factors
+        
+        Total = M × [J×(L×I + I) + (I×L + L) + J×L + J×L]
+        """
+        M = self.anet.M  # number of rules
+        J = self.anet.J  # premises per rule
+        I = self.anet.I  # variable slots
+        L = self.anet.L  # proposition length
+        
+        # Per rule calculations
+        body_params = J * (L * I + I)  # J linear layers: L→I
+        head_params = I * L + L         # 1 linear layer: I→L
+        constant_params = J * L         # constants for matching
+        gamma_params = J * L            # cylindrification factors
+        
+        params_per_rule = body_params + head_params + constant_params + gamma_params
+        total_params = M * params_per_rule
+        
+        topology = f"AlgebraicLogic: M={M} rules × [J={J} premises, I={I} vars, L={L} features]"
+        
+        return (topology, total_params)
 
     def play_random(self, state, action_space):
         """
-        RANDOM BASELINE PLAYER for TicTacToe
+        Random baseline player that only selects valid (empty) squares.
         
-        LOGIC: Only select from available (empty) squares
-        This provides a sanity check for the logical reasoner
+        For the algebraic logic network with uniform encoding:
+        - state format: [player0, pos0, player1, pos1, ..., player8, pos8]
+        - player = 0 indicates empty square
         """
-        empties = [0,1,2,3,4,5,6,7,8]
+        # Find all empty squares (where player value is 0)
+        empty_squares = []
+        for i in range(9):
+            player_idx = i * 2  # player is at even indices
+            if state[player_idx] == 0:
+                empty_squares.append(i)
         
-        # Find occupied squares by scanning state propositions
-        for i in range(0, 18, 2):  # Step by 2 for (symbol, position) pairs
-            proposition = state[i : i + 2]
-            sym = proposition[0]
-            if sym == 1 or sym == -1:  # If square is occupied
-                pos = proposition[1]
-                # Convert position encoding back to square index
-                square_idx = int(round(pos * 4 + 4))  # Reverse of (i-4)/4
-                if square_idx in empties:
-                    empties.remove(square_idx)
-                
-        # Randomly select from available squares
-        if empties:
-            action = random.choice(empties)
-        else:
-            action = random.choice([0,1,2,3,4,5,6,7,8])  # Fallback
-        return action
-
-    def save_net(self, fname):
-        """Save logical rule parameters"""
-        torch.save(self.anet.state_dict(), fname)
-        print(f"Algebraic logic model saved to {fname}")
-
-    def load_net(self, fname):
-        """Load logical rule parameters"""
-        self.anet.load_state_dict(torch.load(fname))
-        print(f"Algebraic logic model loaded from {fname}")
+        # If no empty squares (shouldn't happen in valid game), return random
+        if not empty_squares:
+            return random.randint(0, 8)
+        
+        # Select random empty square
+        return random.choice(empty_squares)
 
