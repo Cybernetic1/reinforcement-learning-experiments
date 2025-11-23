@@ -116,7 +116,7 @@ class AlgelogicNetwork(nn.Module):
             for j in range(self.J):
                 rule.body.append(nn.Linear(self.L, self.I))
 
-            rule.head = nn.Linear(self.I, self.L)  # For conclusion generation
+            rule.head = nn.Linear(self.I, self.W)  # Output Q-values for all 9 squares directly
             
             # LEARNED CONSTANTS: Template values for constant-mode matching
             cs = torch.FloatTensor(self.J, self.L).uniform_(-1,1)
@@ -126,6 +126,12 @@ class AlgelogicNetwork(nn.Module):
             # γ[j][i] controls whether rule position (j,i) acts as constant or variable
             γs = torch.FloatTensor(self.J, self.L).uniform_(0,1)
             rule.γs = nn.Parameter(γs)
+            
+            # SLOT SELECTORS: Decide which variable slot to use for each proposition element
+            # σ[j][l] selects slot for proposition element l in premise j
+            # Values in range [0, I-1] (I=number of variable slots)
+            ss = torch.LongTensor(self.J, self.L).random_(0, self.I)
+            rule.slot_selector = nn.Parameter(ss)
             
             self.rules.append(rule)
 
@@ -209,55 +215,63 @@ class AlgelogicNetwork(nn.Module):
         # Temperature for soft attention (lower = sharper, higher = softer)
         # Higher temp = softer attention = better gradient flow early in training
         temperature = 1.0
-        
+
         for m in range(self.M):
             rule = self.rules[m]
-            
+
             # Accumulate captured variables across all premises
             captured_vars = torch.zeros(batch_size, self.I)
             match_quality = torch.zeros(batch_size)
-            
+
             for j in range(self.J):
                 # For each premise, find best matching WM proposition
                 match_scores = torch.zeros(batch_size, self.W)
-                
+
                 for l in range(self.L):
                     γ = self.sigmoid(rule.γs[j, l])
                     constant = rule.constants[j, l]
                     wm_values = state[:, :, l]
-                    
+
                     # Match penalty (lower is better)
                     diff = (constant - wm_values) ** 2
                     match_scores += (1 - γ) * diff
-                
+
                 # DIFFERENTIABLE soft attention instead of argmin
                 attention_weights = F.softmax(-match_scores / temperature, dim=1)  # [batch, W]
-                
+
                 # Soft selection: weighted average instead of hard selection
                 best_props = torch.einsum('bw,bwl->bl', attention_weights, state)  # [batch, L]
-                
+
                 # Soft match quality
                 match_quality += (attention_weights * match_scores).sum(dim=1)
-                
+
                 # Capture variables from best match
                 captured = rule.body[j](best_props)  # [batch, I]
-                
+
                 # Weight by average γ (how much this premise wants to capture)
                 γ_avg = self.sigmoid(rule.γs[j, :]).mean()
                 captured_vars += γ_avg * captured
+
+                # For each premise, decide which slot gets which proposition element
+                # Example: If premise has [player, position], we need to decide:
+                #   - Does 'player' value go to slot 0, 1, or 2?
+                #   - Does 'position' value go to slot 0, 1, or 2?
+
+                # Use softmax to make this decision:
+                slot_logits = rule.slot_selector[j](best_props)  # [batch, L * I]
+                slot_probs = F.softmax(slot_logits.view(batch_size, self.L, self.I), dim=2)  # [batch, L, I]
+
+                # Each of L=2 positions picks ONE slot via softmax
+                for l in range(self.L):
+                    slot_weights = slot_probs[:, l, :]  # [batch, I] - distribution over I slots
+                    captured_vars += slot_weights * best_props[:, l].unsqueeze(1)  # Soft assignment
+
+            # Generate Q-values directly for all 9 squares from captured variables
+            rule_q_values = rule.head(captured_vars)  # [batch, W=9]
             
-            # Generate conclusion Q-value from captured variables
-            rule_output = rule.head(captured_vars)  # [batch, L]
-            
-            # Map conclusion to action Q-values
-            for w in range(self.W):
-                diff = (rule_output - state[:, w, :]) ** 2
-                # Use signed similarity so Q can be negative
-                similarity = -diff.sum(dim=1)
-                
-                # Weight by match quality (better match = more confident)
-                confidence = torch.exp(-match_quality)
-                outputs[:, w] += confidence * similarity
+            # Weight by match quality (better match = more confident)
+            confidence = torch.exp(-match_quality).unsqueeze(1)  # [batch, 1]
+            outputs += confidence * rule_q_values  # [batch, W]
         
         return outputs
 
@@ -356,34 +370,129 @@ class DQN():
     def sync(self):
         self.tnet.load_state_dict(self.anet.state_dict())
 
+    def save_net(self, filename):
+        """Save the action network (anet) parameters to file"""
+        import os
+        os.makedirs("PyTorch_models", exist_ok=True)
+        filepath = f"PyTorch_models/{filename}.dict"
+        torch.save(self.anet.state_dict(), filepath)
+        print(f"Model saved to {filepath}")
+
+    def load_net(self, filename):
+        """Load the action network (anet) parameters from file and sync to target network"""
+        filepath = f"PyTorch_models/{filename}.dict"
+        self.anet.load_state_dict(torch.load(filepath))
+        self.sync()  # Also update target network
+        print(f"Model loaded from {filepath}")
+
+    def display_rules(self):
+        """Display the learned logical rules in human-readable format"""
+        print("\n" + "="*80)
+        print("LEARNED LOGICAL RULES")
+        print("="*80)
+
+        def interpret_player(val):
+            """Interpret player value"""
+            if val < -0.5: return "Opp"
+            elif val > 0.5: return "Self"
+            else: return "Empty"
+
+        def interpret_position(val):
+            """Interpret normalized position [-1, +1]"""
+            if val < -0.6: return "top-left"
+            elif val < -0.2: return "top/left"
+            elif val < 0.2: return "center"
+            elif val < 0.6: return "bottom/right"
+            else: return "bottom-right"
+        
+        # Get a sample empty board state to compute Q-values
+        empty_state = torch.FloatTensor(self.endState).unsqueeze(0)
+        
+        for m, rule in enumerate(self.anet.rules):
+            print(f"\n*** RULE {m+1} ***")
+            
+            # Display premises with cylindrification factors
+            print("IF:")
+            for j in range(self.anet.J):
+                γ_vals = rule.γs[j, :].detach()
+                const_vals = rule.constants[j, :].detach()
+
+                γ_player = γ_vals[0].item()
+                γ_position = γ_vals[1].item()
+                const_player = const_vals[0].item()
+                const_position = const_vals[1].item()
+
+                print(f"  Premise {j+1}: ", end="")
+
+                # Player matching
+                if γ_player < 0.3:
+                    print(f"Player={interpret_player(const_player)}", end="")
+                elif γ_player > 0.7:
+                    print(f"Player=?X", end="")
+                else:
+                    print(f"Player≈{interpret_player(const_player)}", end="")
+                
+                print(f" (γ={γ_player:.2f}), ", end="")
+                
+                # Position matching
+                if γ_position < 0.3:
+                    print(f"Pos={interpret_position(const_position)}", end="")
+                elif γ_position > 0.7:
+                    print(f"Pos=?Y", end="")
+                else:
+                    print(f"Pos≈{interpret_position(const_position)}", end="")
+                
+                print(f" (γ={γ_position:.2f})")
+
+            # Display conclusion - direct Q-values for 9 squares
+            print("THEN output Q-values for squares:")
+            head_weights = rule.head.weight.detach()  # [W, I]
+            head_bias = rule.head.bias.detach()  # [W]
+            
+            # Show which squares this rule prefers (based on bias)
+            sorted_squares = torch.argsort(head_bias, descending=True)
+            print(f"  Top 3 square preferences (by bias):")
+            for i in range(min(3, self.anet.W)):
+                sq = sorted_squares[i].item()
+                pos = (sq - 4) / 4
+                print(f"    Square {sq} ({interpret_position(pos)}): bias={head_bias[sq].item():.2f}")
+            
+            print(f"  Weight matrix norm: {head_weights.norm().item():.3f}")
+
+        print("\n" + "="*80)
+        print(f"Total Rules: {self.anet.M}")
+        print("NOTE: Each rule matches premises against board state, captures variables,")
+        print("      and directly outputs Q-values for all 9 squares.")
+        print("="*80 + "\n")
+
     def net_info(self):
         """
         Calculate and return network topology description and total parameters.
         
         Per rule parameters:
         - body networks: J × (L×I + I) weights/biases for premise projections
-        - head network: I×L + L weights/biases for conclusion generation  
+        - head network: I×W + W weights/biases for Q-value generation (all 9 squares)
         - constants: J×L learned template values
         - gammas: J×L cylindrification factors
         
-        Total = M × [J×(L×I + I) + (I×L + L) + J×L + J×L]
+        Total = M × [J×(L×I + I) + (I×W + W) + J×L + J×L]
         """
         M = self.anet.M  # number of rules
         J = self.anet.J  # premises per rule
         I = self.anet.I  # variable slots
         L = self.anet.L  # proposition length
+        W = self.anet.W  # number of squares
         
         # Per rule calculations
         body_params = J * (L * I + I)  # J linear layers: L→I
-        head_params = I * L + L         # 1 linear layer: I→L
+        head_params = I * W + W         # 1 linear layer: I→W (direct Q-values)
         constant_params = J * L         # constants for matching
         gamma_params = J * L            # cylindrification factors
         
         params_per_rule = body_params + head_params + constant_params + gamma_params
         total_params = M * params_per_rule
         
-        topology = f"AlgebraicLogic: M={M} rules × [J={J} premises, I={I} vars, L={L} features]"
-        
+        topology = f"AlgebraicLogic.M={M}x(J={J},I={I},L={L})"
         return (topology, total_params)
 
     def play_random(self, state, action_space):

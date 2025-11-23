@@ -201,7 +201,7 @@ def ctrl_C_handler(sig, frame):
 	# global model_name
 	global command
 	print("\n\x1b[0m **** program paused ****")
-	print("Enter Python code, or:\n'q' to exit\n'' to continue\n's' to save model\n'g' to play game\n'v' to visualize Q values")
+	print("Enter Python code, or:\n'q' to exit\n'' to continue\n's' to save model\n'g' to play game\n'v' to visualize Q values\n'r' to display rules")
 	command = input(">>> ")
 	if command == "q":
 		command = "log_file.close(); exit(0)"
@@ -213,6 +213,8 @@ def ctrl_C_handler(sig, frame):
 		command = "visualize_Q()"
 	elif command == 's':
 		command = "RL.save_net(model_name + '.' + timeStamp)"
+	elif command == 'r':
+		command = "RL.display_rules()"
 	# Other commands will be executed in the main loop, see below
 	"""
 	print("Enter filename to save network to file")
@@ -247,6 +249,7 @@ elif config == 0:
 	files = glob.glob("*.npy")
 else:
 	files = glob.glob("PyTorch_models/" + model_name + "*.dict")
+print("found", len(files), "model files:")
 files.sort()
 for i, fname in enumerate(files):
 	if i % 2:
@@ -445,6 +448,7 @@ while True:
 	RL.decay_epsilon()
 
 	if command:				# wait till end-of-game now to execute command
+		print(end="\x1b[0m")
 		try:
 			exec(command)
 		except Exception as e:
