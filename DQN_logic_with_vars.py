@@ -81,6 +81,29 @@ class AlgelogicNetwork(nn.Module):
     KEY INNOVATION: Replaces traditional MLP Q-networks with learnable logical rules
     that can perform fuzzy pattern matching and variable unification.
     
+    GRADIENT FLOW ARCHITECTURE:
+    Input state [batch, 18]
+      ↓ reshape
+    WM propositions [batch, 9, 2]
+      ↓ for each rule:
+    Match against rule.constants (adjusted by rule.γs)
+      ↓ softmax (differentiable!)
+    Soft attention weights
+      ↓ einsum
+    Selected propositions
+      ↓ rule.body (Linear layer)
+    Captured variables [batch, I]
+      ↓ rule.head (Linear layer)
+    Q-values [batch, 9]
+    
+    ALL STEPS ARE DIFFERENTIABLE - gradients flow from loss back to all rule parameters!
+    
+    INTERPRETABILITY:
+    Unlike black-box MLPs, learned rules can be inspected:
+    - rule.constants shows what patterns the rule looks for
+    - rule.γs shows which features are treated as constants vs variables
+    - rule.head shows which actions the rule recommends
+    
     CORE CONCEPTS:
     - Rules are parameterized "if-then" statements with fuzzy matching
     - Variables in rules get "unified" with game state through learned similarity
@@ -119,11 +142,16 @@ class AlgelogicNetwork(nn.Module):
             rule.head = nn.Linear(self.I, self.W)  # Output Q-values for all 9 squares directly
             
             # LEARNED CONSTANTS: Template values for constant-mode matching
+            # Initialized uniformly in [-1,1] to match normalized position encoding
+            # These will be adjusted by gradients to recognize spatial patterns
             cs = torch.FloatTensor(self.J, self.L).uniform_(-1,1)
             rule.constants = nn.Parameter(cs)
             
             # CYLINDRIFICATION FACTORS: Constant vs Variable decision
-            # γ[j][i] controls whether rule position (j,i) acts as constant or variable
+            # γ[j][l] ∈ [0,1] controls whether rule position (j,l) acts as constant or variable
+            # γ≈0: constant mode (match specific value)
+            # γ≈1: variable mode (capture any value)
+            # Initialized uniformly to let network learn which mode works best
             γs = torch.FloatTensor(self.J, self.L).uniform_(0,1)
             rule.γs = nn.Parameter(γs)
             
@@ -199,12 +227,23 @@ class AlgelogicNetwork(nn.Module):
     def forward(self, state):
         """
         MAIN MATCHING / UNIFICATION ALGORITHM
-
+    
+        GRADIENT FLOW PATH (backward during loss.backward()):
+        Q-values → rule_q_values → captured_vars → best_props → match_scores → rule parameters
+    
+        Each component is differentiable:
+        - Soft attention (softmax) allows gradients to flow to match_scores
+        - match_scores depends on rule.constants and rule.γs
+        - captured_vars depends on rule.body weights
+        - rule_q_values depends on rule.head weights
+    
         FOR EACH RULE:
         1. PATTERN MATCHING: Check how well rule premises match WM
+           → Gradients adjust rule.constants and rule.γs
         2. VARIABLE CAPTURE: Extract values into variable slots (when γ≈1)
-        3. CONSTANT CHECKING: Verify fixed constraints (when γ≈0)
-        4. CONCLUSION GENERATION: Use captured variables to produce output
+           → Gradients adjust rule.body weights
+        3. CONCLUSION GENERATION: Use captured variables to produce output
+           → Gradients adjust rule.head weights
         """
         batch_size = state.shape[0]
         state = state.reshape(batch_size, self.W, self.L)
@@ -228,23 +267,31 @@ class AlgelogicNetwork(nn.Module):
                 match_scores = torch.zeros(batch_size, self.W)
 
                 for l in range(self.L):
+                    # LEARNABLE PARAMETERS: rule.γs and rule.constants
+                    # Gradients will flow here from final loss
                     γ = self.sigmoid(rule.γs[j, l])
                     constant = rule.constants[j, l]
                     wm_values = state[:, :, l]
 
                     # Match penalty (lower is better)
+                    # When γ→0 (constant mode): penalty = (constant - wm_value)²
+                    # When γ→1 (variable mode): penalty → 0 (perfect match)
                     diff = (constant - wm_values) ** 2
                     match_scores += (1 - γ) * diff
 
-                # DIFFERENTIABLE soft attention instead of argmin
+                # CRITICAL: DIFFERENTIABLE soft attention instead of argmin
+                # argmin blocks gradients, softmax allows gradient flow!
+                # Gradients flow: loss → outputs → rule_q_values → captured_vars → best_props → attention_weights → match_scores
                 attention_weights = F.softmax(-match_scores / temperature, dim=1)  # [batch, W]
 
                 # Soft selection: weighted average instead of hard selection
+                # This allows gradients to flow back to ALL propositions (not just argmin)
                 best_props = torch.einsum('bw,bwl->bl', attention_weights, state)  # [batch, L]
 
                 # Soft match quality
                 match_quality += (attention_weights * match_scores).sum(dim=1)
 
+                # LEARNABLE PARAMETERS: rule.body[j] weights
                 # Capture variables from best match
                 captured = rule.body[j](best_props)  # [batch, I]
 
@@ -301,6 +348,39 @@ class AlgelogicNetwork(nn.Module):
 
 
 class DQN():
+    """
+    Deep Q-Network with Algebraic Logic Network architecture
+    
+    HYBRID LEARNING APPROACH:
+    This combines two types of learning:
+    
+    1. REINFORCEMENT LEARNING (Temporal Credit Assignment):
+       - TD-error (reward + γ*max Q(s',a') - Q(s,a)) tells us WHICH actions are good
+       - Assigns credit across TIME: action at t=0 leads to reward at t=5
+       - Implemented in update() via expected_q_value vs q_value
+    
+    2. GRADIENT-BASED OPTIMIZATION (Structural Credit Assignment):
+       - Backpropagation tells us HOW to adjust rule parameters to favor good actions
+       - Assigns credit across NETWORK: input → rules → Q-values
+       - Implemented in update() via loss.backward()
+    
+    NON-STATIONARITY CHALLENGE:
+    Since rule parameters change every update (via optimizer.step()), the Q-function
+    changes over time. This creates a "moving target" problem:
+    - Episode 100: Rules produce Q(s,a) = 2.5
+    - Episode 200: Same state, but rules now produce Q(s,a) = 1.8
+    
+    MITIGATION STRATEGIES:
+    - Target network (tnet): Provides stable TD targets, synced every 100 episodes
+    - Gradient clipping: Limits how fast rules can change
+    - Experience replay: Averages over past experiences
+    - Epsilon decay: Gradually reduces exploration as rules stabilize
+    
+    If training is unstable, consider:
+    - Slower learning rate for rule parameters (two-timescale optimization)
+    - More frequent target network syncing
+    - Soft target updates (Polyak averaging)
+    """
     def __init__(self, action_dim, state_dim, learning_rate=3e-4, gamma=0.9):
         self.anet = AlgelogicNetwork(state_dim, action_dim, learning_rate=learning_rate).to(device)
         self.tnet = AlgelogicNetwork(state_dim, action_dim, learning_rate=learning_rate).to(device)
@@ -350,19 +430,40 @@ class DQN():
         reward = torch.FloatTensor(reward).to(device)
         done = torch.FloatTensor(done).to(device)
 
+        # FORWARD PASS: Compute Q-values through algebraic logic network
+        # This builds a computation graph: state → [rule matching] → [variable capture] → Q-values
+        # All rule parameters (constants, γs, body, head) are part of this graph
         q_values = self.anet(state)
         next_q_values = self.tnet(next_state)
 
         q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
         next_q_value = next_q_values.max(1)[0]
+        
+        # TEMPORAL DIFFERENCE ERROR: RL component
+        # This is where RL provides the learning signal - which actions led to good rewards
         expected_q_value = reward + self.gamma * next_q_value * (1 - done)
-
         loss = (q_value - expected_q_value.detach()).pow(2).mean()
 
+        # BACKPROPAGATION: Gradient flow through logic rules
+        # This single backward() call computes gradients for ALL rule parameters:
+        # - ∂loss/∂rule.constants (how to adjust pattern templates)
+        # - ∂loss/∂rule.γs (how to adjust constant/variable behavior)
+        # - ∂loss/∂rule.body (how to capture variables better)
+        # - ∂loss/∂rule.head (how to generate better Q-values from variables)
+        #
+        # KEY INSIGHT: This is HYBRID learning:
+        # - RL (TD-error) tells us WHICH actions are good (temporal credit assignment)
+        # - Backprop tells us HOW to adjust rules to favor those actions (structural credit assignment)
         self.optimizer.zero_grad()
         loss.backward()
-        # Add gradient clipping
+        
+        # Gradient clipping prevents rule parameters from changing too fast
+        # This helps maintain stability in the non-stationary learning process
         torch.nn.utils.clip_grad_norm_(self.anet.parameters(), 1.0)
+        
+        # UPDATE ALL PARAMETERS: Rules learn to produce better Q-values
+        # After this step, the SAME state will produce DIFFERENT Q-values
+        # This creates non-stationarity - the "moving target" problem
         self.optimizer.step()
         
         return loss.item()
@@ -420,7 +521,7 @@ class DQN():
                 γ_player = γ_vals[0].item()
                 γ_position = γ_vals[1].item()
                 const_player = const_vals[0].item()
-                const_position = const_vals[1].item()
+                const_position = constVals[1].item()
 
                 print(f"  Premise {j+1}: ", end="")
 

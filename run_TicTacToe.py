@@ -520,3 +520,12 @@ endTime = datetime.now()
 timeStamp = endTime.strftime("%d-%m-%Y(%H:%M)")
 log_file.write("# End time: " + timeStamp + '\n')
 print('\007')	# sound beep
+
+# If ∂Loss/∂θ_rules ≈ ∂Loss/∂θ_output:
+# Both change at similar rates
+# → Non-stationarity problem we discussed
+# → May explain why convergence is difficult
+
+# If ∂Loss/∂θ_rules is naturally small, then:
+# Δθ_rules = lr * ∂Loss/∂θ_rules ≈ small
+# Even with same lr, effective update is small
