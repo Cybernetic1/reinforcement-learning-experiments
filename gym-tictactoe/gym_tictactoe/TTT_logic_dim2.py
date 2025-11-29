@@ -38,6 +38,9 @@ class TicTacToeEnv(gym.Env):
 			numpy.array(numpy.float32( [1, 4] * 9)), \
 			numpy.array(numpy.float32( [-1, -4] * 9))  )
 		# 2 means "bad move", -2 means "intermediate thought"
+		
+		# Add observation_space for gym 0.26+ compatibility
+		self.observation_space = self.state_space
 
 		self.rewards = {
 			'still_in_game': 0.0,
@@ -46,14 +49,18 @@ class TicTacToeEnv(gym.Env):
 			'bad_position': -30.0
 			}
 
-	def reset(self):
+	def reset(self, seed=None, options=None):
+		# Gym 0.26+ compatibility: reset() returns (obs, info)
+		if seed is not None:
+			self.seed(seed)
+			
 		self.board = (self.board_size * self.board_size) * [0]
 		# fill state vector with 9 empty squares:
 		self.state_vector = []
 		for i in range(0, self.board_size * self.board_size):
 			self.state_vector += [0,i-4]
 		self.index = 0	  # current state_vector position to write into
-		return numpy.array(self.state_vector)
+		return numpy.array(self.state_vector), {}
 
 	# -------------------- GAME STATE CHECK -------------------------
 	def is_win(self):
@@ -160,10 +167,11 @@ class TicTacToeEnv(gym.Env):
 
 		self.index += 2
 
+		# Gym 0.26+ compatibility: step() returns (obs, reward, terminated, truncated, info)
 		# state_vector2 = self.state_vector.copy()
 		# random.shuffle(state_vector2)
 		return numpy.array(self.state_vector), \
-			self.rewards[reward_type], done, reward_type
+			self.rewards[reward_type], done, False, {'reward_type': reward_type}
 
 	# ----------------------------- DISPLAY -----------------------------
 	def get_state_vector_to_display(self):
@@ -202,5 +210,6 @@ class TicTacToeEnv(gym.Env):
 		return None
 
 	def seed(self, seed=None):
-		self.action_space.np_random.seed(seed)
+		# Gym 0.26+ compatibility: seed the action space directly
+		self.action_space.seed(seed)
 		return [seed]

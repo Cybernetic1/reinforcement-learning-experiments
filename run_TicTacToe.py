@@ -107,7 +107,13 @@ elif config == 25:
 elif config in [26, 27]:
 	env = gym.make('TicTacToe-logic-dim2-v1', symbols=[-1, 1], board_size=3, win_size=3)
 elif config in [28, 29]:
-	env = gym.make('TicTacToe-logic-dim2-v2', symbols=[-1, 1], board_size=3, win_size=3)
+	# Directly instantiate to avoid gym wrappers that break custom step() signature
+	from gym_tictactoe.TTT_logic_dim2_uniform import TicTacToeEnv
+	env = TicTacToeEnv(symbols=[-1, 1], board_size=3, win_size=3)
+elif config in [0, 1]:
+	# Directly instantiate to avoid gym wrappers that break custom step() signature
+	from gym_tictactoe.TTT_plain import TicTacToeEnv
+	env = TicTacToeEnv(symbols=[-1, 1], board_size=3, win_size=3)
 else:
 	env = gym.make('TicTacToe-plain-v0', symbols=[-1, 1], board_size=3, win_size=3)
 
@@ -178,7 +184,8 @@ print("state_space.low =", env.state_space.low)
 for f in [log_file, sys.stdout]:
 	f.write("# Config # = " + str(config) + '\n')
 	f.write("# Model = " + tag + '\n')
-	f.write("# Gym = " + env.spec.id + '\n')
+	env_name = env.spec.id if hasattr(env, 'spec') and env.spec else 'TicTacToe-logic-dim2-v2'
+	f.write("# Gym = " + env_name + '\n')
 	f.write("# algorithm = " + RL.__module__ + '\n')
 	f.write("# Num weights = " + str(num_weights) + '\n')
 	f.write("# Learning rate = " + str(RL.lr) + '\n')
@@ -263,7 +270,12 @@ for i, fname in enumerate(files):
 	else:
 		print("%2d %s" %(i, fname[21:-5]))
 print(end="\x1b[0m")
-j = input("Load model? (Enter number or none): ")
+import sys
+if sys.stdin.isatty():
+	j = input("Load model? (Enter number or none): ")
+else:
+	j = ""  # Auto-skip when running non-interactively
+	print("Load model? (Enter number or none): [skipped - non-interactive]")
 if j:
 	if config == 4 or config == 5:		# TensorFlow
 		RL.load_net(files[int(j)][18:-11])
@@ -273,18 +285,18 @@ if j:
 		RL.load_net(files[int(j)][15:-5])
 
 def preplay_moves():
-	# return
+	return  # Disabled for testing
 	global state
-	state, _, _, _ = env.step(0, -1)
-	state, _, _, _ = env.step(3, 1)
-	state, _, _, _ = env.step(6, -1)
-	state, _, _, _ = env.step(4, 1)
-	state, _, _, _ = env.step(5, -1)
-	state, _, _, _ = env.step(1, 1)
+	state, _, _, _, _ = env.step(0, -1)
+	state, _, _, _, _ = env.step(3, 1)
+	state, _, _, _, _ = env.step(6, -1)
+	state, _, _, _, _ = env.step(4, 1)
+	state, _, _, _, _ = env.step(5, -1)
+	state, _, _, _, _ = env.step(1, 1)
 	return
 
 print("Pre-play moves:")
-state = env.reset()
+state, _ = env.reset()
 preplay_moves()
 env.render(mode=None)
 
@@ -327,7 +339,7 @@ def visualize_Q():
 				websocket.send(json.dumps(["Q-vals", logits]))
 
 def play_1_game_with_human():
-	state = env.reset()
+	state, _ = env.reset()
 	preplay_moves()
 	done = False
 	user = -1
@@ -336,13 +348,17 @@ def play_1_game_with_human():
 		if user == -1:
 			print("X's move =", end='')		# will be printed by RL.choose_action()
 			action1 = RL.choose_action(state)
-			state1, reward1, done, rtype = env.step(action1, -1)
+			state1, reward1, terminated, truncated, info = env.step(action1, -1)
+			done = terminated or truncated
+			rtype = info.get('reward_type', 'unknown')
 			if done:
 				state = state1
 				reward1 = reward2 = 0
 		elif user == 1:			# human player
 			action2 = int(input("Your move (0-8)? "))
-			state2, reward2, done, rtype = env.step(action2, 1)
+			state2, reward2, terminated, truncated, info = env.step(action2, 1)
+			done = terminated or truncated
+			rtype = info.get('reward_type', 'unknown')
 			r_x = reward1		# reward w.r.t. player X = AI
 			if reward2 > 19.0:
 				r_x -= 20.0
@@ -372,7 +388,7 @@ running_reward = 0.0
 
 while True:
 	i_episode += 1
-	state = env.reset()
+	state, _ = env.reset()
 	# print("**** state =", state)
 	preplay_moves()
 	if RENDER > 0:
@@ -390,13 +406,22 @@ while True:
 			if RENDER & 4:
 				with connect("ws://localhost:5678") as websocket:
 					websocket.send(json.dumps(action1.item()))
-			state1, reward1, done, rtype = env.step(action1, -1)
+			state1, reward1, terminated, truncated, info = env.step(action1, -1)
+			done = terminated or truncated
+			rtype = info.get('reward_type', 'unknown')
 			if done:		# otherwise wait for random player to react
-				RL.replay_buffer.push(state, action1, reward1, RL.endState, done)	# state1 = endState
+				if config == 0:
+					# Q-table (plain): use actual terminal state
+					RL.replay_buffer.push(state, action1, reward1, state1, done)
+				else:
+					# Q-table (sym) or DQN: use generic endState
+					RL.replay_buffer.push(state, action1, reward1, RL.endState, done)	# state1 = endState
 		elif user == 1:		# random player
 			# NOTE: random player never chooses occupied squares
 			action2 = RL.play_random(state1, env.action_space)
-			state2, reward2, done, rtype = env.step(action2, 1)
+			state2, reward2, terminated, truncated, info = env.step(action2, 1)
+			done = terminated or truncated
+			rtype = info.get('reward_type', 'unknown')
 			r_x = reward1		# reward w.r.t. player X = AI
 			# **** Scoring: AI win > draw > lose > crash
 			#                +20      +10   -20    -30
@@ -405,7 +430,12 @@ while True:
 			elif reward2 > 9.0:	# draw: both players +10
 				r_x += 10.0
 			if done:
-				RL.replay_buffer.push(state, action1, r_x, RL.endState, done)
+				if config == 0:
+					# Q-table (plain): use actual terminal state
+					RL.replay_buffer.push(state, action1, r_x, state2, done)
+				else:
+					# Q-table (sym) or DQN: use generic endState
+					RL.replay_buffer.push(state, action1, r_x, RL.endState, done)
 			else:
 				RL.replay_buffer.push(state, action1, r_x, state2, done)
 			state = state2
@@ -444,8 +474,9 @@ while True:
 	else:
 		loss = None
 	
-	# CRITICAL: Decay epsilon for epsilon-greedy exploration
-	RL.decay_epsilon()
+	# CRITICAL: Decay epsilon for epsilon-greedy exploration (DQN only)
+	if config not in [0, 1]:
+		RL.decay_epsilon()
 
 	if command:				# wait till end-of-game now to execute command
 		print(end="\x1b[0m")
@@ -458,8 +489,9 @@ while True:
 			command = None
 
 	if i_episode % 100 == 0:
-		# CRITICAL: Sync target network for stable Q-learning
-		RL.sync()
+		# CRITICAL: Sync target network for stable Q-learning (DQN only)
+		if config not in [0, 1]:
+			RL.sync()
 		
 		if RENDER > 0:
 			with connect("ws://localhost:5678") as websocket:
@@ -469,7 +501,8 @@ while True:
 
 		rr = round(running_reward, 5)
 		print("\n\t\x1b[0m", i_episode, "Running reward:", "\x1b[32m" if rr >= 0.0 else "\x1b[31m", rr, "\x1b[0m")	#, "lr =", RL.lr)
-		print(f"\tEpsilon: {RL.epsilon:.4f}", end="")
+		if config not in [0, 1]:
+			print(f"\tEpsilon: {RL.epsilon:.4f}", end="")
 		if loss is not None:
 			print(f", Loss: {loss:.4f}", end="")
 		print()
@@ -514,7 +547,10 @@ while True:
 
 				print("New log file opened:", log_name)
 		else:
-			call(['play', '-n', '-q', 'synth', '0.05', 'sine', '2300', 'gain', '-25'])
+			try:
+				call(['play', '-n', '-q', 'synth', '0.05', 'sine', '2300', 'gain', '-25'])
+			except FileNotFoundError:
+				pass  # sox not installed, skip sound
 
 endTime = datetime.now()
 timeStamp = endTime.strftime("%d-%m-%Y(%H:%M)")

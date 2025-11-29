@@ -14,7 +14,6 @@ import json
 class TicTacToeEnv(gym.Env):
 
 	def __init__(self, symbols=[-1,1], board_size=3, win_size=3):
-		super(TicTacToeEnv, self).__init__()
 		self.win_size = win_size
 		self.board_size = board_size
 		self.symbols = {
@@ -27,6 +26,11 @@ class TicTacToeEnv(gym.Env):
 		self.state_space = spaces.Box( \
 			numpy.float32(numpy.array([-1,-1,-1,-1,-1,-1,-1,-1,-1])), \
 			numpy.float32(numpy.array([+1,+1,+1,+1,+1,+1,+1,+1,+1])) )
+		
+		# Gym 0.26+ requires observation_space to be defined before super().__init__()
+		self.observation_space = self.state_space
+		
+		super(TicTacToeEnv, self).__init__()
 
 		self.rewards = {
 			'in_game': 0.0,
@@ -35,9 +39,11 @@ class TicTacToeEnv(gym.Env):
 			'bad': -30.0
 			}
 
-	def reset(self):
+	def reset(self, seed=None, options=None):
+		if seed is not None:
+			self.action_space.seed(seed)
 		self.state_vector = (self.board_size * self.board_size) * [0]
-		return numpy.array(self.state_vector)
+		return numpy.array(self.state_vector), {}
 
 	# --------------------------------- GAME STATE CHECK -------------------------------------
 	def is_win(self):
@@ -139,7 +145,7 @@ class TicTacToeEnv(gym.Env):
 				reward_type = 'in_game'
 				done = False
 
-		return numpy.array(self.state_vector), self.rewards[reward_type], done, reward_type # , {'already_used_position': is_position_already_used}
+		return numpy.array(self.state_vector), self.rewards[reward_type], done, False, {'reward_type': reward_type}
 
 	# -------------------------------------- DISPLAY ----------------------------------------
 	def get_state_vector_to_display(self):
@@ -178,5 +184,6 @@ class TicTacToeEnv(gym.Env):
 		return None
 
 	def seed(self, seed=None):
-		self.action_space.np_random.seed(seed)
+		if seed is not None:
+			self.action_space.seed(seed)
 		return [seed]

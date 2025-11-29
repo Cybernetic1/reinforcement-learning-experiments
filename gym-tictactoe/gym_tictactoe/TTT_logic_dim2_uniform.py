@@ -21,6 +21,12 @@ import json
 class TicTacToeEnv(gym.Env):
 
 	def __init__(self, symbols, board_size=3, win_size=3):
+		# Set observation_space BEFORE super().__init__() for gym 0.26+ compatibility
+		self.observation_space = spaces.Box(
+			numpy.array(numpy.float32( [-1] * 9 * 2)), \
+			numpy.array(numpy.float32( [1] * 9 * 2))  )
+		self.action_space = spaces.Discrete(9)  # Default, will be overridden below
+		
 		super(TicTacToeEnv, self).__init__()
 
 		self.win_size = win_size
@@ -47,14 +53,18 @@ class TicTacToeEnv(gym.Env):
 			'bad_position': -30.0
 			}
 
-	def reset(self):
+	def reset(self, seed=None, options=None):
+		# Gym 0.26+ compatibility: reset() returns (obs, info)
+		if seed is not None:
+			self.seed(seed)
+		
 		self.board = (self.board_size * self.board_size) * [0]
 		# fill state vector with 9 empty squares:
 		self.state_vector = []
 		for i in range(0, self.board_size * self.board_size):
 			self.state_vector += [0, (i - 4) / 4]
 		self.index = 0	  # current state_vector position to write into
-		return numpy.array(self.state_vector)
+		return numpy.array(self.state_vector), {}
 
 	# -------------------- GAME STATE CHECK -------------------------
 	def is_win(self):
@@ -161,10 +171,11 @@ class TicTacToeEnv(gym.Env):
 
 		self.index += 2
 
+		# Gym 0.26+ compatibility: step() returns (obs, reward, terminated, truncated, info)
 		# state_vector2 = self.state_vector.copy()
 		# random.shuffle(state_vector2)
 		return numpy.array(self.state_vector), \
-			self.rewards[reward_type], done, reward_type
+			self.rewards[reward_type], done, False, {'reward_type': reward_type}
 
 	# ----------------------------- DISPLAY -----------------------------
 	def get_grid_to_display(self):
@@ -203,5 +214,6 @@ class TicTacToeEnv(gym.Env):
 		return None
 
 	def seed(self, seed=None):
-		self.action_space.np_random.seed(seed)
+		# Gym 0.26+ compatibility: seed the action space directly
+		self.action_space.seed(seed)
 		return [seed]

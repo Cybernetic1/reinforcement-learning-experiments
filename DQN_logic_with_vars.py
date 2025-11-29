@@ -39,7 +39,19 @@ import random
 import numpy as np
 np.random.seed(7)
 torch.manual_seed(7)
-device = torch.device("cpu")
+
+# Auto-detect CUDA availability with fallback
+try:
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        torch.cuda.init()  # Force CUDA initialization
+        print(f"Using device: {device} ({torch.cuda.get_device_name(0)})")
+    else:
+        device = torch.device("cpu")
+        print(f"Using device: {device} (CUDA not available)")
+except Exception as e:
+    device = torch.device("cpu")
+    print(f"Using device: {device} (CUDA error: {e})")
 
 import types	# for types.SimpleNamespace
 
