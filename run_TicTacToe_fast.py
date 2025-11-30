@@ -104,11 +104,11 @@ try:
                 print(f" | Loss: {loss:.4f}", end="")
             print()
 
-        # Save checkpoint every 1000 episodes
-        if i_episode % 1000 == 0:
+        # Save checkpoint every 5000 episodes
+        if i_episode % 5000 == 0:
             timestamp = time.strftime("%d-%m-%Y(%H:%M)")
             config, n_params = RL.net_info()
-            fname = f"model.DQN.logic_with_vars.AlgebraicLogic.{config}.{timestamp}.dict"
+            fname = f"model.DQN.logic_with_vars.AlgebraicLogic.{config}.{timestamp}"	# no need to add .dict
             RL.save_net(fname)
             print(f"✓ Model saved: {fname}")
 

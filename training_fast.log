@@ -2403,3 +2403,18 @@ Episode 108750 | Reward: -11.950 | Epsilon: 0.0100 | Loss: 459647.7812
 Episode 108800 | Reward: -14.230 | Epsilon: 0.0100 | Loss: 500211.1875
 Episode 108850 | Reward: -11.478 | Epsilon: 0.0100 | Loss: 466737.3438
 Episode 108900 | Reward: -11.683 | Epsilon: 0.0100 | Loss: 354217.2812
+Episode 108950 | Reward:  -9.118 | Epsilon: 0.0100 | Loss: 396119.1250
+Episode 109000 | Reward: -10.822 | Epsilon: 0.0100 | Loss: 440454.4375
+Model saved to PyTorch_models/model.DQN.logic_with_vars.AlgebraicLogic.AlgebraicLogic.M=8x(J=2,I=3,L=2).30-11-2025(08:21).dict.dict
+✓ Model saved: model.DQN.logic_with_vars.AlgebraicLogic.AlgebraicLogic.M=8x(J=2,I=3,L=2).30-11-2025(08:21).dict
+Episode 109050 | Reward: -10.827 | Epsilon: 0.0100 | Loss: 403061.9062
+Episode 109100 | Reward: -13.147 | Epsilon: 0.0100 | Loss: 351861.8438
+Episode 109150 | Reward:  -9.029 | Epsilon: 0.0100 | Loss: 455147.7188
+Episode 109200 | Reward:  -9.859 | Epsilon: 0.0100 | Loss: 489397.0938
+Episode 109250 | Reward: -10.103 | Epsilon: 0.0100 | Loss: 468843.0000
+Episode 109300 | Reward: -12.180 | Epsilon: 0.0100 | Loss: 415592.8750
+Episode 109350 | Reward:  -7.788 | Epsilon: 0.0100 | Loss: 469930.3750
+Episode 109400 | Reward: -10.678 | Epsilon: 0.0100 | Loss: 311414.6250
+Episode 109450 | Reward: -10.208 | Epsilon: 0.0100 | Loss: 364101.5625
+Episode 109500 | Reward: -10.729 | Epsilon: 0.0100 | Loss: 418943.7188
+Episode 109550 | Reward:  -9.171 | Epsilon: 0.0100 | Loss: 458696.1875
