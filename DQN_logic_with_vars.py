@@ -86,9 +86,9 @@ class ReplayBuffer:
     def __len__(self):
         return len(self.buffer)
 
-class AlgelogicNetwork(nn.Module):
+class LogicNetwork(nn.Module):
     """
-    Algebraic Logic Network - Novel architecture combining symbolic reasoning with neural learning
+    Logic Network - Novel architecture combining symbolic reasoning with neural learning
     
     KEY INNOVATION: Replaces traditional MLP Q-networks with learnable logical rules
     that can perform fuzzy pattern matching and variable unification.
@@ -129,7 +129,7 @@ class AlgelogicNetwork(nn.Module):
     """
 
     def __init__(self, input_dim, action_dim, activation=F.relu, learning_rate=3e-3):
-        super(AlgelogicNetwork, self).__init__()
+        super(LogicNetwork, self).__init__()
 
         # LOGICAL ARCHITECTURE HYPERPARAMETERS
         # These define the "reasoning capacity" of the network
@@ -233,7 +233,7 @@ class AlgelogicNetwork(nn.Module):
         """
         # When γ≈1 (variable mode): match penalty approaches 0 (perfect match)
         # When γ≈0 (constant mode): match penalty = actual difference
-        # match_degree = AlgelogicNetwork.sigmoid(γ) * (rule_constant - wm_value)**2
+        # match_degree = LogicNetwork.sigmoid(γ) * (rule_constant - wm_value)**2
         # return match_degree
 
     def forward(self, state):
@@ -361,7 +361,7 @@ class AlgelogicNetwork(nn.Module):
 
 class DQN():
     """
-    Deep Q-Network with Algebraic Logic Network architecture
+    Deep Q-Network with Logic Network architecture
     
     HYBRID LEARNING APPROACH:
     This combines two types of learning:
@@ -394,8 +394,8 @@ class DQN():
     - Soft target updates (Polyak averaging)
     """
     def __init__(self, action_dim, state_dim, learning_rate=3e-4, gamma=0.9):
-        self.anet = AlgelogicNetwork(state_dim, action_dim, learning_rate=learning_rate).to(device)
-        self.tnet = AlgelogicNetwork(state_dim, action_dim, learning_rate=learning_rate).to(device)
+        self.anet = LogicNetwork(state_dim, action_dim, learning_rate=learning_rate).to(device)
+        self.tnet = LogicNetwork(state_dim, action_dim, learning_rate=learning_rate).to(device)
         self.replay_buffer = ReplayBuffer(capacity=10000)
         self.gamma = gamma
         self.lr = learning_rate
@@ -489,14 +489,14 @@ class DQN():
         os.makedirs("PyTorch_models", exist_ok=True)
         filepath = f"PyTorch_models/{filename}.dict"
         torch.save(self.anet.state_dict(), filepath)
-        print(f"Model saved to {filepath}")
+        print(f"Logic model saved to {filepath}")
 
     def load_net(self, filename):
         """Load the action network (anet) parameters from file and sync to target network"""
         filepath = f"PyTorch_models/{filename}.dict"
         self.anet.load_state_dict(torch.load(filepath))
         self.sync()  # Also update target network
-        print(f"Model loaded from {filepath}")
+        print(f"Logic model loaded from {filepath}")
 
     def display_rules(self):
         """Display the learned logical rules in human-readable format"""
@@ -605,7 +605,7 @@ class DQN():
         params_per_rule = body_params + head_params + constant_params + gamma_params
         total_params = M * params_per_rule
         
-        topology = f"AlgebraicLogic.M={M}x(J={J},I={I},L={L})"
+        topology = f"Logic.M={M}x(J={J},I={I},L={L})"
         return (topology, total_params)
 
     def play_random(self, state, action_space):

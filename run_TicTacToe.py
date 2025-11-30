@@ -34,7 +34,7 @@ print("25. PyTorch\tDQN\tloop symNN\t\tlogic, dim2")
 print("26. PyTorch\tDQN\tshrink until fail\tlogic, dim2")
 print("27. PyTorch\tDQN\tshrink symNN\t\tlogic, dim2")
 print("28. PyTorch\tDQN\tlogic-with-vars\t\tlogic, dim2")
-print("29. PyTorch\tDQN\trelation-graph\t\tlogic, dim2")
+print("29. PyTorch\tDQN\t3-layer-logic\t\tlogic, dim2")
 config = int(input("Choose config: ") or '0')
 
 import gym
@@ -92,8 +92,13 @@ elif config == 28:
 	from DQN_logic_with_vars import DQN, ReplayBuffer
 	tag = "DQN.logic_with_vars"
 elif config == 29:
-	from DQN_relation_graph import DQN, ReplayBuffer
-	tag = "DQN.relation_graph"
+	import importlib.util
+	spec = importlib.util.spec_from_file_location("logic.hierarchical", "./DQN_3_layer_logic.py")
+	logic_hierarchical = importlib.util.module_from_spec(spec)
+	spec.loader.exec_module(logic_hierarchical)
+	DQN = logic_hierarchical.DQN
+	ReplayBuffer = logic_hierarchical.ReplayBuffer
+	tag = "DQN.3_layer_logic"
 
 import sys
 sys.path.insert(0, './gym-tictactoe')
