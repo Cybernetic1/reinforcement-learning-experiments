@@ -133,7 +133,7 @@ class AlgelogicNetwork(nn.Module):
 
         # LOGICAL ARCHITECTURE HYPERPARAMETERS
         # These define the "reasoning capacity" of the network
-        self.M = 4	# number of rules (strategic patterns to learn) - reduced for faster convergence
+        self.M = 8	# number of rules (strategic patterns to learn) - increased to 8 for more capacity
         self.J = 2	# number of propositions per rule premise
         self.I = 3	# number of variable slots per rule (for capture/binding)
         self.L = 2	# length of each proposition vector (player + position for TicTacToe)
@@ -167,11 +167,11 @@ class AlgelogicNetwork(nn.Module):
             γs = torch.FloatTensor(self.J, self.L).uniform_(0,1)
             rule.γs = nn.Parameter(γs)
             
-            # SLOT SELECTORS: Decide which variable slot to use for each proposition element
-            # σ[j][l] selects slot for proposition element l in premise j
-            # Values in range [0, I-1] (I=number of variable slots)
-            ss = torch.LongTensor(self.J, self.L).random_(0, self.I)
-            rule.slot_selector = nn.Parameter(ss)
+            # SLOT SELECTORS: Layers that decide which variable slot to use
+            # σ[j] maps proposition to slot assignments
+            rule.slot_selector = nn.ModuleList()
+            for j_idx in range(self.J):
+                rule.slot_selector.append(nn.Linear(self.L, self.L * self.I))
             
             self.rules.append(rule)
 
