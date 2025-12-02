@@ -159,8 +159,9 @@ class ConcreteLayer(nn.Module):
             pattern_strength = torch.exp(-match_scores.min(dim=1).values)  # [batch]
             spatial_focus = matched_square[:, 1]  # Use position component
             
-            concrete_features[:, i, 0] = pattern_strength
-            concrete_features[:, i, 1] = spatial_focus
+            # Clamp outputs to prevent explosion in next layer
+            concrete_features[:, i, 0] = torch.clamp(pattern_strength, 0.0, 1.0)
+            concrete_features[:, i, 1] = torch.clamp(spatial_focus, -1.0, 1.0)
         
         return concrete_features
 
@@ -193,13 +194,20 @@ class AbstractionLayer(nn.Module):
             # Each rule has 2 premises for combining concrete features
             rule.body = nn.ModuleList()
             for j in range(self.J):
-                rule.body.append(nn.Linear(self.L, self.variables))
+                body_layer = nn.Linear(self.L, self.variables)
+                # Initialize body weights smaller
+                nn.init.xavier_uniform_(body_layer.weight, gain=0.1)
+                nn.init.constant_(body_layer.bias, 0.0)
+                rule.body.append(body_layer)
             
             # Head network: variables → strategic concept [value, preference]
             rule.head = nn.Linear(self.variables, self.L)
+            # Initialize head weights smaller
+            nn.init.xavier_uniform_(rule.head.weight, gain=0.1)
+            nn.init.constant_(rule.head.bias, 0.0)
             
-            # Templates for matching concrete features
-            templates = torch.FloatTensor(self.J, self.L).uniform_(0, 1)
+            # Templates for matching concrete features (smaller initial values)
+            templates = torch.FloatTensor(self.J, self.L).uniform_(-0.5, 0.5)
             rule.templates = nn.Parameter(templates)
             
             # Cylindrification factors
@@ -249,6 +257,8 @@ class AbstractionLayer(nn.Module):
             
             # Generate strategic concept from captured variables
             strategic_concept = rule.head(captured_vars)  # [batch, 2]
+            # Clamp strategic concepts to prevent explosion
+            strategic_concept = torch.clamp(strategic_concept, -5.0, 5.0)
             strategic_concepts[:, i, :] = strategic_concept
         
         return strategic_concepts
@@ -277,6 +287,9 @@ class ActionLayer(nn.Module):
         for square in range(output_actions):
             # Each rule weights strategic concepts to produce Q-value for this square
             rule = nn.Linear(input_props * self.L, 1)  # 6*2=12 inputs → 1 Q-value
+            # Initialize with smaller weights to prevent early explosion
+            nn.init.xavier_uniform_(rule.weight, gain=0.1)
+            nn.init.constant_(rule.bias, 0.0)
             self.action_rules.append(rule)
     
     def forward(self, strategic_concepts):
@@ -379,18 +392,18 @@ class DQN:
     All layers trained end-to-end via backpropagation from TD-error.
     """
     
-    def __init__(self, action_dim=9, state_dim=18, learning_rate=1e-3, gamma=0.9):
+    def __init__(self, action_dim=9, state_dim=18, learning_rate=3e-5, gamma=0.9):
         self.anet = LogicNetwork(state_dim, action_dim).to(device)
         self.tnet = LogicNetwork(state_dim, action_dim).to(device)
         self.replay_buffer = ReplayBuffer(capacity=10000)
         self.gamma = gamma
         self.lr = learning_rate  # Add missing lr attribute
-        self.optimizer = optim.Adam(self.anet.parameters(), lr=learning_rate)
+        self.optimizer = optim.Adam(self.anet.parameters(), lr=learning_rate, weight_decay=1e-4)  # Add weight decay
         
         # Exploration
         self.epsilon = 1.0
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
+        self.epsilon_min = 0.05  # Keep more exploration
+        self.epsilon_decay = 0.9995  # Slower decay
         
         # Terminal state for TicTacToe
         self.endState = [
@@ -431,16 +444,21 @@ class DQN:
         q_values = self.anet(state)
         next_q_values = self.tnet(next_state)
         
+        # Tighter clamping to prevent explosion
+        q_values = torch.clamp(q_values, -5.0, 5.0)
+        next_q_values = torch.clamp(next_q_values, -5.0, 5.0)
+        
         q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
         next_q_value = next_q_values.max(1)[0]
         expected_q_value = reward + self.gamma * next_q_value * (1 - done)
         
-        loss = (q_value - expected_q_value.detach()).pow(2).mean()
+        # Use Huber loss (more robust to outliers than MSE)
+        loss = F.smooth_l1_loss(q_value, expected_q_value.detach())
         
-        # Backprop through all three layers
+        # Backprop through all three layers with stronger gradient clipping
         self.optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.anet.parameters(), 1.0)
+        torch.nn.utils.clip_grad_norm_(self.anet.parameters(), 0.5)  # Stronger clipping
         self.optimizer.step()
         
         return loss.item()
@@ -467,7 +485,7 @@ class DQN:
     def net_info(self):
         """Network topology info"""
         total_params = sum(p.numel() for p in self.anet.parameters())
-        topology = "concrete[9→12].abstract[12→6].action[6→9]"
+        topology = "concrete(9-12).abstract(12-6).action(6-9)"
         return (topology, total_params)
     
     def play_random(self, state, action_space):
@@ -494,6 +512,130 @@ class DQN:
         
         print(f"\nTotal parameters: {sum(p.numel() for p in self.anet.parameters())}")
         print("="*80 + "\n")
+    
+    def display_rules(self, sample_state=None):
+        """Detailed examination of learned rules"""
+        if sample_state is None:
+            # Use empty board as sample
+            sample_state = self.endState
+        
+        print("\n" + "="*100)
+        print("DETAILED RULE ANALYSIS")
+        print("="*100)
+        
+        # Convert sample state to tensor
+        state_tensor = torch.FloatTensor(sample_state).unsqueeze(0).to(device)
+        
+        with torch.no_grad():
+            # Get activations at each layer
+            board_props = state_tensor.reshape(1, 9, 2)
+            concrete_features = self.anet.concrete(board_props)
+            strategic_concepts = self.anet.abstraction(concrete_features)
+            q_values = self.anet.action(strategic_concepts)
+            
+            print(f"\nSample state: {sample_state[:10]}...")  # Show first 10 values
+            print(f"Q-values: {q_values.squeeze().cpu().numpy()}")            
+            print(f"Q-value range: [{q_values.min().item():.3f}, {q_values.max().item():.3f}]")
+            
+            # LAYER 1 ANALYSIS: Concrete patterns
+            print("\n" + "-"*50)
+            print("LAYER 1: CONCRETE PATTERN DETECTORS")
+            print("-"*50)
+            
+            for i, rule in enumerate(self.anet.concrete.rules):
+                template = rule.template.detach().cpu().numpy()
+                gammas = rule.γs.detach().cpu().numpy()
+                
+                # Compute activation for this rule on sample state
+                activation = concrete_features[0, i, 0].item()  # Pattern strength
+                focus = concrete_features[0, i, 1].item()       # Spatial focus
+                
+                print(f"  Rule {i+1:2d}: Template=[{template[0]:+.2f},{template[1]:+.2f}] "
+                      f"γ=[{gammas[0]:.2f},{gammas[1]:.2f}] "
+                      f"→ strength={activation:.3f}, focus={focus:.3f}")
+                
+                if abs(template[0]) > 2 or abs(template[1]) > 2:
+                    print(f"    ⚠️  LARGE TEMPLATE VALUES detected!")
+                if gammas[0] > 0.9 or gammas[1] > 0.9:
+                    print(f"    📝 Variable mode (γ≈1)")
+                elif gammas[0] < 0.1 and gammas[1] < 0.1:
+                    print(f"    🔒 Constant mode (γ≈0)")
+            
+            # LAYER 2 ANALYSIS: Strategic concepts
+            print("\n" + "-"*50)
+            print("LAYER 2: STRATEGIC CONCEPT FORMATION")
+            print("-"*50)
+            
+            for i, rule in enumerate(self.anet.abstraction.rules):
+                concept_value = strategic_concepts[0, i, 0].item()
+                concept_preference = strategic_concepts[0, i, 1].item()
+                
+                print(f"  Concept {i+1}: value={concept_value:+.3f}, preference={concept_preference:+.3f}")
+                
+                # Check rule parameters
+                templates = rule.templates.detach().cpu().numpy()
+                gammas = rule.γs.detach().cpu().numpy()
+                head_weights = rule.head.weight.detach().cpu().numpy()
+                head_bias = rule.head.bias.detach().cpu().numpy()
+                
+                print(f"    Templates: {templates.flatten()}")
+                print(f"    Head weights norm: {np.linalg.norm(head_weights):.3f}")
+                print(f"    Head bias: {head_bias}")
+                
+                if np.any(np.abs(templates) > 5):
+                    print(f"    ⚠️  EXPLOSIVE TEMPLATES!")
+                if np.linalg.norm(head_weights) > 10:
+                    print(f"    ⚠️  LARGE HEAD WEIGHTS!")
+            
+            # LAYER 3 ANALYSIS: Action preferences
+            print("\n" + "-"*50)
+            print("LAYER 3: ACTION EVALUATORS")
+            print("-"*50)
+            
+            for i, rule in enumerate(self.anet.action.action_rules):
+                q_val = q_values[0, i].item()
+                weights = rule.weight.detach().cpu().numpy().flatten()
+                bias = rule.bias.detach().cpu().numpy()[0]
+                
+                print(f"  Square {i}: Q={q_val:+.3f} | bias={bias:+.3f} | weights_norm={np.linalg.norm(weights):.3f}")
+                
+                if abs(q_val) > 20:
+                    print(f"    ⚠️  EXTREME Q-VALUE!")
+                if np.linalg.norm(weights) > 5:
+                    print(f"    ⚠️  LARGE WEIGHTS!")
+                if abs(bias) > 5:
+                    print(f"    ⚠️  LARGE BIAS!")
+        
+        print("\n" + "="*100)
+        
+    def check_gradient_flow(self):
+        """Check if gradients are flowing properly"""
+        print("\n" + "="*60)
+        print("GRADIENT FLOW ANALYSIS")
+        print("="*60)
+        
+        total_norm = 0
+        param_count = 0
+        
+        for name, param in self.anet.named_parameters():
+            if param.grad is not None:
+                grad_norm = param.grad.data.norm(2).item()
+                total_norm += grad_norm ** 2
+                param_count += 1
+                
+                if grad_norm > 1.0:
+                    print(f"⚠️  {name}: grad_norm={grad_norm:.6f} (HIGH)")
+                elif grad_norm > 0.1:
+                    print(f"✓  {name}: grad_norm={grad_norm:.6f}")
+                else:
+                    print(f"📉 {name}: grad_norm={grad_norm:.6f} (low)")
+            else:
+                print(f"❌ {name}: NO GRADIENTS")
+        
+        total_norm = (total_norm) ** 0.5
+        print(f"\nTotal gradient norm: {total_norm:.6f}")
+        print(f"Parameters with gradients: {param_count}")
+        print("="*60)
 
 if __name__ == "__main__":
     # Quick test of the 3-layer architecture - runs when executed directly
@@ -512,5 +654,14 @@ if __name__ == "__main__":
     # Display architecture
     dqn.display_architecture()
     
+    # NEW: Debug the initial rules before training
+    print("\\n" + "="*50)
+    print("INITIAL RULE ANALYSIS")
+    print("="*50)
+    dqn.debug_rules(empty_board)
+    
     print("3-Layer Logic Network test completed!")
     print("Ready for import as logic.hierarchical module")
+    print("\\nTo debug rules during training, call:")
+    print("  dqn.debug_rules()        # Examine all learned rules")
+    print("  dqn.check_gradient_flow() # Check gradient issues")

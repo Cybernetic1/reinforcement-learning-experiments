@@ -1,0 +1,106 @@
+====================================================================================================
+DETAILED RULE ANALYSIS
+====================================================================================================
+
+Sample state: [0, -1.0, 0, -0.75, 0, -0.5, 0, -0.25, 0, 0.0]...
+Q-values: [19105.31    9618.965  11828.837   8615.862   6829.7617  4573.3066
+  2894.2488  9397.876   5361.243 ]
+Q-value range: [2894.249, 19105.311]
+
+--------------------------------------------------
+LAYER 1: CONCRETE PATTERN DETECTORS
+--------------------------------------------------
+  Rule  1: Template=[+0.00,-0.28] γ=[-0.00,1.00] → strength=1.000, focus=0.000
+    📝 Variable mode (γ≈1)
+  Rule  2: Template=[+0.00,+0.45] γ=[-0.02,1.01] → strength=1.000, focus=0.000
+    📝 Variable mode (γ≈1)
+  Rule  3: Template=[+0.00,-0.04] γ=[-0.02,1.00] → strength=1.000, focus=0.000
+    📝 Variable mode (γ≈1)
+  Rule  4: Template=[+1.76,+0.32] γ=[-0.02,-0.02] → strength=0.046, focus=0.188
+    🔒 Constant mode (γ≈0)
+  Rule  5: Template=[-0.33,+1.90] γ=[1.00,-0.00] → strength=0.448, focus=0.757
+    📝 Variable mode (γ≈1)
+  Rule  6: Template=[-0.00,+0.19] γ=[-0.02,-0.01] → strength=0.996, focus=0.111
+    🔒 Constant mode (γ≈0)
+  Rule  7: Template=[-0.34,+1.90] γ=[1.01,-0.00] → strength=0.448, focus=0.757
+    📝 Variable mode (γ≈1)
+  Rule  8: Template=[+0.00,-0.24] γ=[-0.02,1.01] → strength=1.000, focus=0.000
+    📝 Variable mode (γ≈1)
+  Rule  9: Template=[+0.00,-0.42] γ=[-0.01,1.00] → strength=1.000, focus=0.000
+    📝 Variable mode (γ≈1)
+  Rule 10: Template=[+0.00,+0.45] γ=[-0.02,1.00] → strength=1.000, focus=0.000
+    📝 Variable mode (γ≈1)
+  Rule 11: Template=[+0.00,+0.65] γ=[-0.02,1.01] → strength=1.000, focus=0.000
+    📝 Variable mode (γ≈1)
+  Rule 12: Template=[+0.00,+0.46] γ=[-0.02,1.01] → strength=1.000, focus=0.000
+    📝 Variable mode (γ≈1)
+
+--------------------------------------------------
+LAYER 2: STRATEGIC CONCEPT FORMATION
+--------------------------------------------------
+  Concept 1: value=+470.347, preference=+464.820
+    Templates: [-0.27389753  0.828417    2.373008   -6.782919  ]
+    Head weights norm: 17.814
+    Head bias: [3.889329  3.5495703]
+    ⚠️  EXPLOSIVE TEMPLATES!
+    ⚠️  LARGE HEAD WEIGHTS!
+  Concept 2: value=-458.790, preference=-438.004
+    Templates: [4.938466   0.24706364 0.58982545 0.51351756]
+    Head weights norm: 20.236
+    Head bias: [-3.8044639 -2.8815434]
+    ⚠️  LARGE HEAD WEIGHTS!
+  Concept 3: value=-146.876, preference=+150.897
+    Templates: [-6.6886854  0.6307334 -6.627722   0.4240446]
+    Head weights norm: 25.356
+    Head bias: [-1.1615596 -0.1918316]
+    ⚠️  EXPLOSIVE TEMPLATES!
+    ⚠️  LARGE HEAD WEIGHTS!
+  Concept 4: value=-466.830, preference=-485.005
+    Templates: [2.608702   0.517987   1.2355483  0.18620084]
+    Head weights norm: 20.972
+    Head bias: [-3.2707705 -3.9561937]
+    ⚠️  LARGE HEAD WEIGHTS!
+  Concept 5: value=+85.753, preference=+90.097
+    Templates: [-8.857506    0.24804246 -9.087738    0.4906578 ]
+    Head weights norm: 14.917
+    Head bias: [0.812075  1.8572129]
+    ⚠️  EXPLOSIVE TEMPLATES!
+    ⚠️  LARGE HEAD WEIGHTS!
+  Concept 6: value=-259.219, preference=-280.431
+    Templates: [ 1.3172911   0.8444117  -3.9975455  -0.37311867]
+    Head weights norm: 16.738
+    Head bias: [-2.182648  -2.8289673]
+    ⚠️  LARGE HEAD WEIGHTS!
+
+--------------------------------------------------
+LAYER 3: ACTION EVALUATORS
+--------------------------------------------------
+  Square 0: Q=+19105.311 | bias=+3.389 | weights_norm=16.935
+    ⚠️  EXTREME Q-VALUE!
+    ⚠️  LARGE WEIGHTS!
+  Square 1: Q=+9618.965 | bias=+1.601 | weights_norm=8.451
+    ⚠️  EXTREME Q-VALUE!
+    ⚠️  LARGE WEIGHTS!
+  Square 2: Q=+11828.837 | bias=+1.461 | weights_norm=11.408
+    ⚠️  EXTREME Q-VALUE!
+    ⚠️  LARGE WEIGHTS!
+  Square 3: Q=+8615.862 | bias=+1.468 | weights_norm=7.484
+    ⚠️  EXTREME Q-VALUE!
+    ⚠️  LARGE WEIGHTS!
+  Square 4: Q=+6829.762 | bias=+0.322 | weights_norm=6.275
+    ⚠️  EXTREME Q-VALUE!
+    ⚠️  LARGE WEIGHTS!
+  Square 5: Q=+4573.307 | bias=+0.271 | weights_norm=5.070
+    ⚠️  EXTREME Q-VALUE!
+    ⚠️  LARGE WEIGHTS!
+  Square 6: Q=+2894.249 | bias=+1.113 | weights_norm=5.176
+    ⚠️  EXTREME Q-VALUE!
+    ⚠️  LARGE WEIGHTS!
+  Square 7: Q=+9397.876 | bias=+2.016 | weights_norm=16.094
+    ⚠️  EXTREME Q-VALUE!
+    ⚠️  LARGE WEIGHTS!
+  Square 8: Q=+5361.243 | bias=+0.223 | weights_norm=10.167
+    ⚠️  EXTREME Q-VALUE!
+    ⚠️  LARGE WEIGHTS!
+
+====================================================================================================

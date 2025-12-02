@@ -1,0 +1,70 @@
+--------------------------------------------------
+LAYER 1: CONCRETE PATTERN DETECTORS
+--------------------------------------------------
+  Rule  1: Template=[-0.18,-0.18] γ=[-0.00,-0.00] → strength=0.964, focus=-0.109
+    🔒 Constant mode (γ≈0)
+  Rule  2: Template=[-0.19,-0.19] γ=[-0.00,-0.00] → strength=0.962, focus=-0.110
+    🔒 Constant mode (γ≈0)
+  Rule  3: Template=[-0.17,-0.18] γ=[-0.00,-0.01] → strength=0.967, focus=-0.107
+    🔒 Constant mode (γ≈0)
+  Rule  4: Template=[-0.13,-0.16] γ=[-0.00,-0.00] → strength=0.976, focus=-0.098
+    🔒 Constant mode (γ≈0)
+  Rule  5: Template=[-0.07,-0.15] γ=[0.17,-0.01] → strength=0.986, focus=-0.089
+  Rule  6: Template=[-0.19,-0.19] γ=[-0.00,-0.00] → strength=0.960, focus=-0.111
+    🔒 Constant mode (γ≈0)
+  Rule  7: Template=[-1.15,-1.27] γ=[-0.00,-0.00] → strength=0.246, focus=-0.606
+    🔒 Constant mode (γ≈0)
+  Rule  8: Template=[-0.17,-0.18] γ=[-0.00,-0.00] → strength=0.967, focus=-0.107
+    🔒 Constant mode (γ≈0)
+  Rule  9: Template=[-0.20,-0.19] γ=[-0.00,-0.01] → strength=0.958, focus=-0.112
+    🔒 Constant mode (γ≈0)
+  Rule 10: Template=[-0.19,-0.19] γ=[-0.00,-0.01] → strength=0.961, focus=-0.111
+    🔒 Constant mode (γ≈0)
+  Rule 11: Template=[-0.18,-0.18] γ=[-0.00,-0.00] → strength=0.964, focus=-0.109
+    🔒 Constant mode (γ≈0)
+  Rule 12: Template=[-0.19,-0.19] γ=[-0.00,-0.00] → strength=0.962, focus=-0.110
+    🔒 Constant mode (γ≈0)
+
+--------------------------------------------------
+LAYER 2: STRATEGIC CONCEPT FORMATION
+--------------------------------------------------
+  Concept 1: value=+8.639, preference=+8.233
+    Templates: [-1.3161719 -1.2231096 -1.3415213 -1.1088777]
+    Head weights norm: 2.782
+    Head bias: [0.25975582 0.23897819]
+  Concept 2: value=-10.000, preference=-10.000
+    Templates: [-1.5550195  -0.96652776 -1.4567779  -0.959173  ]
+    Head weights norm: 7.665
+    Head bias: [0.49059644 0.28198734]
+  Concept 3: value=-4.401, preference=+4.282
+    Templates: [0.14180082 0.24531838 0.14244543 0.24466354]
+    Head weights norm: 6.604
+    Head bias: [-0.1941271   0.18267758]
+  Concept 4: value=-5.199, preference=-5.154
+    Templates: [0.01841403 0.19034064 0.02889335 0.1843603 ]
+    Head weights norm: 2.989
+    Head bias: [-0.1393172  -0.18275535]
+  Concept 5: value=+6.655, preference=+6.551
+    Templates: [0.47015646 0.01087091 0.46208116 0.03714658]
+    Head weights norm: 2.843
+    Head bias: [0.22468875 0.21068509]
+  Concept 6: value=-0.406, preference=-0.384
+    Templates: [ 0.10895663 -0.07319883  0.02080448 -0.09082014]
+    Head weights norm: 0.787
+    Head bias: [-0.04915004 -0.05429753]
+
+--------------------------------------------------
+LAYER 3: ACTION EVALUATORS
+--------------------------------------------------
+  Square 0: Q=+8.998 | bias=+0.021 | weights_norm=0.414
+  Square 1: Q=+8.979 | bias=+0.020 | weights_norm=0.407
+  Square 2: Q=+7.215 | bias=+0.016 | weights_norm=0.381
+  Square 3: Q=+8.619 | bias=+0.130 | weights_norm=1.017
+  Square 4: Q=+1.033 | bias=+0.036 | weights_norm=0.370
+  Square 5: Q=+15.280 | bias=-0.011 | weights_norm=1.347
+  Square 6: Q=+6.766 | bias=-0.253 | weights_norm=1.769
+  Square 7: Q=+7.484 | bias=-0.014 | weights_norm=4.244
+  Square 8: Q=+12.965 | bias=-0.135 | weights_norm=5.097
+    ⚠️  LARGE WEIGHTS!
+
+====================================================================================================
