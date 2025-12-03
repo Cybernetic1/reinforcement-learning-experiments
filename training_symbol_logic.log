@@ -1,0 +1,24 @@
+nohup: ignoring input
+Using device: cpu
+Symbolic Logic Network for Tic-Tac-Toe
+============================================================
+
+Vocabulary size: 33
+Sample symbols: ['at', 'line', 'corner', 'center', 'edge', 'opposite', 'in_line', 'pair', 'threat', 'fork']
+
+Structural propositions: 37
+Sample: [('line', 'row0', 'TL', 'TM'), ('line', 'row0', 'TL', 'TR'), ('line', 'row0', 'TM', 'TR')]
+
+Working memory size: 46
+Board propositions: [('at', 'X', 'TL', 'null'), ('at', 'X', 'TM', 'null'), ('at', 'empty', 'TR', 'null'), ('at', 'empty', 'ML', 'null'), ('at', 'O', 'MM', 'null'), ('at', 'empty', 'MR', 'null'), ('at', 'empty', 'BL', 'null'), ('at', 'O', 'BM', 'null'), ('at', 'empty', 'BR', 'null')]
+
+WM tensor shape: torch.Size([46, 4])
+First proposition indices: tensor([ 0, 12, 15, 32])
+Decoded: ['at', 'X', 'TL', 'null']
+
+============================================================
+TRAINING
+============================================================
+Symbolic Logic Network: 6 rules, 2 premises, 3 variables, 2 iterations
+Symbolic Logic Network: 6 rules, 2 premises, 3 variables, 2 iterations
+Episode     0 | Reward: -30.00 | Length:  4.0 | Epsilon: 0.9950
